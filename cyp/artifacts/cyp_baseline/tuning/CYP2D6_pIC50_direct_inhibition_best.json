@@ -1,0 +1,19 @@
+{
+  "target": "CYP2D6_pIC50_direct_inhibition",
+  "n_trials": 30,
+  "selection_metric": "validation_ST-RAE",
+  "n_estimators": 2000,
+  "early_stopping_rounds": 50,
+  "bagging_freq": 1,
+  "max_depth": "default",
+  "best_trial": {
+    "trial": 14,
+    "validation_ST_RAE": 0.8730698116139428,
+    "best_iteration": 108,
+    "learning_rate": 0.04023960497447025,
+    "num_leaves": 61,
+    "min_child_weight": 0.12177920971919333,
+    "subsample": 0.6037007057447841
+  },
+  "trial_results": "/Users/mileshuang/Desktop/CYP-Challenge-Tutorial/artifacts/cyp_baseline/tuning/CYP2D6_pIC50_direct_inhibition_trials.csv"
+}

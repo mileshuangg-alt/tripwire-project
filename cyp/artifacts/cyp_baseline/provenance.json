@@ -1,0 +1,57 @@
+{
+  "tutorial_repository_commit": "832ae6d6447b07c2c71059de34d07f1130388247",
+  "tutorial_repository_expected_commit": "832ae6d6447b07c2c71059de34d07f1130388247",
+  "hf_dataset": "openadmet/cyp-challenge-train-test",
+  "local_inputs": {
+    "train": {
+      "path": "data/cyp_challenge/cyp-challenge-TRAIN_inhibition.csv",
+      "sha256": "b8f79addd266fb6f9f4c222c5e4e73d926362328b6a8d2841871a54e46bd2278",
+      "rows": 4905,
+      "columns": [
+        "Molecule_Name",
+        "SMILES",
+        "CYP1A2_pIC50_direct_inhibition",
+        "CYP2C9_pIC50_direct_inhibition",
+        "CYP2D6_pIC50_direct_inhibition",
+        "CYP3A4_pIC50_direct_inhibition",
+        "CYP1A2_pIC50_direct_inhibition_conf_high",
+        "CYP2C9_pIC50_direct_inhibition_conf_high",
+        "CYP2D6_pIC50_direct_inhibition_conf_high",
+        "CYP3A4_pIC50_direct_inhibition_conf_high",
+        "CYP1A2_pIC50_direct_inhibition_conf_low",
+        "CYP2C9_pIC50_direct_inhibition_conf_low",
+        "CYP2D6_pIC50_direct_inhibition_conf_low",
+        "CYP3A4_pIC50_direct_inhibition_conf_low",
+        "CYP1A2_pIC50_direct_inhibition_std",
+        "CYP2C9_pIC50_direct_inhibition_std",
+        "CYP2D6_pIC50_direct_inhibition_std",
+        "CYP3A4_pIC50_direct_inhibition_std"
+      ]
+    },
+    "test": {
+      "path": "data/cyp_challenge/cyp-challenge-TEST-BLINDED.csv",
+      "sha256": "a342f8444a8dcb531ca12f3685293f0bd6c36ae9073f491e44a9bc1cc4b741f9",
+      "rows": 750,
+      "columns": [
+        "Molecule_Name",
+        "SMILES"
+      ]
+    }
+  },
+  "frozen_split": {
+    "path": "artifacts/cyp_baseline/molecule_split_assignments.csv",
+    "sha256": "4cea719334a0836e4b9c0d50dd093872d472142b33337eb98362f95aa10c1902",
+    "rows": 4905
+  },
+  "split_parameters": {
+    "fingerprint": "Morgan",
+    "radius": 2,
+    "n_bits": 2048,
+    "clustering": "Butina",
+    "tanimoto_threshold": 0.7,
+    "train_fraction": 0.7,
+    "validation_fraction": 0.15,
+    "test_fraction": 0.15,
+    "random_seed": 20261001
+  }
+}

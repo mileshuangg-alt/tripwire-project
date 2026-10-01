@@ -1,0 +1,53 @@
+{
+  "status": "FINAL_INTERNAL_TEST_EVALUATION",
+  "test_compounds": 736,
+  "isoform_results": {
+    "CYP1A2_pIC50_direct_inhibition": {
+      "n_train": 989,
+      "n_test": 211,
+      "ST-RAE": 0.795530124263526,
+      "MAE": 0.6710209790014506,
+      "R2": 0.23342485714420458,
+      "Spearman_R": 0.5554604565603404,
+      "Kendall_Tau": 0.392462198149402,
+      "prediction_artifact": "/Users/mileshuang/Desktop/CYP-Challenge-Tutorial/artifacts/cyp_baseline/test_evaluation/CYP1A2_pIC50_direct_inhibition_predictions.csv"
+    },
+    "CYP2C9_pIC50_direct_inhibition": {
+      "n_train": 901,
+      "n_test": 192,
+      "ST-RAE": 0.9486531366401376,
+      "MAE": 0.6163640449522414,
+      "R2": 0.06614515953648092,
+      "Spearman_R": 0.30236788921140445,
+      "Kendall_Tau": 0.20517015706806285,
+      "prediction_artifact": "/Users/mileshuang/Desktop/CYP-Challenge-Tutorial/artifacts/cyp_baseline/test_evaluation/CYP2C9_pIC50_direct_inhibition_predictions.csv"
+    },
+    "CYP2D6_pIC50_direct_inhibition": {
+      "n_train": 1045,
+      "n_test": 224,
+      "ST-RAE": 0.9378919703293982,
+      "MAE": 0.6088487140783577,
+      "R2": 0.15166724628304762,
+      "Spearman_R": 0.37064605238258114,
+      "Kendall_Tau": 0.2506856720087549,
+      "prediction_artifact": "/Users/mileshuang/Desktop/CYP-Challenge-Tutorial/artifacts/cyp_baseline/test_evaluation/CYP2D6_pIC50_direct_inhibition_predictions.csv"
+    },
+    "CYP3A4_pIC50_direct_inhibition": {
+      "n_train": 1636,
+      "n_test": 349,
+      "ST-RAE": 0.6739114677520612,
+      "MAE": 0.6340492801732581,
+      "R2": 0.4194744641346977,
+      "Spearman_R": 0.6590947618240446,
+      "Kendall_Tau": 0.477167558730818,
+      "prediction_artifact": "/Users/mileshuang/Desktop/CYP-Challenge-Tutorial/artifacts/cyp_baseline/test_evaluation/CYP3A4_pIC50_direct_inhibition_predictions.csv"
+    }
+  },
+  "macro_results": {
+    "ST-RAE": 0.8389966747462807,
+    "MAE": 0.6325707545513269,
+    "R2": 0.2176779317746077,
+    "Spearman_R": 0.47189228999459265,
+    "Kendall_Tau": 0.33137139648925945
+  }
+}
