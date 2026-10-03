@@ -10,11 +10,15 @@ from cyp002_config import (
     CYP002ModelConfig,
 )
 from multitask_losses import TaskBalancedMSE
+from cyp002_validation import CYP002ValidationMPNN
 
 
 def build_cyp002_model(
     config: CYP002ModelConfig,
     variant: str,
+    output_scaler=None,
+    validation_conf_low=None,
+    validation_conf_high=None,
 ) -> models.MPNN:
     """
     Build the frozen CYP-002 Chemprop architecture.
@@ -55,6 +59,14 @@ def build_cyp002_model(
         norm=config.aggregation_norm,
     )
 
+    output_transform = None
+    if output_scaler is not None:
+        output_transform = (
+            nn.transforms.UnscaleTransform.from_standard_scaler(
+                output_scaler
+            )
+        )
+
     predictor = nn.RegressionFFN(
         n_tasks=config.num_tasks,
         input_dim=config.message_hidden_dim,
@@ -63,9 +75,28 @@ def build_cyp002_model(
         dropout=config.dropout,
         activation=config.activation,
         criterion=criterion,
+        output_transform=output_transform,
     )
 
-    model = models.MPNN(
+    model_cls = models.MPNN
+
+    extra_kwargs = {}
+    if validation_conf_low is not None or validation_conf_high is not None:
+        if validation_conf_low is None or validation_conf_high is None:
+            raise ValueError(
+                "validation_conf_low and validation_conf_high must "
+                "be supplied together."
+            )
+
+        model_cls = CYP002ValidationMPNN
+        extra_kwargs = {
+            "validation_conf_low": validation_conf_low,
+            "validation_conf_high": validation_conf_high,
+            "target_mean": getattr(output_scaler, "mean_", None),
+            "target_scale": getattr(output_scaler, "scale_", None),
+        }
+
+    model = model_cls(
         message_passing=message_passing,
         agg=aggregation,
         predictor=predictor,
@@ -74,6 +105,7 @@ def build_cyp002_model(
         init_lr=config.initial_lr,
         max_lr=config.max_lr,
         final_lr=config.final_lr,
+        **extra_kwargs,
     )
 
     result = model

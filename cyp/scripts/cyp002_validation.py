@@ -101,6 +101,8 @@ def score_collected_validation_epoch(
     conf_low: Mapping[str, np.ndarray],
     conf_high: Mapping[str, np.ndarray],
     task_names: Sequence[str] = CYP002_TASK_NAMES,
+    target_mean: np.ndarray | None = None,
+    target_scale: np.ndarray | None = None,
 ) -> dict[str, object]:
     """
     Score one complete validation epoch from collected ordered batches.
@@ -171,6 +173,27 @@ def score_collected_validation_epoch(
     predictions_np = predictions.numpy()
     masks_np = masks.numpy()
 
+    if target_mean is not None or target_scale is not None:
+        if target_mean is None or target_scale is None:
+            raise ValueError(
+                "target_mean and target_scale must be supplied together."
+            )
+
+        target_mean = np.asarray(target_mean, dtype=np.float64)
+        target_scale = np.asarray(target_scale, dtype=np.float64)
+
+        if target_mean.shape != (len(task_names),):
+            raise ValueError(
+                "target_mean must have one value per task."
+            )
+
+        if target_scale.shape != (len(task_names),):
+            raise ValueError(
+                "target_scale must have one value per task."
+            )
+
+        targets_np = targets_np * target_scale + target_mean
+
     for task_index, task_name in enumerate(task_names):
         present = masks_np[:, task_index]
 
@@ -210,6 +233,8 @@ class CYP002ValidationMPNN(models.MPNN):
         validation_conf_low: Mapping[str, np.ndarray],
         validation_conf_high: Mapping[str, np.ndarray],
         task_names: Sequence[str] = CYP002_TASK_NAMES,
+        target_mean: np.ndarray | None = None,
+        target_scale: np.ndarray | None = None,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
@@ -229,6 +254,19 @@ class CYP002ValidationMPNN(models.MPNN):
             name: np.asarray(validation_conf_high[name], dtype=np.float64)
             for name in self.validation_task_names
         }
+
+        self.target_mean = (
+            None
+            if target_mean is None
+            else np.asarray(target_mean, dtype=np.float64)
+        )
+        self.target_scale = (
+            None
+            if target_scale is None
+            else np.asarray(target_scale, dtype=np.float64)
+        )
+
+        self.validation_history: list[dict[str, object]] = []
 
         self._validation_predictions: list[Tensor] = []
         self._validation_targets: list[Tensor] = []
@@ -288,7 +326,11 @@ class CYP002ValidationMPNN(models.MPNN):
             conf_low=self.validation_conf_low,
             conf_high=self.validation_conf_high,
             task_names=self.validation_task_names,
+            target_mean=self.target_mean,
+            target_scale=self.target_scale,
         )
+
+        self.validation_history.append(result)
 
         macro_st_rae = torch.tensor(
             result["macro_st_rae"],
@@ -322,7 +364,7 @@ def build_validation_callbacks(
 
     checkpoint = ModelCheckpoint(
         dirpath=checkpoint_dir,
-        filename="best-{epoch:03d}-{val_macro_st_rae:.6f}",
+        filename="best",
         monitor="val_macro_st_rae",
         mode="min",
         save_top_k=1,
