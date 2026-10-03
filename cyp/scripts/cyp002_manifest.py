@@ -273,6 +273,8 @@ def experiment_config_sha256(
 def build_planned_manifest(
     *,
     repo_root: str | Path,
+    git_commit_sha_value: str,
+    repo_dirty_value: bool,
     dataset_path: str | Path,
     split_path: str | Path,
     dataset_source: str,
@@ -327,8 +329,8 @@ def build_planned_manifest(
         "seed": CYP002_SEED,
         "experiment_config_sha256": config_hash,
         "code_identity": {
-            "git_commit_sha": git_commit_sha(repo_root),
-            "repo_dirty": git_repo_dirty(repo_root),
+            "git_commit_sha": git_commit_sha_value,
+            "repo_dirty": repo_dirty_value,
             "chemprop_version": "2.3.1",
         },
         "canonicalization": {
@@ -368,7 +370,10 @@ def build_planned_manifest(
                     repo_root / "cyp/scripts/cyp002_validation.py"
                 ),
         },
-        "environment": environment,
+        "environment": {
+            "execution_target": "gpu-dev1",
+            **environment,
+        },
         "determinism": determinism_identity(),
         "execution": {
             "invocation_command": invocation_command,
