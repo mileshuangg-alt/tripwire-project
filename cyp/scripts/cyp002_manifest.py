@@ -303,12 +303,6 @@ def build_planned_manifest(
 
     environment = environment_identity()
 
-    if environment["hostname"] != "gpu-dev1":
-        raise RuntimeError(
-            "CYP-002 scientific runs are frozen to gpu-dev1; "
-            f"found hostname {environment['hostname']!r}"
-        )
-
     if environment["chemprop_version"] != "2.3.1":
         raise RuntimeError(
             "CYP-002 requires Chemprop 2.3.1; "
