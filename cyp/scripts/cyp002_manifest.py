@@ -322,6 +322,7 @@ def build_planned_manifest(
         "variant": variant,
         "seed": CYP002_SEED,
         "experiment_config_sha256": config_hash,
+        "canonical_experiment_config": config,
         "code_identity": {
             "git_commit_sha": git_commit_sha_value,
             "repo_dirty": repo_dirty_value,
