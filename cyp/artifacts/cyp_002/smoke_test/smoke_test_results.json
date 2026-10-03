@@ -1,0 +1,82 @@
+{
+  "status": "pass",
+  "seed": 20261001,
+  "chemprop_version": "2.3.1",
+  "environment": {
+    "timestamp_utc": "2026-10-02T07:16:45.477074+00:00",
+    "seed": 20261001,
+    "python_version": "3.12.14 (main, Sep  3 2026, 03:46:19) [Clang 21.1.8 ]",
+    "platform": "macOS-26.5.2-arm64-arm-64bit",
+    "machine": "arm64",
+    "processor": "arm",
+    "chemprop_version": "2.3.1",
+    "torch_version": "2.14.1",
+    "lightning_version": "2.6.6",
+    "cuda_available": false,
+    "cuda_version": null,
+    "cudnn_version": null,
+    "mps_available": true,
+    "deterministic_algorithms": true,
+    "gpu_count": 0,
+    "gpu_names": []
+  },
+  "dataset_rows": 32,
+  "batch_size": 8,
+  "variants": [
+    {
+      "variant": "stock",
+      "seed": 20261001,
+      "status": "pass",
+      "environment": {
+        "timestamp_utc": "2026-10-02T07:16:45.477074+00:00",
+        "seed": 20261001,
+        "python_version": "3.12.14 (main, Sep  3 2026, 03:46:19) [Clang 21.1.8 ]",
+        "platform": "macOS-26.5.2-arm64-arm-64bit",
+        "machine": "arm64",
+        "processor": "arm",
+        "chemprop_version": "2.3.1",
+        "torch_version": "2.14.1",
+        "lightning_version": "2.6.6",
+        "cuda_available": false,
+        "cuda_version": null,
+        "cudnn_version": null,
+        "mps_available": true,
+        "deterministic_algorithms": true,
+        "gpu_count": 0,
+        "gpu_names": []
+      }
+    },
+    {
+      "variant": "task_balanced",
+      "seed": 20261001,
+      "status": "pass",
+      "environment": {
+        "timestamp_utc": "2026-10-02T07:16:45.477074+00:00",
+        "seed": 20261001,
+        "python_version": "3.12.14 (main, Sep  3 2026, 03:46:19) [Clang 21.1.8 ]",
+        "platform": "macOS-26.5.2-arm64-arm-64bit",
+        "machine": "arm64",
+        "processor": "arm",
+        "chemprop_version": "2.3.1",
+        "torch_version": "2.14.1",
+        "lightning_version": "2.6.6",
+        "cuda_available": false,
+        "cuda_version": null,
+        "cudnn_version": null,
+        "mps_available": true,
+        "deterministic_algorithms": true,
+        "gpu_count": 0,
+        "gpu_names": []
+      }
+    }
+  ],
+  "determinism_controls": {
+    "lightning_seed_everything_workers": true,
+    "chemprop_dataloader_seed": 20261001,
+    "dataloader_generator_seed": 20261001,
+    "worker_init_fn": "deterministic_worker_init",
+    "torch_deterministic_algorithms": true,
+    "lightning_trainer_deterministic": true,
+    "primary_seed_shared_by_variants": true
+  }
+}
