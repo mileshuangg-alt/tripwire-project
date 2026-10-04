@@ -319,6 +319,9 @@ class CYP002ValidationMPNN(models.MPNN):
             )
 
     def on_validation_epoch_end(self) -> None:
+        if getattr(self.trainer, "sanity_checking", False):
+            return
+
         result = score_collected_validation_epoch(
             prediction_batches=self._validation_predictions,
             target_batches=self._validation_targets,
