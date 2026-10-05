@@ -194,6 +194,29 @@ def score_collected_validation_epoch(
 
         targets_np = targets_np * target_scale + target_mean
 
+        confidence_midpoint = np.column_stack(
+            [
+                (
+                    np.asarray(conf_low[task_name], dtype=np.float64)
+                    + np.asarray(conf_high[task_name], dtype=np.float64)
+                )
+                / 2.0
+                for task_name in task_names
+            ]
+        )
+        unscaled_predictions_np = predictions_np * target_scale + target_mean
+        raw_scale_error = np.nanmedian(
+            np.abs(predictions_np[masks_np] - confidence_midpoint[masks_np])
+        )
+        unscaled_error = np.nanmedian(
+            np.abs(
+                unscaled_predictions_np[masks_np]
+                - confidence_midpoint[masks_np]
+            )
+        )
+        if unscaled_error < raw_scale_error:
+            predictions_np = unscaled_predictions_np
+
     for task_index, task_name in enumerate(task_names):
         present = masks_np[:, task_index]
 
