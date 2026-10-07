@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from cyp002_config import (
-    CYP002_C0,
+    CYP002_GRID,
     CYP002_N_TASKS,
     CYP002_SEED,
     CYP002_TASK_NAMES,
@@ -18,6 +18,8 @@ from cyp002_config import (
 
 
 MANIFEST_SCHEMA_VERSION = "1.0"
+
+CYP002_CONFIG_BY_NAME = {config.name: config for config in CYP002_GRID}
 
 
 def utc_now() -> str:
@@ -147,14 +149,9 @@ def canonical_experiment_config(
     config: Any,
     variant: str,
 ) -> dict[str, Any]:
-    if config.name != "C0":
-        raise ValueError(
-            f"D001 headline manifest requires C0, got {config.name}"
-        )
-
     if config.seed != CYP002_SEED:
         raise ValueError(
-            f"C0 seed must be {CYP002_SEED}, got {config.seed}"
+            f"CYP002 seed must be {CYP002_SEED}, got {config.seed}"
         )
 
     if config.num_tasks != CYP002_N_TASKS:
@@ -204,7 +201,7 @@ def canonical_experiment_config(
         }
 
     result = {
-        "configuration": "C0",
+        "configuration": config.name,
         "variant": variant,
         "seed": CYP002_SEED,
         "architecture": {
@@ -275,6 +272,7 @@ def build_planned_manifest(
     repo_root: str | Path,
     git_commit_sha_value: str,
     repo_dirty_value: bool,
+    config_name: str = "C0",
     dataset_path: str | Path,
     split_path: str | Path,
     dataset_source: str,
@@ -294,8 +292,15 @@ def build_planned_manifest(
     dataset_path = Path(dataset_path)
     split_path = Path(split_path)
 
+    try:
+        selected_config = CYP002_CONFIG_BY_NAME[config_name]
+    except KeyError as exc:
+        raise ValueError(
+            f"Unknown CYP002 configuration {config_name!r}"
+        ) from exc
+
     config = canonical_experiment_config(
-        CYP002_C0,
+        selected_config,
         variant,
     )
 
@@ -318,7 +323,7 @@ def build_planned_manifest(
     result = {
         "manifest_schema_version": MANIFEST_SCHEMA_VERSION,
         "experiment_id": experiment_id,
-        "configuration": "C0",
+        "configuration": selected_config.name,
         "variant": variant,
         "seed": CYP002_SEED,
         "experiment_config_sha256": config_hash,

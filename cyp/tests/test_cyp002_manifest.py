@@ -4,12 +4,13 @@ import hashlib
 import json
 from pathlib import Path
 
-from cyp002_config import CYP002_C0
+from cyp002_config import CYP002_C0, CYP002_GRID
 from cyp002_manifest import (
     canonical_json_bytes,
     canonical_experiment_config,
     experiment_config_sha256,
     finalize_manifest,
+    build_planned_manifest,
     sha256_file,
 )
 
@@ -141,6 +142,85 @@ def test_finalize_manifest_preserves_experiment_config_hash(tmp_path: Path):
     assert finalized["execution"]["status"] == "completed"
     assert finalized["execution"]["end_utc"] == (
         "2026-10-02T01:00:00+00:00"
+    )
+
+
+def _write_manifest_inputs(tmp_path: Path) -> tuple[Path, Path]:
+    dataset_path = tmp_path / "dataset.csv"
+    split_path = tmp_path / "split.csv"
+    dataset_path.write_text(
+        "Molecule_Name,SMILES\n"
+        + "\n".join(f"mol_{index},CC" for index in range(4905))
+        + "\n",
+        encoding="utf-8",
+    )
+    split_path.write_text(
+        "Molecule_Name,cluster_id,split\n"
+        + "\n".join(
+            f"mol_{index},{index},train" for index in range(4905)
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    return dataset_path, split_path
+
+
+def _build_test_manifest(tmp_path: Path, **kwargs):
+    dataset_path, split_path = _write_manifest_inputs(tmp_path)
+    return build_planned_manifest(
+        repo_root=Path.cwd(),
+        git_commit_sha_value="fbb27f0a65a1d536154f4e43616bb5208eb62895",
+        repo_dirty_value=False,
+        dataset_path=dataset_path,
+        split_path=split_path,
+        dataset_source="unit synthetic dataset",
+        dataset_version_or_export_date="unit-test",
+        split_method="unit synthetic split",
+        train_fraction=0.70,
+        validation_fraction=0.15,
+        test_fraction=0.15,
+        variant="stock",
+        experiment_id="unit-manifest",
+        invocation_command="unit invocation",
+        output_checkpoint_path=tmp_path / "best.ckpt",
+        output_metrics_path=tmp_path / "metrics.json",
+        **kwargs,
+    )
+
+
+def test_build_planned_manifest_defaults_to_c0_and_preserves_explicit_git_sha(tmp_path: Path):
+    manifest = _build_test_manifest(tmp_path)
+    expected_config = canonical_experiment_config(CYP002_C0, "stock")
+
+    assert manifest["configuration"] == "C0"
+    assert manifest["canonical_experiment_config"] == expected_config
+    assert manifest["experiment_config_sha256"] == experiment_config_sha256(
+        expected_config
+    )
+    assert manifest["code_identity"]["git_commit_sha"] == (
+        "fbb27f0a65a1d536154f4e43616bb5208eb62895"
+    )
+    assert manifest["code_identity"]["repo_dirty"] is False
+
+
+def test_build_planned_manifest_selects_c1_from_existing_grid(tmp_path: Path):
+    manifest = _build_test_manifest(tmp_path, config_name="C1")
+    c1_config = next(config for config in CYP002_GRID if config.name == "C1")
+    expected_config = canonical_experiment_config(c1_config, "stock")
+
+    assert manifest["configuration"] == "C1"
+    assert manifest["canonical_experiment_config"] == expected_config
+    assert manifest["experiment_config_sha256"] == experiment_config_sha256(
+        expected_config
+    )
+    assert manifest["canonical_experiment_config"]["architecture"]["depth"] == 2
+    assert manifest["canonical_experiment_config"]["architecture"]["message_hidden_dim"] == 300
+    assert manifest["canonical_experiment_config"]["architecture"]["ffn_hidden_dim"] == 300
+    assert manifest["canonical_experiment_config"]["architecture"]["ffn_num_layers"] == 1
+    assert manifest["canonical_experiment_config"]["architecture"]["dropout"] == 0.0
+    assert manifest["canonical_experiment_config"]["training"]["max_lr"] == 1e-3
+    assert manifest["code_identity"]["git_commit_sha"] == (
+        "fbb27f0a65a1d536154f4e43616bb5208eb62895"
     )
 
 

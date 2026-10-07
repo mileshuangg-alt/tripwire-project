@@ -12,7 +12,7 @@ from lightning import pytorch as pl
 from chemprop import data
 
 from cyp002_config import (
-    CYP002_C0,
+    CYP002_GRID,
     CYP002_SEED,
     CYP002_TASK_NAMES,
     CYP002_VARIANT_STOCK,
@@ -33,6 +33,8 @@ from multitask_targets import build_cyp_target_matrix
 EXPECTED_TRAIN_ROWS = 3433
 EXPECTED_VALIDATION_ROWS = 736
 EXPECTED_TEST_ROWS = 736
+
+CYP002_CONFIG_BY_NAME = {config.name: config for config in CYP002_GRID}
 
 
 def _route_frozen_split(
@@ -184,6 +186,7 @@ def _configure_determinism() -> None:
 def _assert_manifest_contract(
     manifest_path: Path,
     variant: str,
+    config_name: str,
 ) -> dict:
     if not manifest_path.exists():
         raise FileNotFoundError(
@@ -199,9 +202,10 @@ def _assert_manifest_contract(
         manifest_path.read_text(encoding="utf-8")
     )
 
-    if manifest["configuration"] != "C0":
+    if manifest["configuration"] != config_name:
         raise RuntimeError(
-            f"Launcher requires C0, found {manifest['configuration']!r}"
+            "Manifest configuration does not match requested config: "
+            f"{manifest['configuration']!r} != {config_name!r}"
         )
 
     if manifest["variant"] != variant:
@@ -217,17 +221,17 @@ def _assert_manifest_contract(
 
     if manifest["execution"]["status"] != "running":
         raise RuntimeError(
-            "C0 manifest must be in planned/running pre-execution state."
+            "Manifest must be in planned/running pre-execution state."
         )
 
     if manifest["outputs"]["best_checkpoint_sha256"] is not None:
         raise RuntimeError(
-            "C0 checkpoint hash is already populated; refusing to overwrite."
+            "Checkpoint hash is already populated; refusing to overwrite."
         )
 
     if manifest["outputs"]["metrics_sha256"] is not None:
         raise RuntimeError(
-            "C0 metrics hash is already populated; refusing to overwrite."
+            "Metrics hash is already populated; refusing to overwrite."
         )
 
     if manifest["environment"]["hostname"] != socket.gethostname():
@@ -246,8 +250,12 @@ def run_training(
     dataset_path: Path,
     split_path: Path,
 ) -> None:
-    if config_name != "C0":
-        raise ValueError(f"Only C0 is permitted here, got {config_name!r}")
+    try:
+        config = CYP002_CONFIG_BY_NAME[config_name]
+    except KeyError as exc:
+        raise ValueError(
+            f"Unknown CYP002 configuration {config_name!r}"
+        ) from exc
 
     if variant not in {
         CYP002_VARIANT_STOCK,
@@ -260,6 +268,7 @@ def run_training(
     manifest = _assert_manifest_contract(
         manifest_path,
         variant,
+        config.name,
     )
 
     dataset = pd.read_csv(dataset_path)
@@ -277,7 +286,7 @@ def run_training(
 
     train_loader = data.build_dataloader(
         train_dataset,
-        batch_size=CYP002_C0.batch_size,
+        batch_size=config.batch_size,
         num_workers=0,
         seed=CYP002_SEED,
         shuffle=True,
@@ -285,7 +294,7 @@ def run_training(
 
     validation_loader = data.build_dataloader(
         validation_dataset,
-        batch_size=CYP002_C0.batch_size,
+        batch_size=config.batch_size,
         num_workers=0,
         seed=CYP002_SEED,
         shuffle=False,
@@ -306,7 +315,7 @@ def run_training(
     }
 
     model = build_cyp002_model(
-        CYP002_C0,
+        config,
         variant,
         output_scaler=scaler,
         validation_conf_low=confidence_low,
@@ -317,8 +326,8 @@ def run_training(
 
     callbacks = build_validation_callbacks(
         checkpoint_dir,
-        patience=CYP002_C0.early_stopping_patience,
-        min_delta=CYP002_C0.early_stopping_min_delta,
+        patience=config.early_stopping_patience,
+        min_delta=config.early_stopping_min_delta,
     )
 
     manifest["execution"]["start_utc"] = utc_now()
@@ -329,7 +338,7 @@ def run_training(
         accelerator="gpu",
         devices=1,
         deterministic=True,
-        max_epochs=CYP002_C0.max_epochs,
+        max_epochs=config.max_epochs,
         logger=False,
         enable_progress_bar=True,
         callbacks=callbacks,
@@ -362,7 +371,7 @@ def run_training(
 
         metrics = {
             "experiment_id": manifest["experiment_id"],
-            "configuration": "C0",
+            "configuration": config.name,
             "variant": variant,
             "seed": CYP002_SEED,
             "best_validation": best_validation,
@@ -412,7 +421,7 @@ def main() -> None:
     parser.add_argument(
         "--config",
         required=True,
-        choices=("C0",),
+        choices=tuple(config.name for config in CYP002_GRID),
     )
     parser.add_argument(
         "--manifest",
