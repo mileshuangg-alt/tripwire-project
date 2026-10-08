@@ -142,3 +142,80 @@ Architecture, data, preprocessing, representation, splits, tuning protocol, vali
 ## Revisit when
 
 Reconsider the parked multitask methods only if the completed Variant 1 versus Variant 2 experiment provides documented evidence of negative transfer, task-imbalance behavior, or another specific failure mode that a parked method directly addresses.
+
+# D002 — CYP-002 Sensitivity Grid and Variant Retention
+
+**Decision date:** 2026-10-05  
+**Status:** Approved and frozen
+
+## Decision
+
+The CYP-002 task-balanced masked multitask Chemprop variant is **not retired** following the completed C0 validation comparison.
+
+The frozen CYP-002 contract remains unchanged:
+
+- Variant 1 is stock masked multitask Chemprop.
+- Variant 2 is task-balanced masked multitask Chemprop.
+- The full eight-configuration grid, C0-C7, is run for **both variants** under the same seed and controls.
+- The sensitivity grid is judged using validation macro ST-RAE only.
+- The primary sensitivity statistic is \(k/8\), where \(k\) is the number of configurations for which Variant 2 has lower validation macro ST-RAE than Variant 1.
+- The grid does not alter the C0 headline A/B selection rule and does not become an iterative configuration-search procedure.
+- After configurations and checkpoints are frozen, each headline variant receives one held-out test evaluation.
+- Variant 2 replaces Variant 1 only if Variant 2 has the lower held-out test macro ST-RAE.
+
+The earlier statement that task-balanced was retired is withdrawn as unapproved.
+
+The earlier plan to run a stock-only C1-C7 grid is withdrawn as unapproved.
+
+## C0 Diagnostic Result
+
+The completed C0 validation comparison is recorded as a diagnostic result only:
+
+- Stock masked multitask Chemprop: **0.684556823058**
+- Task-balanced masked multitask Chemprop: **0.690857884653**
+
+These validation results do **not** adjudicate the headline Variant 1 versus Variant 2 experiment.
+
+The headline selection rule remains the frozen held-out test rule in D001.
+
+The completed C0 runs and their provenance remain preserved.
+
+## Contract Interpretation
+
+The CYP-002 contract specifies that each of the eight configurations is run for both variants under the same seed and controls.
+
+Accordingly, the remaining sensitivity analysis consists of:
+
+```text
+C1-C7 × Variant 1
+C1-C7 × Variant 2
+```
+
+with validation macro ST-RAE used to calculate the \(k/8\) sensitivity statistic.
+
+No C1-C7 configuration may be run for only one variant on the basis of the C0 validation result.
+
+## Withdrawal of Unapproved Interpretation
+
+The following prior statements are withdrawn because they were not supported by an approved decision record:
+
+1. Task-balanced is retired after C0.
+2. C1-C7 should be run using stock MSE only.
+3. The C0 validation result establishes the headline Variant 1 versus Variant 2 winner.
+4. The grid should exclude Variant 2 after C0.
+
+These statements do not modify D001.
+
+## Governing Principle
+
+CYP-002 changes one scientifically interpretable variable at a time:
+
+**the relative weighting of the four partially observed CYP task losses.**
+
+The purpose of the sensitivity grid is to characterize whether the task-balanced objective changes performance across the preregistered architectural configurations without converting the grid into an implicit optimization procedure.
+
+Architecture, data, preprocessing, representation, splits, tuning protocol, validation criterion, checkpoint-selection rule, seed policy, and final adjudication remain fixed.
+
+## Revisit when
+
+Reconsider the retained two-variant grid only if a subsequent approved decision explicitly amends D001/CYP-002 or the completed sensitivity analysis provides documented evidence requiring a methodological amendment.
