@@ -13,7 +13,6 @@ from chemprop import data
 
 from cyp002_config import (
     CYP002_GRID,
-    CYP002_SEED,
     CYP002_TASK_NAMES,
     CYP002_VARIANT_STOCK,
     CYP002_VARIANT_TASK_BALANCED,
@@ -177,10 +176,20 @@ def canonical_manifest_matches(path: str | Path) -> bool:
     return recorded == recomputed
 
 
-def _configure_determinism() -> None:
-    pl.seed_everything(CYP002_SEED, workers=True)
+def _configure_determinism(seed: int) -> None:
+    pl.seed_everything(seed, workers=True)
     torch.use_deterministic_algorithms(True)
     torch.backends.cudnn.benchmark = False
+
+
+def _manifest_seed(manifest: dict) -> int:
+    seed = manifest.get("seed")
+    if not isinstance(seed, int) or isinstance(seed, bool):
+        raise RuntimeError(
+            f"Manifest seed must be an integer, got {seed!r}."
+        )
+
+    return seed
 
 
 def _assert_manifest_contract(
@@ -214,10 +223,35 @@ def _assert_manifest_contract(
             f"{manifest['variant']!r} != {variant!r}"
         )
 
-    if manifest["seed"] != CYP002_SEED:
+    manifest_seed = _manifest_seed(manifest)
+    config_seed = manifest["canonical_experiment_config"].get("seed")
+    if config_seed != manifest_seed:
         raise RuntimeError(
-            "Manifest seed does not match CYP002_SEED."
+            "Manifest seed does not match canonical experiment config seed: "
+            f"{manifest_seed!r} != {config_seed!r}."
         )
+
+    data_loading_seed = manifest["canonical_experiment_config"].get(
+        "data_loading",
+        {},
+    ).get("shuffle_seed")
+    if data_loading_seed != manifest_seed:
+        raise RuntimeError(
+            "Manifest seed does not match canonical data-loading seed: "
+            f"{manifest_seed!r} != {data_loading_seed!r}."
+        )
+
+    determinism = manifest.get("determinism", {})
+    for key in (
+        "chemprop_dataloader_seed",
+        "dataloader_generator_seed",
+    ):
+        if determinism.get(key) != manifest_seed:
+            raise RuntimeError(
+                "Manifest seed does not match determinism seed "
+                f"{key}: {manifest_seed!r} != "
+                f"{determinism.get(key)!r}."
+            )
 
     if manifest["execution"]["status"] != "running":
         raise RuntimeError(
@@ -263,13 +297,14 @@ def run_training(
     }:
         raise ValueError(f"Unknown CYP-002 variant: {variant!r}")
 
-    _configure_determinism()
-
     manifest = _assert_manifest_contract(
         manifest_path,
         variant,
         config.name,
     )
+    runtime_seed = _manifest_seed(manifest)
+
+    _configure_determinism(runtime_seed)
 
     dataset = pd.read_csv(dataset_path)
     split_dataframe = pd.read_csv(split_path)
@@ -288,7 +323,7 @@ def run_training(
         train_dataset,
         batch_size=config.batch_size,
         num_workers=0,
-        seed=CYP002_SEED,
+        seed=runtime_seed,
         shuffle=True,
     )
 
@@ -296,7 +331,7 @@ def run_training(
         validation_dataset,
         batch_size=config.batch_size,
         num_workers=0,
-        seed=CYP002_SEED,
+        seed=runtime_seed,
         shuffle=False,
     )
 
@@ -373,7 +408,7 @@ def run_training(
             "experiment_id": manifest["experiment_id"],
             "configuration": config.name,
             "variant": variant,
-            "seed": CYP002_SEED,
+            "seed": runtime_seed,
             "best_validation": best_validation,
             "validation_history": model.validation_history,
             "test_evaluation_performed": False,

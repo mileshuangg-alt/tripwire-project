@@ -16,11 +16,18 @@ from cyp002_config import (
 CONFIG_BY_NAME = {config.name: config for config in CYP002_GRID}
 
 
-def _exercise_config_selection(monkeypatch, tmp_path: Path, config_name: str):
+def _exercise_config_selection(
+    monkeypatch,
+    tmp_path: Path,
+    config_name: str,
+    manifest_seed: int = 20261001,
+):
     selected_config = CONFIG_BY_NAME[config_name]
     captured = {
         "contract_config_names": [],
+        "determinism_seeds": [],
         "dataloader_batch_sizes": [],
+        "dataloader_seeds": [],
         "model_configs": [],
         "callback_kwargs": [],
         "trainer_kwargs": [],
@@ -38,6 +45,7 @@ def _exercise_config_selection(monkeypatch, tmp_path: Path, config_name: str):
             "experiment_id": f"unit-{config_name}",
             "configuration": config_name_arg,
             "variant": variant,
+            "seed": manifest_seed,
             "execution": {"status": "planned"},
             "outputs": {
                 "best_checkpoint_sha256": None,
@@ -66,7 +74,12 @@ def _exercise_config_selection(monkeypatch, tmp_path: Path, config_name: str):
 
     def fake_build_dataloader(dataset, batch_size, **kwargs):
         captured["dataloader_batch_sizes"].append(batch_size)
-        return {"dataset": dataset, "batch_size": batch_size}
+        captured["dataloader_seeds"].append(kwargs["seed"])
+        return {
+            "dataset": dataset,
+            "batch_size": batch_size,
+            "seed": kwargs["seed"],
+        }
 
     class FakeModel:
         validation_history = [
@@ -97,12 +110,18 @@ def _exercise_config_selection(monkeypatch, tmp_path: Path, config_name: str):
         def fit(self, model, train_dataloaders, val_dataloaders):
             assert train_dataloaders["batch_size"] == selected_config.batch_size
             assert val_dataloaders["batch_size"] == selected_config.batch_size
+            assert train_dataloaders["seed"] == manifest_seed
+            assert val_dataloaders["seed"] == manifest_seed
             (manifest_path.parent / "best.ckpt").write_text("checkpoint")
 
     def fake_finalize_manifest(**kwargs):
         captured["finalize_kwargs"].append(kwargs)
 
-    monkeypatch.setattr(train, "_configure_determinism", lambda: None)
+    monkeypatch.setattr(
+        train,
+        "_configure_determinism",
+        lambda seed: captured["determinism_seeds"].append(seed),
+    )
     monkeypatch.setattr(train, "_assert_manifest_contract", fake_assert_manifest_contract)
     monkeypatch.setattr(train.pd, "read_csv", lambda path: object())
     monkeypatch.setattr(train, "build_cyp002_dataframes", fake_build_dataframes)
@@ -134,7 +153,9 @@ def test_c0_selection_preserves_existing_training_plumbing(monkeypatch, tmp_path
 
     assert captured["contract_config_names"] == ["C0"]
     assert captured["model_configs"] == [config]
+    assert captured["determinism_seeds"] == [20261001]
     assert captured["dataloader_batch_sizes"] == [config.batch_size, config.batch_size]
+    assert captured["dataloader_seeds"] == [20261001, 20261001]
     assert captured["callback_kwargs"] == [
         {
             "checkpoint_dir": tmp_path / "C0",
@@ -144,6 +165,7 @@ def test_c0_selection_preserves_existing_training_plumbing(monkeypatch, tmp_path
     ]
     assert captured["trainer_kwargs"][0]["max_epochs"] == config.max_epochs
     assert metrics["configuration"] == "C0"
+    assert metrics["seed"] == 20261001
     assert metrics["best_validation"] == {"epoch": 2, "macro_st_rae": 0.25}
     assert metrics["test_evaluation_performed"] is False
 
@@ -163,7 +185,9 @@ def test_c1_selection_propagates_frozen_grid_config(monkeypatch, tmp_path):
     assert config.max_lr == 1e-3
     assert captured["contract_config_names"] == ["C1"]
     assert captured["model_configs"] == [config]
+    assert captured["determinism_seeds"] == [20261001]
     assert captured["dataloader_batch_sizes"] == [config.batch_size, config.batch_size]
+    assert captured["dataloader_seeds"] == [20261001, 20261001]
     assert captured["callback_kwargs"] == [
         {
             "checkpoint_dir": tmp_path / "C1",
@@ -173,4 +197,19 @@ def test_c1_selection_propagates_frozen_grid_config(monkeypatch, tmp_path):
     ]
     assert captured["trainer_kwargs"][0]["max_epochs"] == config.max_epochs
     assert metrics["configuration"] == "C1"
+    assert metrics["seed"] == 20261001
     assert metrics["test_evaluation_performed"] is False
+
+
+def test_training_uses_manifest_seed_not_global_constant(monkeypatch, tmp_path):
+    config, captured, metrics = _exercise_config_selection(
+        monkeypatch,
+        tmp_path,
+        "C0",
+        manifest_seed=12345,
+    )
+
+    assert captured["determinism_seeds"] == [12345]
+    assert captured["dataloader_batch_sizes"] == [config.batch_size, config.batch_size]
+    assert captured["dataloader_seeds"] == [12345, 12345]
+    assert metrics["seed"] == 12345

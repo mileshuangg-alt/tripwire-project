@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from copy import deepcopy
 import hashlib
 import json
 from pathlib import Path
@@ -59,6 +60,38 @@ def test_experiment_config_contains_load_bearing_decisions():
     assert loss["type_per_task"]
     assert loss["weighting_strategy"] == "observed_label_count"
     assert loss["renormalize_over_present_tasks"] is False
+
+
+def test_default_seed_reproduces_explicit_20261001_config():
+    default_config = canonical_experiment_config(CYP002_C0, "stock")
+    explicit_config = canonical_experiment_config(
+        CYP002_C0,
+        "stock",
+        seed=20261001,
+    )
+
+    assert explicit_config == default_config
+    assert experiment_config_sha256(explicit_config) == experiment_config_sha256(
+        default_config
+    )
+
+
+def test_different_seed_changes_only_seed_fields():
+    default_config = canonical_experiment_config(CYP002_C0, "stock")
+    alternate_config = canonical_experiment_config(
+        CYP002_C0,
+        "stock",
+        seed=12345,
+    )
+
+    expected = deepcopy(default_config)
+    expected["seed"] = 12345
+    expected["data_loading"]["shuffle_seed"] = 12345
+
+    assert alternate_config == expected
+    assert experiment_config_sha256(alternate_config) != experiment_config_sha256(
+        default_config
+    )
 
 
 def test_stock_and_task_balanced_configs_have_different_hashes():
@@ -228,6 +261,8 @@ def run_tests() -> None:
     tests = [
         test_canonical_json_serialization_is_frozen,
         test_experiment_config_contains_load_bearing_decisions,
+        test_default_seed_reproduces_explicit_20261001_config,
+        test_different_seed_changes_only_seed_fields,
         test_stock_and_task_balanced_configs_have_different_hashes,
         test_sha256_file_matches_standard_sha256,
         test_finalize_manifest_preserves_experiment_config_hash,

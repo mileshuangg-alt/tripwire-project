@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 
 from cyp002_config import CYP002_TASK_NAMES, CYP002_C0
+import cyp002_train as train
 from cyp002_train import (
     build_cyp002_dataframes,
     build_cyp002_datasets,
@@ -113,6 +114,68 @@ def test_manifest_canonical_config_matches_manifest(tmp_path):
     )
 
     assert canonical_manifest_matches(manifest_path) is True
+
+
+def _write_contract_manifest(tmp_path, seed: int, determinism_seed: int | None = None):
+    from cyp002_manifest import (
+        canonical_experiment_config,
+        experiment_config_sha256,
+    )
+
+    config = canonical_experiment_config(CYP002_C0, "stock", seed=seed)
+    if determinism_seed is None:
+        determinism_seed = seed
+
+    manifest = {
+        "experiment_config_sha256": experiment_config_sha256(config),
+        "canonical_experiment_config": config,
+        "configuration": "C0",
+        "variant": "stock",
+        "seed": seed,
+        "execution": {"status": "running"},
+        "outputs": {
+            "best_checkpoint_sha256": None,
+            "metrics_sha256": None,
+        },
+        "environment": {"hostname": "unit-host"},
+        "determinism": {
+            "chemprop_dataloader_seed": determinism_seed,
+            "dataloader_generator_seed": determinism_seed,
+        },
+    }
+
+    path = tmp_path / "manifest.json"
+    path.write_text(json.dumps(manifest), encoding="utf-8")
+    return path
+
+
+def test_manifest_contract_accepts_matching_non_default_seed(monkeypatch, tmp_path):
+    manifest_path = _write_contract_manifest(tmp_path, seed=12345)
+    monkeypatch.setattr(train.socket, "gethostname", lambda: "unit-host")
+
+    manifest = train._assert_manifest_contract(
+        manifest_path,
+        "stock",
+        "C0",
+    )
+
+    assert manifest["seed"] == 12345
+
+
+def test_manifest_contract_rejects_seed_mismatch(monkeypatch, tmp_path):
+    manifest_path = _write_contract_manifest(
+        tmp_path,
+        seed=12345,
+        determinism_seed=20261001,
+    )
+    monkeypatch.setattr(train.socket, "gethostname", lambda: "unit-host")
+
+    try:
+        train._assert_manifest_contract(manifest_path, "stock", "C0")
+    except RuntimeError as exc:
+        assert "determinism seed" in str(exc)
+    else:
+        raise AssertionError("Seed-mismatched manifest was accepted.")
 
 
 def run_tests() -> None:

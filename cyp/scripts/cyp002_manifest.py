@@ -129,6 +129,10 @@ def environment_identity() -> dict[str, Any]:
 
 
 def determinism_identity() -> dict[str, Any]:
+    return determinism_identity_for_seed(CYP002_SEED)
+
+
+def determinism_identity_for_seed(seed: int) -> dict[str, Any]:
     import torch
 
     result = {
@@ -137,8 +141,8 @@ def determinism_identity() -> dict[str, Any]:
         "cudnn_benchmark": torch.backends.cudnn.benchmark,
         "lightning_deterministic": True,
         "lightning_seed_everything_workers": True,
-        "chemprop_dataloader_seed": CYP002_SEED,
-        "dataloader_generator_seed": CYP002_SEED,
+        "chemprop_dataloader_seed": seed,
+        "dataloader_generator_seed": seed,
         "dataloader_workers": 0,
     }
 
@@ -148,6 +152,7 @@ def determinism_identity() -> dict[str, Any]:
 def canonical_experiment_config(
     config: Any,
     variant: str,
+    seed: int = CYP002_SEED,
 ) -> dict[str, Any]:
     if config.seed != CYP002_SEED:
         raise ValueError(
@@ -203,7 +208,7 @@ def canonical_experiment_config(
     result = {
         "configuration": config.name,
         "variant": variant,
-        "seed": CYP002_SEED,
+        "seed": seed,
         "architecture": {
             "model": "Chemprop-DMPNN",
             "message_passing": "BondMessagePassing",
@@ -245,7 +250,7 @@ def canonical_experiment_config(
         },
         "data_loading": {
             "workers": 0,
-            "shuffle_seed": CYP002_SEED,
+            "shuffle_seed": seed,
         },
         "determinism": {
             "torch_use_deterministic_algorithms": True,
@@ -286,6 +291,7 @@ def build_planned_manifest(
     invocation_command: str,
     output_checkpoint_path: str | Path,
     output_metrics_path: str | Path,
+    seed: int = CYP002_SEED,
 ) -> dict[str, Any]:
     repo_root = Path(repo_root)
 
@@ -302,6 +308,7 @@ def build_planned_manifest(
     config = canonical_experiment_config(
         selected_config,
         variant,
+        seed=seed,
     )
 
     config_hash = experiment_config_sha256(config)
@@ -325,7 +332,7 @@ def build_planned_manifest(
         "experiment_id": experiment_id,
         "configuration": selected_config.name,
         "variant": variant,
-        "seed": CYP002_SEED,
+        "seed": seed,
         "experiment_config_sha256": config_hash,
         "canonical_experiment_config": config,
         "code_identity": {
@@ -374,7 +381,7 @@ def build_planned_manifest(
             "execution_target": "gpu-dev1",
             **environment,
         },
-        "determinism": determinism_identity(),
+        "determinism": determinism_identity_for_seed(seed),
         "execution": {
             "invocation_command": invocation_command,
             "start_utc": utc_now(),
