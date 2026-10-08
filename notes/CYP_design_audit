@@ -1,0 +1,752 @@
+# CYP-002 Phase B Design Audit and Freeze Record
+
+**Session:** Tripwire-CYP-002  
+**Workstream:** Tripwire — CYP inhibition arm  
+**Governing document:** `Tripwire_Project_Proposal_Rev3.md` (Revision 3, September 30, 2026)  
+**Record location:** `notes/CYP_design_audit`  
+**Status:** PHASE B COMPLETE AND FROZEN — PHASE C NOT AUTHORIZED  
+**Held-out test status:** UNTOUCHED  
+**Validation grid:** COMPLETE  
+**Grid sensitivity statistic:** `k/8 = 0.125`
+
+---
+
+## 1. Purpose and Scope
+
+This record freezes the completed validation phase of CYP-002 and the precommitted rules governing the subsequent C0 headline held-out evaluation.
+
+CYP-002 evaluates direct-inhibition pIC50 prediction for:
+
+- CYP1A2
+- CYP2C9
+- CYP2D6
+- CYP3A4
+
+Two masked-multitask Chemprop loss variants are compared:
+
+1. **Variant 1 — stock masked multitask loss**
+2. **Variant 2 — task-balanced masked multitask loss**
+
+The preregistered sensitivity grid consists of **C0–C7 × both variants**, for 16 validation cells.
+
+The sensitivity grid is a validation-only record. It does not alter the C0 headline experiment.
+
+The headline experiment is **C0 only**, with exactly one held-out test evaluation for each headline variant, after the seed-noise characterization described below is completed.
+
+The held-out test set remains untouched at the time this record is frozen.
+
+---
+
+# 2. Frozen Experiment Contract
+
+## 2.1 Isoforms and model variants
+
+The four CYP endpoints are evaluated jointly:
+
+- CYP1A2
+- CYP2C9
+- CYP2D6
+- CYP3A4
+
+The two loss variants are:
+
+- **Variant 1:** stock masked multitask loss
+- **Variant 2:** task-balanced masked multitask loss
+
+Missing labels remain masked during multitask training.
+
+## 2.2 Validation sensitivity grid
+
+The validation grid contains:
+
+- C0
+- C1
+- C2
+- C3
+- C4
+- C5
+- C6
+- C7
+
+under both variants.
+
+All 16 validation cells are complete.
+
+The comparison metric is validation macro ST-RAE, with **lower values better**.
+
+The primary sensitivity statistic is:
+
+`k/8`
+
+where `k` is the number of configurations for which Variant 2 has lower validation macro ST-RAE.
+
+The completed grid gives:
+
+- `k = 1`
+- **`k/8 = 0.125`**
+
+The grid is not an iterative hyperparameter optimization procedure and does not feed back into the headline C0 selection.
+
+## 2.3 Headline experiment
+
+C0 is the sole headline configuration.
+
+Before the held-out test evaluation, C0 will be characterized across **five independent training seeds on the existing frozen validation split**:
+
+- Seed 1: `20261001`, already complete.
+- Seed 2: `20261002`.
+- Seed 3: `20261003`.
+- Seed 4: `20261004`.
+- Seed 5: `20261005`.
+
+The four new seeds are required validation-only replicate runs under identical C0 configuration and controls.
+
+For each of the five seeds, both variants are run:
+
+- C0 / stock
+- C0 / task-balanced
+
+The five paired validation comparisons are used solely to measure the stochastic noise of the stock-vs-task-balanced comparison.
+
+After the five-seed validation noise estimate is frozen:
+
+- Variant 1 receives exactly one held-out test evaluation.
+- Variant 2 receives exactly one held-out test evaluation.
+- No reruns are permitted.
+- No second held-out test evaluation is permitted.
+- The held-out test set is not used to revise the validation grid or seed-noise characterization.
+
+The headline metric is macro ST-RAE, with lower values better.
+
+Headline uncertainty is assessed with a **paired scaffold-cluster bootstrap interval on the C0 test difference**.
+
+---
+
+# 3. Complete Grid Artifact Provenance
+
+The following provenance table is frozen as supplied.
+
+| Cell | Run path | Checkpoint SHA-256 | Metrics SHA-256 |
+|---|---|---|---|
+| C0 / Variant 1 | `cyp/artifacts/cyp_002/runs/CYP002-C0-stock-seed20261001-r2/` | `89a3f37657e439258d3d6a8c650aceae4d4014951084baffaa4e536449d8b8f4` | `9a18a5bd8e5422defebf9d7f9f0b33441f7a557ee0dd98029b47fd6c2b8772bb` |
+| C0 / Variant 2 | `cyp/artifacts/cyp_002/runs/CYP002-C0-task-balanced-seed20261001-r1/` | `f082d67d3d7e2d3e243a148fa1b8a34326faecc239ec4c1b78b9c0dd39b3ef97` | `d823331fe0e3d4db6fa5e09c7a3756434bc4e56de40646929f0e45f0c8d08c6e` |
+| C1 / Variant 1 | `cyp/artifacts/cyp_002/runs/CYP002-C1-stock-seed20261001-r1/` | `4ac8f9749828da0df09a33f791806619957859a570e19482f23cf8fe53cfcd7f` | `3357c7f714c66b2fefbce110b33e485fc3c101a9212b0268ec9f5f889d5999ee` |
+| C1 / Variant 2 | `cyp/artifacts/cyp_002/runs/CYP002-C1-task-balanced-seed20261001-r1/` | `427ee45786750761cab437cdf00a5ab50d92a1699d8364b49868650e135fb412` | `86109a251964dbe6fc76e219ce47b5541cf33454ae7c878749fd6ee5ebba9fc5` |
+| C2 / Variant 1 | `cyp/artifacts/cyp_002/runs/CYP002-C2-stock-seed20261001-r1/` | `294fb2ee625559df473e8b95d5f1644b442b810c135ddbb8c36e90bd483a78bf` | `2e5f3446a64ca2e3f508848b91e58c763ff54a833923d94ddd83caf7548c0556` |
+| C2 / Variant 2 | `cyp/artifacts/cyp_002/runs/CYP002-C2-task-balanced-seed20261001-r1/` | **UNKNOWN** | **UNKNOWN** |
+| C3 / Variant 1 | `cyp/artifacts/cyp_002/runs/CYP002-C3-stock-seed20261001-r1/` | `92e2941a6863ac097de0aec870362ef59cf1a7e215a0266e1099e4cffa57498c` | `2c60a699df5fc2803c9bbff35fc62abc95f2eb9a4fb152d6ec62cfa2f3e899f2` |
+| C3 / Variant 2 | `cyp/artifacts/cyp_002/runs/CYP002-C3-task-balanced-seed20261001-r1/` | `2ac5d158da421310bb9d4bd797b16bbdb01bdae1329e38dd4cc0004899d736aa` | `f8aac1f304fc5a8fbd452794b7c4fbbf17316633f5d708b64b2e5c0e363ee43f` |
+| C4 / Variant 1 | `cyp/artifacts/cyp_002/runs/CYP002-C4-stock-seed20261001-r1/` | `8f04144035a2928e9c1ea44706ef74afcf5d893daa380f9d445a95aeaf37ddb6` | `916566a7d92e7b8518e8c880d54f4dc600a5c2aa9501607407451177ad7943fb` |
+| C4 / Variant 2 | `cyp/artifacts/cyp_002/runs/CYP002-C4-task-balanced-seed20261001-r1/` | `009f85b7c7f860b325c6f8739902caa8cd8361e190f2ea5af3408e089a30d2ee` | `f52455b435ff1bc7b7b6230c44eb6c3d6ddf09d738b51f8400d1473c5554a13b` |
+| C5 / Variant 1 | `cyp/artifacts/cyp_002/runs/CYP002-C5-stock-seed20261001-r1/` | `2057a211f4b63def828bd8e46ee6f3b82af0a32964c181d87309b8d037ef10a4` | `4235d876c274ddf57267abf161d595569fb31fccc31d8f8981f4803b247bfee5` |
+| C5 / Variant 2 | `cyp/artifacts/cyp_002/runs/CYP002-C5-task-balanced-seed20261001-r1/` | `246b48e776f2a22631f1fdd7b373fe73715bb81963ac8ebdcae1980ade927a74` | `6803e2af7605a3d363454984e58cb8d0bd3bf41c4118e7f578610e00f9fd31df` |
+| C6 / Variant 1 | `cyp/artifacts/cyp_002/runs/CYP002-C6-stock-seed20261001-r1/` | `3ed8bc60f1fd3cc13b8170915d314c47a8b8f9f0baf826c05a4ea643775e2117` | `b8dd17c94e02a44f490f4cc83ab9a8edc80dc1396e71d81175f66a59eb55bc01` |
+| C6 / Variant 2 | `cyp/artifacts/cyp_002/runs/CYP002-C6-task-balanced-seed20261001-r1/` | `288310353a77de7326f78168e257eab95ecd1180fbc3067af473efa7f09063f5` | `65c4f20facf123ecb01462efb8323d57b944cc456a42de39a5f0a3a604d59b0a` |
+| C7 / Variant 1 | `cyp/artifacts/cyp_002/runs/CYP002-C7-stock-seed20261001-r1/` | `2a2ed527cdb34cbee633cd29ffb209f670ed700796d90896dba2a243087a50d7` | `c033638b601190dd772b0dbec5094c18d08941e6af1b357516b95e3fadb62d6d` |
+| C7 / Variant 2 | `cyp/artifacts/cyp_002/runs/CYP002-C7-task-balanced-seed20261001-r1/` | `788bff18c199a85151554e8b3929e8c73f68fdcfd04eb31c1ad5ae833b63e740` | `81676743fa6fbec9a760d13021ad5d28a74fffb30e3b3d74578c6ae1cd2f438e` |
+
+### Provenance exception
+
+The C2 / Variant 2 run path is frozen, but its:
+
+- checkpoint SHA-256 = **UNKNOWN**
+- metrics SHA-256 = **UNKNOWN**
+
+No inferred or reconstructed hashes are substituted.
+
+---
+
+# 4. C0 Validation Record
+
+## C0 / Variant 1 — stock
+
+Run:
+
+`cyp/artifacts/cyp_002/runs/CYP002-C0-stock-seed20261001-r2/`
+
+Checkpoint SHA-256:
+
+`89a3f37657e439258d3d6a8c650aceae4d4014951084baffaa4e536449d8b8f4`
+
+Metrics SHA-256:
+
+`9a18a5bd8e5422defebf9d7f9f0b33441f7a557ee0dd98029b47fd6c2b8772bb`
+
+Best validation macro ST-RAE:
+
+**0.684556823058**
+
+Per-task:
+
+| Task | ST-RAE |
+|---|---:|
+| CYP1A2 | 0.933527926232 |
+| CYP2C9 | 0.562665455225 |
+| CYP2D6 | 0.824360512224 |
+| CYP3A4 | 0.417673398550 |
+
+## C0 / Variant 2 — task-balanced
+
+Run:
+
+`cyp/artifacts/cyp_002/runs/CYP002-C0-task-balanced-seed20261001-r1/`
+
+Checkpoint SHA-256:
+
+`f082d67d3d7e2d3e243a148fa1b8a34326faecc239ec4c1b78b9c0dd39b3ef97`
+
+Metrics SHA-256:
+
+`d823331fe0e3d4db6fa5e09c7a3756434bc4e56de40646929f0e45f0c8d08c6e`
+
+Best validation macro ST-RAE:
+
+**0.690857884653**
+
+Per-task:
+
+| Task | ST-RAE |
+|---|---:|
+| CYP1A2 | 0.929560578113 |
+| CYP2C9 | 0.563400759611 |
+| CYP2D6 | 0.831836783368 |
+| CYP3A4 | 0.438633417519 |
+
+### C0 validation comparison
+
+Stock is better by:
+
+`0.006301061595 ST-RAE`
+
+approximately:
+
+`0.9205%`
+
+Stock wins 3/4 isoforms; task-balanced wins CYP1A2.
+
+This remains validation-only evidence and does not determine the headline outcome.
+
+---
+
+# 5. Invalidated Historical Stock Run
+
+The original stock run:
+
+`cyp/artifacts/cyp_002/runs/CYP002-C0-stock-seed20261001/`
+
+remains preserved as historical invalid-run evidence.
+
+Scientific status:
+
+**INVALIDATED**
+
+Root cause:
+
+**confirmed mixed-scale validation scoring artifact.**
+
+The validation path was also corrected so Lightning's partial sanity-validation pass does not invoke the full epoch scorer prematurely.
+
+Corrected scoring code provenance:
+
+`fbb27f0a65a1d536154f4e43616bb5208eb62895`
+
+Full regression suite after the correction:
+
+`39 passed`
+
+The implementation fixes did not change the scientific C0 contract.
+
+---
+
+# 6. Step-1 Error-Structure Result
+
+The permanent C0 stock validation prediction matrix was:
+
+`cyp/artifacts/cyp_002/runs/CYP002-C0-stock-seed20261001-r2/step1_c0_stock_validation_predictions_original_pIC50.tsv`
+
+SHA-256:
+
+`4ebe312bd62575c71f757bc829e61f129011ee5db206eab88951992537708c73`
+
+The frozen ECFP4 implementation was:
+
+`cyp/scripts/ecfp4.py`
+
+using Morgan radius 2 / 2048 bits.
+
+No new molecular representation was introduced.
+
+No test/blind data were used.
+
+## Task direction
+
+Lower ST-RAE is better.
+
+`1.0` is the constant mean-predictor baseline under the same soft-thresholded uncertainty rule.
+
+Validated C0 ordering:
+
+1. CYP3A4 — 0.4177 — strongest
+2. CYP2C9 — 0.5627 — intermediate
+3. CYP2D6 — 0.8244 — weak
+4. CYP1A2 — 0.9335 — weakest
+
+The existing CYP3A4 analysis remains preserved as the strongest-task comparison.
+
+## Uncertainty-band result
+
+| Task | Median width | Tight MAE | Wide MAE | Wide − Tight |
+|---|---:|---:|---:|---:|
+| CYP1A2 | 0.346060750 | 0.602665666 | 0.736621396 | +0.133955730 |
+| CYP2D6 | 0.261560000 | 0.548373140 | 0.606492224 | +0.058119084 |
+
+The wide-band group's lower soft-thresholded error is expected mechanically because wider uncertainty intervals absorb more error under the ST-RAE construction. It is therefore descriptive, not evidence for either hypothesis.
+
+## Chemical-distance result
+
+| Task | Pearson r | Pearson p | Spearman rho | Spearman p | Nearest Q MAE | Farthest Q MAE |
+|---|---:|---:|---:|---:|---:|---:|
+| CYP1A2 | 0.020871114 | 0.762557342 | 0.048806031 | 0.479661877 | 0.661611583 | 0.612540103 |
+| CYP2D6 | 0.025172946 | 0.707879352 | -0.016523221 | 0.805736302 | 0.561280975 | 0.577104626 |
+
+The nearest-training-neighbor chemical-distance relationship is effectively null for both tasks.
+
+## Frozen Step-1 classification
+
+> **Weak CYP1A2/CYP2D6 performance is more consistent with broad assay/label uncertainty than with insufficient chemical coverage under the tested ECFP4 nearest-neighbor diagnostic; the classification rests on higher raw MAE in the wide-band group (+0.134 for CYP1A2 and +0.058 for CYP2D6) and the null nearest-neighbor chemical-distance relationship, while the lower wide-band soft-thresholded error is mechanical under ST-RAE's interval construction and is not evidence for either hypothesis.**
+
+This is a comparative classification, not a claim that assay/label uncertainty is the sole cause.
+
+All existing Step-1 artifacts remain preserved.
+
+---
+
+# 7. Phase-B Assumptions and Soft Spots
+
+### Single seed in the original grid
+
+The completed sensitivity grid uses the declared single seed `20261001` and therefore does not characterize seed-to-seed variability.
+
+### Five-seed validation noise characterization
+
+C0 will now be characterized on **five independent training seeds** using the same frozen validation split.
+
+Seed 1 is already complete:
+
+`20261001`
+
+Four additional independent seeds are required:
+
+- `20261002`
+- `20261003`
+- `20261004`
+- `20261005`
+
+Each seed runs both:
+
+- C0 / stock
+- C0 / task-balanced
+
+using identical:
+
+- C0 architecture;
+- dataset;
+- train/validation split;
+- loss definitions;
+- optimizer controls;
+- training controls;
+- validation metric;
+- checkpoint selection procedure.
+
+Only the random seed changes.
+
+These four additional seeds are **validation-only replicate runs**. They are not additional held-out test evaluations and do not alter the C0 architecture or sensitivity grid.
+
+### One-shot held-out test spend
+
+After the five-seed validation noise estimate is completed and frozen:
+
+- exactly one C0-stock held-out evaluation;
+- exactly one C0-task-balanced held-out evaluation;
+- no reruns;
+- no second test evaluation.
+
+### Blind-set distribution shift
+
+The validation design does not eliminate distribution shift to the blind set. It is measured by the eventual held-out evaluation.
+
+### C2 / Variant 2 provenance
+
+The run path is known, but its checkpoint and metrics hashes remain explicitly UNKNOWN.
+
+---
+
+# 8. Five-Seed Validation Replicate Status and Seed-Noise Definition
+
+All five prespecified C0 validation replicates are complete. Seed `20261001` was the existing authoritative C0 replicate and was **not rerun**. Seeds `20261002` through `20261005` were the four additional validation replicates executed under the frozen C0 protocol.
+
+## 8.1 Five-Seed Replicate Status
+
+| Replicate | Training seed | Stock | Task-balanced | Status |
+|---|---:|---|---|---|
+| Seed 1 | `20261001` | complete | complete | Existing authoritative replicate; not rerun |
+| Seed 2 | `20261002` | complete | complete | Completed |
+| Seed 3 | `20261003` | complete | complete | Completed |
+| Seed 4 | `20261004` | complete | complete | Completed |
+| Seed 5 | `20261005` | complete | complete | Completed |
+
+All five paired validation replicates therefore contribute to the frozen `SD_seed` calculation.
+
+## 8.2 Five-Seed Paired Validation Results
+
+Define the paired validation gain:
+
+$$
+\Delta_{\mathrm{seed},s}
+=
+\mathrm{ST\!\-RAE}_{\mathrm{stock},s}
+-
+\mathrm{ST\!\-RAE}_{\mathrm{TB},s}
+$$
+
+Positive values favor task-balanced.
+
+| Seed | Stock macro ST-RAE | Task-balanced macro ST-RAE | Delta_seed |
+|---|---:|---:|---:|
+| `20261001` | 0.684556823057850 | 0.690857884652704 | -0.006301061594854 |
+| `20261002` | 0.680145541646839 | 0.675366787440831 | +0.004778754206008 |
+| `20261003` | 0.690064499896603 | 0.688951856296707 | +0.001112643599896 |
+| `20261004` | 0.696088668668752 | 0.694874571038753 | +0.001214097629999 |
+| `20261005` | 0.676340834323393 | 0.689190790762711 | -0.012849956439318 |
+
+The measured seed-noise scale is the **sample standard deviation of these five paired validation gains**:
+
+$$
+SD_{\mathrm{seed}}
+=
+\operatorname{SD}
+\left(
+\Delta_{\mathrm{seed},1},
+\Delta_{\mathrm{seed},2},
+\Delta_{\mathrm{seed},3},
+\Delta_{\mathrm{seed},4},
+\Delta_{\mathrm{seed},5}
+\right)
+=
+0.007094968910757
+$$
+
+The sign of the paired gain varies across seeds: task-balanced is better on `20261002`, `20261003`, and `20261004`; stock is better on `20261001` and `20261005`. This demonstrates that the original single-seed C0 validation difference is subject to measurable seed-level variation.
+
+## 8.3 New-Run Paths
+
+| Seed | Variant | Status | Best macro validation ST-RAE | Run path |
+|---|---|---|---:|---|
+| `20261002` | stock | completed | 0.680145541647 | `cyp/artifacts/cyp_002/runs/CYP002-C0-stock-seed20261002/` |
+| `20261002` | task_balanced | completed | 0.675366787441 | `cyp/artifacts/cyp_002/runs/CYP002-C0-task-balanced-seed20261002/` |
+| `20261003` | stock | completed | 0.690064499897 | `cyp/artifacts/cyp_002/runs/CYP002-C0-stock-seed20261003/` |
+| `20261003` | task_balanced | completed | 0.688951856297 | `cyp/artifacts/cyp_002/runs/CYP002-C0-task-balanced-seed20261003/` |
+| `20261004` | stock | completed | 0.696088668669 | `cyp/artifacts/cyp_002/runs/CYP002-C0-stock-seed20261004/` |
+| `20261004` | task_balanced | completed | 0.694874571039 | `cyp/artifacts/cyp_002/runs/CYP002-C0-task-balanced-seed20261004/` |
+| `20261005` | stock | completed | 0.676340834323 | `cyp/artifacts/cyp_002/runs/CYP002-C0-stock-seed20261005/` |
+| `20261005` | task_balanced | completed | 0.689190790763 | `cyp/artifacts/cyp_002/runs/CYP002-C0-task-balanced-seed20261005/` |
+
+Execution failures: **none**. The eight new runs were completed serially on `gpu-dev1` using `CUDA_VISIBLE_DEVICES=1`.
+
+## 8.4 New-Run Per-Task Validation Results
+
+| Seed | Variant | CYP1A2 | CYP2C9 | CYP2D6 | CYP3A4 |
+|---|---|---:|---:|---:|---:|
+| `20261002` | stock | 0.905050631700 | 0.555882626589 | 0.830613702209 | 0.429035206090 |
+| `20261002` | task_balanced | 0.890828204574 | 0.550430029009 | 0.820181591308 | 0.440027324873 |
+| `20261003` | stock | 0.916873370772 | 0.579676327809 | 0.832668153434 | 0.431040147571 |
+| `20261003` | task_balanced | 0.883726339391 | 0.583277210580 | 0.836059427696 | 0.452744447520 |
+| `20261004` | stock | 0.910284020153 | 0.585101397921 | 0.851626573629 | 0.437342682972 |
+| `20261004` | task_balanced | 0.930348530520 | 0.565640931859 | 0.861675537523 | 0.421833284254 |
+| `20261005` | stock | 0.910927556994 | 0.559914725880 | 0.819222725101 | 0.415298329319 |
+| `20261005` | task_balanced | 0.907715439610 | 0.581635265002 | 0.837372937555 | 0.430039520884 |
+
+The eight new run checkpoint and metrics SHA-256 values were not included in the execution report summarized here and therefore are not invented in this record.
+
+No held-out/test labels were accessed during the five-seed validation characterization.
+
+# 9. Paired Scaffold-Cluster Bootstrap Definition
+
+The headline test comparison uses a **paired scaffold-cluster bootstrap**.
+
+## 9.1 Clustering unit
+
+The resampling unit is the **frozen scaffold/analog cluster**, not the individual compound.
+
+The frozen cluster-assignment artifact is:
+
+`cyp/artifacts/cyp_baseline/cluster_assignments.csv`
+
+SHA-256:
+
+`4923d31401cc4f775e89377665ba0b15102245cca252911fd02e50879d10ffb8`
+
+## 9.2 Resampling procedure
+
+The paired cluster-bootstrap:
+
+1. takes the frozen scaffold-cluster assignments;
+2. resamples clusters **with replacement**;
+3. uses the exact same resampled cluster multiset for both variants within each bootstrap draw;
+4. computes the paired stock-vs-task-balanced difference for that draw;
+5. repeats the procedure to obtain the bootstrap distribution of the C0 test gain.
+
+Individual compounds are **never** resampled independently.
+
+Resampling compounds independently would treat correlated compounds within a scaffold cluster as independent observations and would understate the width of the uncertainty interval.
+
+The frozen cluster assignments therefore define the bootstrap clustering unit and preserve the dependence structure induced by the analog/scaffold split.
+
+## 9.3 Bootstrap size and RNG
+
+The bootstrap uses:
+
+- `B = 10,000` resamples.
+- Sampling with replacement at the frozen scaffold-cluster level.
+- Paired resampling: stock and task-balanced use the same resampled clusters in every draw.
+- Dedicated analysis RNG seed: **`20261008`**.
+- Individual compounds are never independently resampled.
+
+The dedicated analysis seed is used only for the bootstrap shuffler and is independent of the five training seeds.
+
+## 9.4 Bootstrap statistic
+
+Define the C0 test gain as:
+
+$$
+\Delta_{\mathrm{test}}
+=
+\mathrm{ST\!\!-\!RAE}_{\mathrm{stock,test}}
+-
+\mathrm{ST\!\!-\!RAE}_{\mathrm{TB,test}}
+$$
+
+Positive values favor task-balanced.
+
+For bootstrap draw $b$:
+
+$$
+\Delta_{\mathrm{test}}^{*(b)}
+=
+\mathrm{ST\!\!-\!RAE}_{\mathrm{stock}}^{*(b)}
+-
+\mathrm{ST\!\!-\!RAE}_{\mathrm{TB}}^{*(b)}
+$$
+
+for $b = 1, \ldots, 10{,}000$.
+
+The 95% percentile bootstrap interval is:
+
+$$
+\left[
+Q_{0.025}\!\left(\Delta_{\mathrm{test}}^*\right),
+Q_{0.975}\!\left(\Delta_{\mathrm{test}}^*\right)
+\right]
+$$
+
+The lower confidence bound is:
+
+$$
+LCB(\Delta_{\mathrm{test}})
+=
+Q_{0.025}\!\left(\Delta_{\mathrm{test}}^*\right)
+$$
+
+---
+
+# 10. Frozen Headline Decision Rule
+
+Define:
+
+$$
+\Delta_{\mathrm{test}}
+=
+\mathrm{ST\!\!-\!RAE}_{\mathrm{stock,test}}
+-
+\mathrm{ST\!\!-\!RAE}_{\mathrm{TB,test}}
+$$
+
+Positive `Delta_test` favors task-balanced.
+
+Let:
+
+- `LCB(Delta_test)` = lower bound of the 95% paired scaffold-cluster bootstrap interval for the C0 test gain.
+- `SD_seed` = sample standard deviation of the five paired C0 validation gains across the five training seeds.
+
+### Frozen materiality rule
+
+> **Task-balanced takes the C0 headline if and only if the lower bound of the 95% paired scaffold-cluster bootstrap interval for the test gain exceeds the measured seed-level SD. Otherwise, stock remains the headline.**
+
+Operational criterion:
+
+$$
+LCB(\Delta_{\mathrm{test}})
+>
+SD_{\mathrm{seed}}
+$$
+
+is the sole headline win criterion.
+
+This criterion incorporates both statistical separation and materiality:
+
+- a lower bound exceeding a positive seed-noise SD necessarily excludes zero;
+- the apparent improvement must also exceed the empirically measured scale of stochastic seed variation;
+- no arbitrary numerical effect-size threshold is introduced.
+
+The challenger therefore bears the burden of demonstrating a test advantage larger than measured stochastic noise.
+
+This rule is frozen **before any held-out test number is observed**.
+
+---
+
+# 11. Phase-B Execution Sequence
+
+## Phase B1 — Five-seed validation noise characterization
+
+Use the existing frozen validation split only.
+
+Already complete:
+
+- Seed `20261001`.
+
+Required:
+
+- Seed `20261002`
+- Seed `20261003`
+- Seed `20261004`
+- Seed `20261005`
+
+For each additional seed:
+
+- run C0 stock;
+- run C0 task-balanced;
+- record per-isoform validation ST-RAE;
+- record macro validation ST-RAE;
+- preserve checkpoint, metrics, manifest, and reproducibility provenance.
+
+Then calculate:
+
+$$
+\Delta_{\mathrm{seed},s}
+=
+\mathrm{ST\!\!-\!RAE}_{\mathrm{stock},s}
+-
+\mathrm{ST\!\!-\!RAE}_{\mathrm{TB},s}
+$$
+
+for all five seeds and freeze:
+
+$$
+SD_{\mathrm{seed}}
+=
+\operatorname{SD}
+\left(
+\Delta_{\mathrm{seed},1},
+\ldots,
+\Delta_{\mathrm{seed},5}
+\right)
+$$
+
+**No held-out test data may be accessed during Phase B1.**
+
+## Phase B2 — Headline test
+
+Only after all five validation seeds are complete, `SD_seed` is calculated, and the seed-noise result is frozen:
+
+- one C0-stock held-out evaluation;
+- one C0-task-balanced held-out evaluation.
+
+Then report:
+
+- per-isoform test ST-RAE;
+- macro test ST-RAE;
+- `Delta_test`;
+- paired scaffold-cluster bootstrap interval;
+- `SD_seed`;
+- final verdict under the frozen decision rule.
+
+No reruns.
+
+---
+
+# 12. Phase-B Freeze Status
+
+Phase B is **complete and frozen**. The following are frozen:
+
+- four CYP isoforms;
+- stock and task-balanced loss variants;
+- C0–C7 × 2 validation grid;
+- `k/8 = 0.125`;
+- complete 16-cell provenance table;
+- explicit C2 / Variant 2 UNKNOWN hashes;
+- C0 validation results;
+- invalidated first-stock-run status;
+- corrected scoring implementation provenance;
+- Step-1 error-structure findings;
+- Step-1 task-direction correction;
+- Step-1 classification;
+- completed five-seed validation noise characterization;
+- frozen training seeds `20261001`–`20261005`;
+- five-seed replicate status and paired validation results;
+- `SD_seed = 0.007094968910757`;
+- `SD_seed` definition;
+- single-seed limitation of the original grid;
+- one-shot held-out test-spend limitation;
+- blind-set distribution-shift limitation;
+- paired scaffold-cluster bootstrap;
+- frozen cluster-assignment artifact and SHA-256;
+- `B = 10,000` bootstrap resamples;
+- 95% percentile bootstrap interval;
+- dedicated bootstrap analysis RNG seed `20261008`;
+- seed-noise-relative materiality rule.
+
+### Held-out test data
+
+**No held-out test result is recorded here.**
+
+**No headline test evaluation has been performed under this record.**
+
+**No held-out test data may be inspected before explicit Phase-C GO.**
+
+---
+
+# 13. Phase-C Authorization Gate
+
+Phase C requires a separate explicit authorization after the five-seed validation noise characterization has been completed and `SD_seed` has been frozen.
+
+The authorized test spend is exactly:
+
+1. one C0 / Variant 1 held-out evaluation;
+2. one C0 / Variant 2 held-out evaluation;
+3. per-isoform ST-RAE results;
+4. macro ST-RAE results;
+5. `Delta_test`;
+6. the complete per-compound C0 / Variant 1 (stock) held-out test prediction matrix, saved as a persistent artifact;
+7. the complete per-compound C0 / Variant 2 (task-balanced) held-out test prediction matrix, saved as a persistent artifact;
+8. SHA-256 hashes for both per-compound held-out prediction matrices, recorded in the final Phase-C provenance;
+9. 10,000-draw paired scaffold-cluster bootstrap interval using analysis RNG seed `20261008`;
+10. measured `SD_seed`;
+11. application of the frozen criterion:
+
+$$
+LCB(\Delta_{\mathrm{test}})
+>
+SD_{\mathrm{seed}}
+$$
+
+The two per-compound prediction matrices are required provenance artifacts of the headline evaluation. They must be preserved unchanged after generation, independently hashed, and their artifact paths and SHA-256 values recorded with the final Phase-C results.
+
+No reruns.
+
+No second test evaluation.
+
+No post hoc materiality threshold.
+
+No change to the decision rule after observing test results.
+
+---
