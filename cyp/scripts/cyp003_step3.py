@@ -760,7 +760,8 @@ def evaluate_step3_outer_holdout(
 
     with torch.no_grad():
         for batch in outer_loader:
-            bmg = batch.bmg.to(device)
+            bmg = batch.bmg
+            bmg.to(device)
 
             V_d = (
                 None
