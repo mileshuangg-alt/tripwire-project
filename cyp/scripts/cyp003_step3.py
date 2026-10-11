@@ -363,7 +363,21 @@ def route_step3_dataframes(
             "Protected internal-test molecule entered the Step-3 universe."
         )
 
-    indexed = dataframe.set_index(
+    cluster_id_by_name = original_split_dataframe.set_index(
+        "Molecule_Name"
+    )["cluster_id"]
+
+    routed_dataframe = dataframe.copy()
+    routed_dataframe["cluster_id"] = routed_dataframe[
+        "Molecule_Name"
+    ].map(cluster_id_by_name)
+
+    if routed_dataframe["cluster_id"].isna().any():
+        raise RuntimeError(
+            "Authoritative cluster_id mapping produced missing values."
+        )
+
+    indexed = routed_dataframe.set_index(
         "Molecule_Name",
         drop=False,
         verify_integrity=True,
