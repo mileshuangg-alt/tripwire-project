@@ -752,3 +752,2315 @@ Architecture, data, preprocessing, representation, splits, tuning protocol, vali
 ## Revisit when
 
 Reconsider the retained two-variant grid only if a subsequent approved decision explicitly amends D001/CYP-002 or the completed sensitivity analysis provides documented evidence requiring a methodological amendment.
+
+# D003 — OpenADMET CYP Submission Non-Adaptivity, Pre-Upload Validation, and Technical-Submission Contract
+
+**Decision date:** 2026-10-13  
+**Status:** Approved and frozen
+
+#### Decision
+
+OpenADMET CYP challenge submissions are external evaluation events. Challenge-derived performance information must not become an additional model-development or model-selection dataset.
+
+An early OpenADMET CYP submission is permitted solely as a **technical pipeline-shakeout**. It may establish that the submission pipeline works, but it has no authority to determine which model should be developed, selected, or submitted finally.
+
+Authority is separated as follows:
+
+- **Authorized internal development and validation evidence** determines model development and model selection under the separately approved modeling procedure.
+- **The deterministic pre-upload validator** determines whether a proposed submission file is technically eligible for upload.
+- **Challenge-derived performance evidence** has zero model-development, model-selection, or technical-defect-investigation authority.
+- **The final challenge result** is prospective external evaluation evidence after the final model and entry have been selected and frozen.
+
+If approved, this amendment supersedes Revision 3 only where Revision 3 permits bounded leaderboard-informed CYP development. Revision 3's authorization of an early technical pipeline-shakeout submission remains in force.
+
+#### Submission track and TDI scope
+
+The project submission track is **Regression Prediction**, covering direct-inhibition pIC50 predictions for:
+
+- CYP1A2;
+- CYP2C9;
+- CYP2D6;
+- CYP3A4.
+
+The optional **time-dependent inhibition (TDI) classification track is deliberately deferred**.
+
+TDI is not required for the early pipeline-shakeout submission or the core November 3 CYP deliverable. It may be reconsidered only as separately approved stretch scope and must not jeopardize the direct-inhibition regression submission or required Method Report Link.
+
+This retains Revision 3's distinction between direct-inhibition pIC50 regression as the core track and TDI classification as stretch scope.
+
+#### Prediction-manifest prerequisite
+
+No submission file may enter pre-upload validation until a **frozen prediction manifest** exists for the exact predictions contained in that file.
+
+For every proposed submission, the prediction manifest must identify at minimum:
+
+- model architecture;
+- frozen model configuration;
+- training seed;
+- producing checkpoint path or immutable checkpoint identifier;
+- producing checkpoint SHA-256;
+- prediction-generation code/version and relevant provenance;
+- frozen official challenge-test input identity and SHA-256;
+- molecule-identity mapping;
+- CYP endpoint mapping;
+- raw prediction artifact identity and SHA-256;
+- relationship between the raw prediction artifact and the proposed submission file.
+
+The manifest establishes which authentic model outputs are being submitted.
+
+Every upload record must identify the exact prediction manifest and producing checkpoint SHA-256 associated with that entry.
+
+#### Organizer-facing submission identity and form
+
+The live OpenADMET CYP Space requires:
+
+- an existing Hugging Face username; and
+- a prediction file.
+
+The Space checks the supplied Hugging Face username for existence. Login through the submission form is not required.
+
+The project must use **one Hugging Face account for the team** throughout challenge participation. Alternative accounts may not be used to circumvent the one-team-entry rule, submission rate limit, or replacement mechanics.
+
+The track selected for this project is:
+
+**Regression Prediction.**
+
+The Hugging Face username used for each upload must be recorded as submission provenance.
+
+#### Accepted prediction-file contract
+
+For the Regression Prediction track, the live Space accepts `.csv` or `.parquet`.
+
+The proposed upload must contain:
+
+- exactly **750 data rows**;
+- exactly **six columns**;
+- the two required molecular-identity columns;
+- all four direct-inhibition prediction columns;
+- finite prediction values for all four direct-inhibition endpoints;
+- the organizer-specified **case-sensitive** column names.
+
+The project's required six-column schema and order are:
+
+1. `SMILES`
+2. `Molecule_Name`
+3. `CYP1A2_pIC50_direct_inhibition`
+4. `CYP2C9_pIC50_direct_inhibition`
+5. `CYP2D6_pIC50_direct_inhibition`
+6. `CYP3A4_pIC50_direct_inhibition`
+
+The organizer's published direct-inhibition submission example and current live-Space/FAQ requirements are the external specification references.
+
+The project intentionally imposes stricter identity and ordering requirements than the live Space handler where necessary to prevent technically accepted but scientifically misaligned submissions.
+
+#### Exact submission identity and alignment contract
+
+Every proposed Regression Prediction upload must be validated against three frozen artifacts:
+
+1. the **official organizer-provided 750-compound challenge test file**, which defines the authoritative submission-row universe and row ordering;
+2. the **frozen prediction manifest and referenced raw prediction artifact**, which define which prediction belongs to each molecule and CYP endpoint;
+3. the **proposed submission file**, which is the exact file intended for upload.
+
+##### Molecule identity
+
+For every row position \(i=1,\ldots,750\):
+
+- `Molecule_Name` in the proposed submission must exactly equal `Molecule_Name` in row \(i\) of the frozen official challenge test file;
+- `SMILES` in the proposed submission must exactly equal `SMILES` in row \(i\) of the frozen official challenge test file as the organizer-provided string.
+
+No canonicalization, normalization, salt handling, fragment selection, neutralization, tautomer conversion, stereochemistry manipulation, or other molecular transformation may be used to make mismatching identity strings agree.
+
+The complete ordered `Molecule_Name` vector and complete ordered `SMILES` vector must each be exactly identical between the proposed submission and the frozen official test input.
+
+The validator must additionally require:
+
+- exactly 750 `Molecule_Name` values;
+- no missing `Molecule_Name`;
+- no missing challenge row;
+- no additional challenge row;
+- no substituted challenge identity;
+- no duplicated row introduced relative to the official test file;
+- no row reordering relative to the official test file.
+
+##### Prediction identity
+
+For every molecule, each submitted prediction must equal the authentic prediction assigned to that same `Molecule_Name` and endpoint in the frozen raw prediction artifact referenced by the prediction manifest.
+
+The endpoint mappings are exactly:
+
+- `CYP1A2_pIC50_direct_inhibition` → CYP1A2 direct-inhibition prediction;
+- `CYP2C9_pIC50_direct_inhibition` → CYP2C9 direct-inhibition prediction;
+- `CYP2D6_pIC50_direct_inhibition` → CYP2D6 direct-inhibition prediction;
+- `CYP3A4_pIC50_direct_inhibition` → CYP3A4 direct-inhibition prediction.
+
+Prediction alignment must first be compared **by molecule identity and endpoint**, not merely by row position.
+
+After identity-based prediction alignment passes, the validator must independently verify that the proposed submission rows occur in the exact official test-file order.
+
+All **3,000 predictions**—750 molecules × four endpoints—must be finite numeric values.
+
+##### Identity/alignment PASS condition
+
+Identity and alignment validation passes only if all required comparisons succeed:
+
+- 750/750 ordered `Molecule_Name` matches;
+- 750/750 ordered organizer-provided `SMILES` matches;
+- exact six case-sensitive column names;
+- exact project-required column order;
+- 3,000/3,000 molecule × endpoint prediction associations match the frozen prediction artifact;
+- 3,000/3,000 prediction values are finite;
+- zero missing challenge rows;
+- zero additional challenge rows;
+- zero substituted identities;
+- zero introduced duplicate rows;
+- zero reordered challenge rows.
+
+The validation artifact must record these counts explicitly rather than only emitting a generic PASS.
+
+##### Identity/alignment mismatch behavior
+
+Any mismatch causes **pre-upload validation failure**.
+
+On failure:
+
+- no upload is authorized;
+- the proposed submission file is preserved unchanged;
+- the mismatch is recorded with row position, field or endpoint, expected identity/value relationship, and observed identity/value relationship as applicable;
+- the validator must not repair the file automatically;
+- the failure may trigger a technical investigation because it arose from permitted pre-upload technical evidence;
+- any correction must satisfy the verified-technical-defect carve-out below;
+- a corrected file must undergo a completely new validation run and receive its own PASS artifact before upload.
+
+Authentic prediction values may never be modified merely to obtain challenge acceptance.
+
+#### Mandatory pre-upload validation
+
+Every proposed upload—including an early pipeline-shakeout submission—must pass deterministic pre-upload validation.
+
+The validator must compare the proposed submission against:
+
+1. the current organizer submission specification and live-Space/FAQ requirements;
+2. the organizer's published direct-inhibition submission example/schema;
+3. the frozen official 750-compound challenge test input;
+4. the frozen prediction manifest and referenced raw prediction artifact.
+
+The validator must verify at minimum:
+
+- permitted file type;
+- exact row count;
+- exact column count;
+- exact case-sensitive headers;
+- exact project-required column order;
+- exact test-set molecule identities;
+- exact organizer-provided SMILES strings;
+- exact official test-file row ordering;
+- no missing, additional, substituted, or introduced duplicate challenge identities;
+- correct prediction-to-molecule mapping;
+- correct prediction-to-CYP-endpoint mapping;
+- 3,000 finite regression predictions;
+- consistency with the frozen raw prediction artifact;
+- consistency with the producing checkpoint and prediction manifest;
+- frozen-input and candidate-output hashes.
+
+The live Space handler's acceptance is **not** a substitute for these checks.
+
+The current Space handler does not enforce exact column order or verify row identity against the official challenge test input. The project pre-upload validator is therefore the mandatory control for both properties.
+
+A submission file that fails validation is not authorized for upload.
+
+The validator must produce and preserve a PASS/FAIL artifact identifying:
+
+- organizer-specification references;
+- frozen official test-input identity and hash;
+- prediction-manifest identity;
+- producing checkpoint hash;
+- individual validation results and counts;
+- SHA-256 of the exact proposed submission file.
+
+Only the exact file whose hash received PASS may be uploaded.
+
+#### Near-constant prediction rejection
+
+The live Space handler rejects near-constant predictions when prediction standard deviation is below `0.01`.
+
+This challenge-side validation rule must never become an optimization target.
+
+If authentic frozen model outputs fail this requirement:
+
+- stop the submission attempt;
+- preserve and report the failure;
+- do not add noise;
+- do not rescale predictions merely to increase their variance;
+- do not perturb predictions;
+- do not transform predictions merely to satisfy the handler;
+- do not substitute another model on the basis of the challenge-side rejection alone.
+
+Predictions must **never be modified merely to pass the near-constant-output check**.
+
+Any scientific response to genuinely degenerate model output requires an independently justified development decision based on authorized internal evidence.
+
+#### Unified definition of prohibited challenge-performance evidence
+
+For this decision, **prohibited challenge-performance evidence** means any information whose content depends on submitted predictions' performance against blinded challenge outcomes.
+
+This includes:
+
+- live leaderboard score;
+- live leaderboard rank;
+- relative leaderboard position;
+- performance tier;
+- per-isoform challenge performance, if exposed;
+- aggregate challenge performance;
+- changes in score, rank, tier, or relative position after a submission;
+- comparisons with another team's challenge performance;
+- any other feedback whose information content depends on prediction performance against blinded challenge outcomes.
+
+Prohibited challenge-performance evidence has **zero authority** to:
+
+- select or reject a model;
+- choose Chemprop versus AttentiveFP;
+- choose model architecture;
+- choose hyperparameters;
+- choose regularization;
+- choose preprocessing;
+- choose calibration;
+- choose a training seed;
+- choose a checkpoint;
+- choose ensemble membership;
+- choose ensemble weights;
+- choose the final-training procedure;
+- continue, stop, prioritize, deprioritize, or reopen a modeling branch;
+- trigger investigation of a possible submission defect;
+- support or strengthen a hypothesis that a submitted file is technically defective;
+- determine or influence how a technical defect is corrected.
+
+A suspiciously high, low, improved, worsened, or otherwise unexpected challenge result therefore **cannot even trigger inspection of the submission artifacts for a technical defect**.
+
+This definition applies everywhere in this decision whenever **prohibited challenge-performance evidence** is referenced.
+
+Organizer-generated technical validation/error information is not prohibited challenge-performance evidence when it reports only file validation, schema, account, rate-limit, upload, processing, receipt, or other technical submission state and contains no blinded-performance information.
+
+#### Early-submission non-adaptivity firewall
+
+After any challenge upload, prohibited challenge-performance evidence must not enter:
+
+- model development;
+- model selection;
+- final-entry selection;
+- submission-defect investigation;
+- technical correction.
+
+Such information may be preserved as external-evaluation provenance but remains outside development and selection authority.
+
+Technical submission-state information—such as whether an upload was received, whether validation succeeded, or whether the organizer generated a technical error—is governed by the technical-defect provisions below and is not prohibited merely because it originates from the organizers.
+
+#### Narrow verified-technical-defect carve-out
+
+A technical investigation or correction may be triggered only by **permitted technical evidence**:
+
+- the proposed or submitted file itself;
+- its frozen prediction manifest;
+- its frozen raw prediction artifact;
+- the frozen official 750-compound challenge test input;
+- the current organizer submission specification;
+- the project's preserved pre-upload validator output; or
+- an automated organizer technical validation/error message, including technical validation/error logs posted in Discord `#cyp-challenge-submissions`.
+
+Organizer-generated technical error logs are permitted to trigger investigation because they report submission validation or processing failures rather than blinded model performance.
+
+The technical evidence must identify, or permit independent demonstration of, a concrete submission defect.
+
+Permitted defects include, for example:
+
+- incorrect row identity;
+- incorrect row ordering;
+- incorrect target association;
+- incorrect target ordering;
+- incorrect headers;
+- incorrect serialization;
+- incorrect file schema or formatting;
+- concrete validation or processing failures identified by the organizer's technical submission system.
+
+**Prohibited challenge-performance evidence cannot trigger an investigation, constitute evidence for a defect, strengthen a defect hypothesis, or influence its correction.**
+
+Any correction must be restricted to repairing the independently verified technical defect.
+
+Authentic scientific prediction values may not be altered. Prediction values may change position only when necessary to restore their already-established association with the correct molecule or endpoint. Serialization may change only as necessary to satisfy the independently verified technical specification.
+
+The following are not technical corrections:
+
+- retraining;
+- model reselection;
+- checkpoint reselection;
+- recalibration;
+- ensembling;
+- prediction adjustment;
+- score-driven transformation;
+- replacement by another model.
+
+The original file, permitted technical evidence, any organizer technical error log, original prediction manifest, raw prediction artifact, corrected file, exact correction, validator artifacts, hashes, and complete submission history must all be preserved.
+
+#### Submission rate, account, and replacement contract
+
+The live Space permits **one submission per 12 hours**.
+
+Every upload therefore consumes a 12-hour submission window.
+
+Submission attempts must be planned so that at least 12 hours separate uploads, including the final replacement submission.
+
+The project must use **one Hugging Face account per team**.
+
+Alternative accounts may not be used to bypass the submission rate limit or one-entry rule.
+
+Only the **latest valid submission** counts as the active team entry.
+
+#### Submission receipt and technical acceptance verification
+
+The immediate on-screen **“received”** message is not sufficient evidence that the entry has been accepted as a valid challenge submission.
+
+After upload, the project must verify the automated response in Discord channel `#cyp-challenge-submissions`, expected within approximately two hours.
+
+That response may consist of:
+
+- an automated receipt confirming successful submission processing; or
+- an automated technical validation/error log identifying a submission-processing defect.
+
+A technical validation/error log is permitted evidence under the narrow technical-defect carve-out and has no model-performance or model-selection authority.
+
+The submission record must preserve:
+
+- submission timestamp;
+- Hugging Face username;
+- selected track;
+- submitted-file SHA-256;
+- prediction-manifest identity;
+- producing checkpoint SHA-256;
+- pre-upload validator PASS artifact;
+- on-screen acknowledgement, if retained;
+- automated Discord receipt or technical error log;
+- Discord response timestamp.
+
+Failure to obtain the expected automated response is a **submission-state problem**, not evidence about model quality.
+
+Investigation of receipt or transport status may inspect permitted technical evidence but may not use prohibited challenge-performance evidence.
+
+#### Method Report Link and final-leaderboard eligibility
+
+The comprehensive model report is a separate mandatory final-eligibility deliverable.
+
+For the live Space, the report is supplied through a **Method Report Link**: a reachable `https://` URL entered in the submission form.
+
+The final report must therefore be hosted at an accessible HTTPS URL before the challenge deadline.
+
+Revision 3 records:
+
+> “A missing model report excludes the entry from the final leaderboard.”
+
+The final challenge deadline is:
+
+**November 3, 2026, 23:59 UTC = Tuesday, November 3, 2026, 3:59 PM Pacific (PST).**
+
+Revision 3 records:
+
+> “In my America/Los_Angeles timezone, that is **Tuesday, November 3 at 3:59 PM PST**”
+
+For final-leaderboard eligibility, the final active prediction entry and reachable Method Report Link must satisfy the organizer's requirements by that deadline.
+
+The Method Report Link is a separate eligibility requirement from prediction-file validation. A technically valid prediction file alone does not establish final-leaderboard eligibility.
+
+#### First-upload declarations reserved for user decision
+
+Before the first upload, the following live-Space form choices remain explicitly reserved for user decision:
+
+- whether the entry is anonymous;
+- if anonymous, the alias to use;
+- the proprietary-data declaration/checkbox;
+- the open-source declaration/checkbox.
+
+The submission pipeline must not infer or select these values automatically.
+
+The selected values must be recorded as part of submission provenance.
+
+#### Scope of an early pipeline-shakeout submission
+
+An early submission may establish only that:
+
+- a frozen prediction manifest exists;
+- the exact candidate submission file passes the project validator;
+- the selected Hugging Face username is recognized;
+- the Regression Prediction track and required form fields function;
+- the Space accepts the technical upload;
+- the organizer's automated receipt or technical validation response is generated;
+- the complete pipeline can carry an internally selected model's authentic predictions through to a technically valid external entry.
+
+An early submission does **not** establish that the submitted model:
+
+- is preferable to another model;
+- is competitive;
+- is sufficiently accurate;
+- should be retained;
+- should replace another model;
+- should become the final challenge entry.
+
+Any score, rank, tier, or other prohibited challenge-performance evidence produced by that submission remains outside development and selection authority.
+
+#### Relationship to Revision 3
+
+Revision 3 authorizes an early pipeline-shakeout submission and states that live leaderboard feedback may be used as a bounded development signal.
+
+This amendment, if approved, **narrows that authority**.
+
+The early technical pipeline-shakeout remains authorized, but challenge-derived performance information loses all model-development, model-selection, and technical-defect-investigation authority.
+
+Revision 3's other challenge requirements—including direct-inhibition regression priority, TDI as stretch scope, one team identity, final submission, and comprehensive model report—remain unchanged except where this amendment specifies stricter technical controls.
+
+#### Governing principle
+
+The blind CYP challenge is preserved as prospective external evidence by preventing challenge-derived performance information from becoming another tuning or model-selection dataset.
+
+The project separates three functions:
+
+**Internal evidence chooses the model.**
+
+**The pre-upload validator proves the file.**
+
+**The challenge evaluates the frozen entry.**
+
+Technical defects may be investigated and corrected only from independently permitted technical evidence. Blinded challenge performance cannot create, trigger, strengthen, or resolve a technical-defect hypothesis.
+
+#### Revisit when
+
+Revisit this submission contract only if:
+
+- the organizers change the live-Space submission specification, validation behavior, rate limit, track structure, account requirements, Method Report Link requirements, or deadline;
+- the official 750-compound test input or required submission schema changes;
+- an organizer-generated technical error reveals a previously undocumented submission requirement; or
+- a separately approved decision explicitly amends the non-adaptivity firewall.
+
+Any such change must be documented before it affects a subsequent submission.
+
+# D004 — C5/C6 Stock-Chemprop Seed-Replication Decision
+
+**Decision date:** 2026-10-13  
+**Status:** Approved and frozen
+
+## Decision
+
+The project will perform a validation-only seed-replication experiment to determine whether the observed validation advantages of the **C5** and **C6** stock-loss Chemprop configurations over stock C0 persist across training-seed stochasticity.
+
+This experiment does not reopen the completed stock-versus-task-balanced loss decision. Stock masked multitask MSE remains the retained loss function.
+
+The only decision this experiment may change is whether **C5 and/or C6 replaces C0 as the stock-loss Chemprop candidate carried forward for downstream comparison with AttentiveFP and possible final model selection**.
+
+It cannot alter D001, D002, CYP-003/Step-3, the retained stock-loss decision, or D003.
+
+## Configurations under replication
+
+The relevant existing configurations are:
+
+- **C0:** message-passing depth 3; message hidden dimension 300; FFN hidden dimension 300; one FFN layer; dropout 0.0; maximum learning rate 0.001.
+- **C5:** message-passing depth 3; message hidden dimension 300; FFN hidden dimension 300; two FFN layers; dropout 0.10; maximum learning rate 0.001.
+- **C6:** message-passing depth 3; message hidden dimension 500; FFN hidden dimension 500; two FFN layers; dropout 0.10; maximum learning rate 0.001.
+
+The original seed-`20261001` validation macro ST-RAE results were:
+
+- C0 stock: `0.684556823058`
+- C5 stock: `0.672421`
+- C6 stock: `0.670208`
+
+These observations motivate replication but do not by themselves establish that C5 or C6 should replace C0.
+
+## Seeds and existing controls
+
+Use exactly the five training seeds previously prespecified for CYP-002:
+
+```text
+20261001
+20261002
+20261003
+20261004
+20261005
+```
+
+These are inherited directly from the frozen CYP-002 five-seed replication protocol.
+
+The preserved C5 and C6 seed-`20261001` runs are reused and are not rerun unless an integrity failure invalidates an existing artifact.
+
+The existing stock-C0 runs at all five seeds are likewise reused.
+
+Therefore, the experiment requires:
+
+- four new C5 stock fits at seeds `20261002`–`20261005`;
+- four new C6 stock fits at seeds `20261002`–`20261005`;
+- **eight new scientific training fits total**.
+
+No new C0 training is required.
+
+## Same-seed paired comparison
+
+For each candidate \(j\in\{C5,C6\}\) and training seed \(s\), define the validation advantage:
+
+\[
+A_{j,s}
+=
+ST\!-\!RAE_{C0,s}
+-
+ST\!-\!RAE_{j,s}.
+\]
+
+Lower ST-RAE is better. Therefore:
+
+- \(A_{j,s}>0\): candidate \(j\) beats C0 at that seed;
+- \(A_{j,s}=0\): tie;
+- \(A_{j,s}<0\): C0 beats candidate \(j\).
+
+Every candidate result is compared with the **existing C0 result generated at the same training seed**.
+
+The experiment does not substitute the five-seed C0 mean for these same-seed controls.
+
+The authoritative existing C0 validation values are:
+
+```text
+20261001    0.684556823057850
+20261002    0.680145541646839
+20261003    0.690064499896603
+20261004    0.696088668668752
+20261005    0.676340834323393
+```
+
+## Required reporting
+
+For C5 versus C0 and C6 versus C0 separately, report:
+
+- all five paired advantages \(A_{j,s}\);
+- mean paired advantage;
+- median paired advantage;
+- sample SD of the five paired advantages;
+- number of seeds favoring the candidate;
+- number of seeds favoring C0;
+- five-seed candidate mean validation macro ST-RAE;
+- five-seed C0 mean validation macro ST-RAE;
+- per-isoform validation ST-RAE;
+- paired 95% bootstrap confidence interval for the mean validation advantage.
+
+The approved CYP-arm evaluation amendment requires model comparisons to report an effect size with a 95% bootstrap confidence interval.
+
+## Paired-seed bootstrap
+
+For each candidate separately, the bootstrap unit is the **paired training seed**.
+
+The observed five-element vector is:
+
+\[
+(A_{j,1},A_{j,2},A_{j,3},A_{j,4},A_{j,5}).
+\]
+
+For each bootstrap draw, sample **five seed indices with replacement** from the fixed five-seed set.
+
+Whenever a seed index is sampled, its already-computed paired advantage \(A_{j,s}\) is carried as one indivisible observation. C0 and candidate scores are never resampled independently.
+
+For bootstrap draw \(b\):
+
+\[
+\bar A_j^{*(b)}
+=
+\frac{1}{5}
+\sum_{r=1}^{5}
+A_{j,s_r^{*(b)}}.
+\]
+
+Use:
+
+```text
+bootstrap draws       10,000
+sampling              paired seeds with replacement
+observations/draw     5
+statistic             mean paired validation advantage
+confidence interval   95% percentile
+```
+
+The analysis RNG seed must be fixed prospectively before the bootstrap is executed, must be distinct from the five training seeds, and must be recorded with the analysis artifacts.
+
+The percentile interval is:
+
+\[
+[
+Q_{0.025}(\bar A_j^*),
+Q_{0.975}(\bar A_j^*)
+].
+\]
+
+Define:
+
+\[
+LCB(A_j)=Q_{0.025}(\bar A_j^*).
+\]
+
+The use of 10,000 paired bootstrap draws and a 95% percentile interval follows the already-frozen CYP-002 bootstrap precedent; the experimental unit here is changed appropriately to the five paired training-seed replicates.
+
+## Candidate-specific seed variability
+
+For candidate \(j\), define:
+
+\[
+SD_{\mathrm{seed},j}
+=
+SD(A_{j,1},A_{j,2},A_{j,3},A_{j,4},A_{j,5}).
+\]
+
+This is the sample SD of the **C0-versus-candidate paired validation advantages**.
+
+The previously frozen numerical value
+
+```text
+0.007094968910757
+```
+
+is not reused as the C5/C6 threshold because it was specifically measured from the stock-versus-task-balanced contrast.
+
+The prior CYP-002 preregistration established the methodological principle:
+
+\[
+LCB(\Delta_{\mathrm{test}})>SD_{\mathrm{seed}}
+\]
+
+for an observed improvement to displace the incumbent.
+
+D004 retains that principle while estimating the stochastic scale from the correct C0-versus-C5 or C0-versus-C6 contrast.
+
+## Frozen decision rule
+
+C5 displaces C0 only if:
+
+\[
+\boxed{
+LCB(A_{C5})>SD_{\mathrm{seed},C5}
+}
+\]
+
+C6 displaces C0 only if:
+
+\[
+\boxed{
+LCB(A_{C6})>SD_{\mathrm{seed},C6}
+}
+\]
+
+Otherwise that candidate does not displace C0.
+
+Failure to clear this rule means **insufficient evidence to replace C0**. It does not establish equivalence and does not establish that the candidate is intrinsically worse.
+
+C5 and C6 are adjudicated independently.
+
+If neither clears the rule, C0 remains the stock-loss Chemprop candidate.
+
+If exactly one clears the rule, that configuration replaces C0 as the stock-loss Chemprop candidate.
+
+If both clear the rule, D004 does **not** select between C5 and C6. A C5-versus-C6 choice would require a separately prospectively specified selection rule before either can be declared the final optimized Chemprop candidate.
+
+## Conservatism at five seeds
+
+The frozen rule is deliberately conservative at \(n=5\).
+
+Only five paired training-seed effects are observed. Consequently:
+
+- the empirical seed distribution is sparsely sampled;
+- the sample SD is itself uncertain;
+- the paired-seed bootstrap can resample only the five observed effects and cannot characterize behavior at unobserved training seeds;
+- the 2.5th-percentile lower bound must nevertheless exceed an entire sample SD before the incumbent is displaced.
+
+Thus the rule requires substantially more than a positive mean advantage or a majority of favorable seeds. It requires the lower tail of the estimated mean-effect distribution to remain larger than the observed scale of between-seed variation.
+
+The CYP-002 record already limits interpretation of five-seed variability accordingly:
+
+> “The five-seed `SD_seed` is an empirical sample SD across the five prespecified seeds, not an exhaustive characterization of all possible stochastic variation.”
+
+D004 makes the same limitation for the C0-versus-C5 and C0-versus-C6 contrasts.
+
+## Scientific interpretation boundary
+
+D004 evaluates **whole configurations**.
+
+It is not a factorial hyperparameter-ablation experiment.
+
+C5 changes both:
+
+- FFN depth: 1 → 2;
+- dropout: 0.0 → 0.10.
+
+Therefore, even if C5 reproducibly beats C0, D004 cannot establish whether the improvement is caused by:
+
+- additional FFN depth;
+- dropout;
+- their interaction;
+- or another consequence of the joint configuration change.
+
+C6 makes the same FFN-depth and dropout changes and additionally changes:
+
+- message hidden dimension: 300 → 500;
+- FFN hidden dimension: 300 → 500.
+
+Therefore C6 versus C0 cannot separately identify the effects of width, FFN depth, dropout, or their interactions.
+
+C6 versus C5 also jointly changes both message width and FFN width and therefore cannot isolate either width effect.
+
+The authorized claim is limited to whether **C5 and/or C6 as complete configurations reproducibly improves validation performance over C0 under the five prespecified training seeds**.
+
+## Evaluation boundary
+
+D004 is **validation-only**.
+
+The 736-compound held-out internal-test partition must not be accessed for this experiment.
+
+The 750-compound blinded OpenADMET challenge set and all D003-prohibited challenge-performance evidence must not enter fitting, evaluation, selection, interpretation, or investigation of the D004 scientific result.
+
+## Runtime qualification and Slurm gate
+
+Historical production timings on the original `gpu-dev1` NVIDIA L40S were:
+
+- C5 stock: **82.06 seconds per fit**;
+- C6 stock: **66.96 seconds per fit**. 
+
+Using those configuration-specific historical measurements:
+
+- four new C5 fits extrapolate to approximately **5.47 minutes**;
+- four new C6 fits extrapolate to approximately **4.46 minutes**;
+- eight new fits extrapolate to approximately **9.93 minutes of serial scientific training** under the historical L40S environment.
+
+These historical measurements do not qualify CoreHPC runtime.
+
+Before the Slurm production gate, execution time must be qualified with **one direct interactive benchmark run on the actual target CoreHPC GPU and runtime environment**.
+
+The CoreHPC benchmark must **never be submitted as a Slurm job**.
+
+Its observed wall time is used only to:
+
+- estimate the eight-fit CoreHPC production runtime;
+- select an appropriate Slurm wall-time request;
+- verify that the intended production execution is operationally reasonable.
+
+The interactive benchmark has no additional model-selection authority.
+
+Its scientific output must not be used as an extra replicate or additional evidence unless it is itself one of the prespecified D004 seed/configuration fits executed under the frozen scientific contract.
+
+Full Slurm production is authorized only after the direct interactive benchmark is recorded and the extrapolated production requirement is reviewed.
+
+## Governing principle
+
+D004 asks one narrow question:
+
+**Do the C5 and/or C6 stock-loss Chemprop configurations retain enough of their observed validation advantage over C0 across the same five training seeds to justify replacing C0 as the downstream Chemprop candidate?**
+
+The experiment measures configuration-level reproducibility, not individual hyperparameter causality.
+
+The incumbent changes only when the candidate's paired validation effect remains large relative to its own observed training-seed variability under the prospectively frozen rule.
+
+## Revisit when
+
+Revisit D004 only if:
+
+- an integrity failure invalidates an existing C0, C5, or C6 artifact used by the experiment;
+- the frozen validation split, ST-RAE implementation, Chemprop implementation, or scientific configuration changes before execution;
+- the direct CoreHPC benchmark identifies an execution incompatibility requiring a scientific rather than mechanical change;
+- both C5 and C6 clear the frozen rule and a separate prospective C5-versus-C6 selection decision is therefore required; or
+- a separately approved decision explicitly supersedes this experiment.
+
+# D005 — Bounded Post-D004 Chemprop Search
+
+**Decision date:** October 14, 2026  
+**Status:** APPROVED AND FROZEN
+
+## Objective and scope
+
+D005 is a prospective, validation-only search around C5 using **stock masked multitask MSE**.
+
+D004 remains closed and unmodified. C0 remains the baseline of record unless a D005-eligible configuration clears the D005 rule.
+
+Only two factors may vary:
+
+- dropout: `0.00` or `0.10`
+- FFN layers: `1` or `2`
+
+Everything else remains frozen at the shared C0/C5 settings: message-passing depth 3, message width 300, FFN width 300, max LR 0.001, LR schedule, batch size, epoch limit, early stopping, preprocessing, validation metric, and other training machinery.
+
+No width, message-passing-depth, learning-rate, or weight-decay search is authorized.
+
+The protected 736-compound internal test and 750-compound blinded challenge remain untouched.
+
+## Grid and seeds
+
+| Configuration | Dropout | FFN layers | Evidence |
+|---|---:|---:|---|
+| C0 | 0.00 | 1 | existing baseline |
+| C5 | 0.10 | 2 | existing five-seed D004 results |
+| D005-A | 0.00 | 2 | 5 new fits |
+| D005-B | 0.10 | 1 | 5 new fits |
+
+Seeds are exactly:
+
+`20261001, 20261002, 20261003, 20261004, 20261005`
+
+Therefore **10 new fits** are required. C0 and C5 are not rerun.
+
+C5 is eligible to replace C0 under D005. Its D004 five-seed results are **reused under this new prospective D005 rule**. D004 itself remains closed and unmodified, but C5's evidence is therefore **not fresh D005-generated data**. This selection-informed reuse must accompany interpretation of any C5 D005 result.
+
+Before execution, manifests must verify that:
+
+- D005-A differs from C5 in **exactly one** searched setting: dropout `0.10 -> 0.00`;
+- D005-B differs from C5 in **exactly one** searched setting: FFN layers `2 -> 1`;
+- all other scientific settings equal C5 exactly.
+
+## Runtime and execution
+
+Interactive `gpu-dev1` or interactive CoreHPC only.
+
+Historical C5 fits were approximately 67–91 seconds. Use approximately **90 seconds per new fit** for planning.
+
+Ten new fits therefore require approximately:
+
+`10 × 90 s = 900 s = 15 minutes`
+
+Reserve approximately 20 minutes including manifest and integrity checks. Record actual wall time for every fit.
+
+## D005 selection rule
+
+For candidate `j` and seed `s`:
+
+`A(j,s) = ST-RAE(C0,s) - ST-RAE(j,s)`
+
+Positive values favor the candidate.
+
+The eligible family is exactly:
+
+`{C5 vs C0, D005-A vs C0, D005-B vs C0}`
+
+Use a **0.05 one-sided familywise error budget**. This is the overall Type-I error budget for the three predeclared candidate-vs-C0 claims; using 0.025 familywise would impose additional conservatism for which D005 has no separate justification.
+
+Bonferroni arithmetic:
+
+`per-comparison alpha = 0.05 / 3 = 0.0166666667`
+
+Therefore, for each candidate, use the **1.66666667th percentile** of its paired-seed bootstrap distribution as the multiplicity-adjusted lower confidence bound.
+
+For each candidate:
+
+- bootstrap unit = paired training seed;
+- sample five seed indices with replacement;
+- preserve C0/candidate pairing;
+- statistic = mean paired advantage;
+- 10,000 draws;
+- analysis RNG seed fixed prospectively before execution.
+
+**Displacement criterion:**
+
+`adjusted LCB(A_j) > 0`
+
+This is deliberately **looser than D004's `LCB > SD_seed,j` rule**. It is acceptable here only because D005 asks the narrower model-selection question of whether a predeclared candidate shows a multiplicity-controlled positive validation advantage over C0. D005 does **not** interpret `LCB > 0` as demonstrating an improvement larger than seed variability or as establishing practical materiality.
+
+If no candidate clears, retain C0.
+
+If exactly one clears, that candidate replaces C0.
+
+If multiple candidates clear, select the candidate with the **largest multiplicity-adjusted LCB**. If the largest adjusted LCB is exactly tied, retain C0 rather than introduce an unregistered tie-breaker.
+
+## Failure rule
+
+For any failed or interrupted new fit:
+
+1. preserve the failed attempt and its artifacts;
+2. rerun the **same configuration and same seed** under the frozen D005 settings in a new run directory;
+3. use the successful rerun as that seed's evidence.
+
+No alternate seed, configuration, imputation, neighboring run, or other substitution is permitted.
+
+## Interpretation limits
+
+The 2×2 grid can compare dropout at each tested FFN depth, FFN depth at each tested dropout, and describe their interaction within these four settings.
+
+It cannot identify optimal values outside dropout `{0.00, 0.10}` or FFN layers `{1, 2}`, and cannot separate or estimate effects of width, message-passing depth, learning rate, weight decay, or other frozen parameters.
+
+D005 is **selection-informed**: C5 motivated this local search, and C5 itself reuses already-observed D004 data. Multiplicity correction addresses the three formal candidate-vs-C0 comparisons but does not erase that historical selection process. Claims must therefore remain bounded to this post-D004 validation search.
+
+### Bootstrap RNG implementation
+
+Before bootstrap execution, the deterministic implementation is frozen as follows.
+
+NumPy's Generator API is initialized exactly once:
+
+`rng = np.random.default_rng(20261015)`
+
+Candidates consume that single RNG stream in this fixed order:
+
+`C5`, `D005-A`, `D005-B`
+
+For each candidate, exactly one index matrix is generated by:
+
+`rng.integers(0, 5, size=(10000, 5))`
+
+Rows are bootstrap draws and columns are the five sampled paired-training-seed indices. The resulting index matrix is applied to that candidate's five same-seed paired advantages.
+
+The RNG is not reinitialized between candidates, and candidates do not share a common index matrix.
+
+This implementation choice resolves an otherwise unspecified random-stream allocation while preserving D005's frozen scientific design: five paired seed indices sampled with replacement per draw, 10,000 draws per candidate, and the mean paired advantage as the bootstrap statistic. It is frozen before any D005 bootstrap draw is generated and may not be changed in response to results.
+
+## Governing principle
+
+D005 may replace C0 only through the prospectively frozen, multiplicity-controlled validation rule above. It spends no protected-test or blind-challenge evidence.
+
+## Revisit when
+
+Revisit after the ten authorized new fits and frozen D005 analysis are complete, or if an execution/integrity failure prevents completion.
+
+# D006 — Joint Chemprop Hyperparameter Optimization and Disclosed Internal-Test Evaluation
+
+**Decision date:** 2026-10-14  
+**Status:** APPROVED — execution remains blocked on the open items identified under *Revisit when*
+
+## Decision
+
+D006 authorizes one joint Chemprop 2.3.1 Bayesian/TPE hyperparameter search using the existing frozen training/validation split, followed by a single preregistered advancement decision against C0 on validation.
+
+Only if the selected search configuration strictly beats C0 at that advancement gate may D006 proceed to a five-seed paired comparison on the existing 736-compound internal test.
+
+The internal test is not fresh. It was previously used under D001/D002 for the C0 stock-versus-task-balanced comparison. That prior exposure must be disclosed in D006 and in any resulting writeup.
+
+D003 remains unchanged. No blinded OpenADMET challenge data, score, rank, tier, leaderboard result, or other challenge-derived performance feedback may enter D006 training, hyperparameter selection, debugging, final internal-test adjudication, or methodological adaptation.
+
+Descriptors, ensembling, and pretrained encoders are outside D006.
+
+## Existing evidence boundary
+
+D006 uses the existing frozen CYP-002 molecular universe and split:
+
+- training: 3,433 compounds;
+- validation: 736 compounds;
+- internal test: 736 compounds.
+
+The 736 validation compounds drive hyperparameter selection.
+
+The 736 internal-test compounds were already accessed once under D001/D002. The recorded C0 results were:
+
+- stock masked multitask MSE: macro ST-RAE `0.705435453184784`;
+- task-balanced masked multitask MSE: macro ST-RAE `0.705530217573275`.
+
+C0 stock was retained.
+
+No fresh labeled evaluation population is available in the current record.
+
+Accordingly, a D006 final evaluation is explicitly a **disclosed reused-internal-test comparison**, not a first-look or untouched internal validation.
+
+The current record contains only one C0 stock internal-test evaluation, not five C0 test evaluations across training seeds. Therefore, if D006 reaches its final phase, the required five-seed C0 test results must be produced alongside the tuned configuration.
+
+No test-result-driven retry, tuning, configuration substitution, or further model selection is permitted after D006 accesses the internal test.
+
+## Search method
+
+D006 uses one joint Bayesian/TPE hyperparameter search.
+
+The search uses stock masked multitask MSE only. D001/D002's task-balanced loss is not reopened.
+
+The search RNG seed is frozen prospectively as:
+
+`20261016`
+
+## Search space
+
+The search space follows the installed Chemprop 2.3.1 hpopt implementation:
+
+| Setting | D006 search space |
+|---|---|
+| Message-passing depth | integers `2–6` |
+| FFN layers | integers `1–2` |
+| Dropout | categorical `[0.0] × 8` plus `0.05, 0.10, ..., 0.40` |
+| Message hidden width | `300` upward in increments of `100`; production ceiling **NOT APPROVED — pending benchmark** |
+| FFN hidden width | `300` upward in increments of `100`; production ceiling **NOT APPROVED — pending benchmark** |
+| Batch size | `{16, 32, 64, 128, 256}` |
+| Maximum learning rate | log-uniform `1e-4–1e-2` |
+
+Installed-source qualification established that the native Chemprop/Ray width support extends through `2400` inclusive. `2400` is therefore the native boundary available to the compute benchmark; it is not yet the approved production width ceiling.
+
+Weight decay is **not searched: no stock support** in the relevant Chemprop 2.3.1 train/hpopt path. Adding it would require custom scientific implementation outside D006.
+
+The existing CYP-002 configuration and canonical-manifest interfaces already represent all seven searched parameters. D006 requires one generic dynamic trial-configuration adapter so sampled values can enter the existing CYP-002 manifest/model/training pathway. It does not require seven independent scientific model changes.
+
+D006 retains the existing CYP-002 model construction, frozen split routing, stock masked multitask loss, target processing, validation ST-RAE, deterministic training-seed plumbing, checkpointing, and manifest semantics.
+
+## Search-controller and environment contract
+
+The preserved CYP-002 environment does not contain Ray or HyperOpt and must not be modified to add them.
+
+D006 therefore uses a separate search-controller environment for proposal generation and search state. The controller has no authority to train models, process molecular targets, calculate ST-RAE, access internal-test outcomes, or access blinded-challenge performance information.
+
+All scientific model fitting and validation evaluation occur through the preserved CYP-002 pathway.
+
+The controller interaction is sequential:
+
+`controller proposal -> CYP-002 evaluation at both search seeds -> mean validation macro ST-RAE -> controller -> next proposal`
+
+The only performance objective returned to the controller is:
+
+`mean(validation macro ST-RAE at seeds 20261017 and 20261018)`
+
+Lower is better.
+
+No per-isoform result, internal-test result, challenge result, or other auxiliary performance information is supplied to the controller for proposal generation.
+
+### Controller environment
+
+The separate controller environment uses:
+
+- Python `3.12.14`;
+- Ray `2.56.1`;
+- HyperOpt `0.3.0`;
+- setuptools `81.0.0`;
+- NumPy `2.5.4`;
+- Pydantic `2.14.1`;
+- `idna==3.20`;
+- `click==8.5.0`.
+
+During qualification, Python user-site visibility initially masked the absence of `idna==3.20` and `click==8.5.0` from the controller environment. Both dependencies were installed into the controller environment with user-site access disabled. Under `PYTHONNOUSERSITE=1`, `pip check` reports no broken requirements and Ray/HyperOpt import and construction succeed.
+
+**Controller status: import and construction qualified under user-site isolation; trial proposal not yet exercised.**
+
+Trial-proposal qualification may be performed as part of implementation before trial one; it has no scientific-performance authority.
+
+### Python user-site isolation
+
+Historical CYP-002 execution did not explicitly set `PYTHONNOUSERSITE=1`. Retrospective audit found user-site visibility enabled, but every examined scientifically consequential package resolved from the intended preserved `tripwire_cyp002` environment:
+
+- Chemprop `2.3.1`;
+- PyTorch `2.14.1+cu126`;
+- Lightning `2.6.6`;
+- NumPy `2.5.3`;
+- pandas `3.0.6`;
+- RDKit `2026.3.6`;
+- SciPy `1.18.1`.
+
+The only detected environment/user-site distribution overlap was `idna==3.20` in both locations. No examined scientific import resolved from user site. This retrospective audit does not independently reconstruct every historical process, and D001–D005 artifacts are not modified retroactively.
+
+For all D006 controller and CYP-002 execution:
+
+`PYTHONNOUSERSITE=1`
+
+is mandatory.
+
+Preflight must assert:
+
+- `site.ENABLE_USER_SITE is False`;
+- user site is absent from `sys.path`;
+- consequential imports resolve from their approved environment.
+
+D006 manifests must record user-site isolation state and resolved package paths/versions.
+
+## HyperOpt initialization
+
+D006's frozen search RNG seed is:
+
+`20261016`
+
+The controller must explicitly instantiate:
+
+`HyperOptSearch(n_initial_points=N // 2, random_state_seed=20261016)`
+
+where `N` is the frozen D006 production trial count.
+
+The `N // 2` rule reproduces Chemprop 2.3.1's CLI argument-processing behavior. It must be passed explicitly because the rule is applied by Chemprop before `HyperOptSearch` construction; it is not a `HyperOptSearch` default.
+
+`n_initial_points` is derived deterministically from `N` and is not independently tuned.
+
+## Settings remaining fixed
+
+The following remain frozen:
+
+- model family: Chemprop D-MPNN;
+- message-passing implementation: BondMessagePassing;
+- loss: stock masked multitask MSE;
+- four CYP direct-inhibition pIC50 endpoints;
+- aggregation: normalized aggregation;
+- aggregation norm: `100`;
+- optimizer family: Adam;
+- LR schedule family: NoamLR;
+- initial LR: `0.0001`;
+- final LR: `0.0001`;
+- warmup: `2` epochs;
+- activation: ReLU;
+- batch normalization: false;
+- maximum epochs: `50`;
+- early-stopping patience: `20`;
+- early-stopping minimum delta: `0`;
+- validation metric: macro ST-RAE, lower is better;
+- missing-target handling: masked;
+- per-task target scaling fitted on training only;
+- existing frozen train/validation/test assignment.
+
+Descriptors, ensembling, pretrained encoders, and transfer learning are excluded.
+
+## Search training seeds
+
+Every search trial is trained at exactly two frozen training seeds:
+
+`20261017`
+
+`20261018`
+
+The same two seeds apply to every trial.
+
+Using two rather than five search seeds is an explicit compute tradeoff. It does not claim that two seeds fully characterize training stochasticity.
+
+Neither search seed may be substituted after results are observed.
+
+## Trial score
+
+For trial `j`:
+
+`V_j = mean(validation macro ST-RAE at seeds 20261017 and 20261018)`
+
+Lower is better.
+
+The Bayesian/TPE optimizer may use validation results from completed trials to choose subsequent hyperparameter configurations.
+
+No internal-test or blinded-challenge information may enter this process.
+
+## Search-trial tie rule
+
+Each trial receives a deterministic trial index before its training results are available.
+
+If multiple search trials have exactly the same lowest two-seed mean validation macro ST-RAE, select the tied trial with the **lowest predetermined trial index**.
+
+No secondary performance metric is used as a tie-breaker.
+
+## C0 validation advancement gate
+
+C0 is the frozen baseline comparator. It is **not** a sampled Bayesian/TPE search candidate.
+
+C0 is evaluated using the same two search training seeds:
+
+`20261017`
+
+`20261018`
+
+and the same frozen training/validation compounds and validation scoring contract.
+
+Let `T*` denote the selected search trial after application of the search-trial tie rule.
+
+`T*` advances to the final internal-test phase if and only if:
+
+`mean validation ST-RAE(T*) < mean validation ST-RAE(C0)`
+
+Lower is better.
+
+An exact tie does not advance.
+
+If `T*` ties or performs worse than C0, **D006 terminates at validation**. The 736-compound internal test is not accessed for D006, C0 remains the scientific baseline, and no search trial receives final evaluation.
+
+Passing this advancement gate does **not** establish that `T*` has demonstrated superiority over C0. It only authorizes the preregistered final comparison.
+
+## Compute benchmark
+
+Before the width ceiling or search trial count is frozen, D006 requires a compute-only benchmark.
+
+The benchmark is performed interactively outside SLURM using the preserved Chemprop 2.3.1 environment.
+
+The benchmark uses a small predetermined set of computationally stressful configurations spanning the prospective upper boundary, including:
+
+- maximum message-passing depth;
+- large message hidden width;
+- large FFN hidden width;
+- maximum FFN layer count;
+- relevant batch-size extremes.
+
+The native width boundary `2400` may be benchmarked for feasibility without thereby becoming the approved production ceiling.
+
+Benchmark configuration selection is based solely on computational stress coverage. Validation performance from the benchmark has no search or model-selection authority.
+
+For each benchmark fit, record actual per-fit wall time and relevant resource behavior.
+
+Before search execution, report side by side:
+
+- benchmark-derived per-fit planning time;
+- proposed number of trials;
+- two fits per trial;
+- arithmetic extrapolated total compute time;
+- requested execution wall time.
+
+The extrapolated total and requested wall time must be shown separately and must not be conflated.
+
+Historical C5 timing may be reported as prior context but does not substitute for the large-configuration benchmark.
+
+No numerical search budget is authorized from historical timing alone.
+
+## Width ceiling and trial count
+
+**Message-hidden-width ceiling: NOT APPROVED — pending benchmark.**
+
+**FFN-hidden-width ceiling: NOT APPROVED — pending benchmark.**
+
+**Search trial count: NOT APPROVED — pending benchmark.**
+
+After the benchmark:
+
+1. determine the computationally feasible width ceilings;
+2. consider the seven-dimensional search space and available compute budget;
+3. determine a bounded trial count;
+4. freeze both width ceilings and the exact trial count before trial one.
+
+The trial count must not change in response to observed validation performance.
+
+## Width ceiling and trial count
+
+The D006 compute benchmark completed interactively on gpu-dev1 using GPU 1 and the preserved CYP-002 environment with `PYTHONNOUSERSITE=1`. Validation scores from the benchmark had no model-selection authority.
+
+The benchmark results were:
+
+| Fit | Configuration | Batch size | Epochs | Wall time (s) | Seconds/epoch | Peak GPU memory (MiB) |
+|---|---|---:|---:|---:|---:|---:|
+| B1 | depth 6; message width 2400; FFN width 2400; FFN layers 2 | 16 | 32 | 180.966458345 | 5.655201823 | 1587 |
+| B2 | depth 6; message width 2400; FFN width 2400; FFN layers 2 | 256 | 34 | 197.555466600 | 5.810454900 | 9563 |
+| B3 | depth 2; message width 300; FFN width 300; reference configuration | 64 | 50 | 85.189836988 | 1.703796740 | 757 |
+
+All three fits completed. B1 and B2 early-stopped; B3 reached the 50-epoch cap. No fit was retried.
+
+GPU 0 had substantial memory allocated by another process during the benchmark, but all three D006 benchmark fits ran on GPU 1. The GPU-0 allocation therefore does not qualify the benchmark timing.
+
+For conservative production planning, B2 is the slowest observed configuration. Its measured rate is:
+
+`5.8104549 seconds/epoch`
+
+Extrapolated to the frozen 50-epoch cap:
+
+`5.8104549 × 50 = 290.522745 seconds/fit`
+
+D006 therefore freezes:
+
+- message-hidden-width search range: `300–2400` in increments of `100`;
+- FFN-hidden-width search range: `300–2400` in increments of `100`;
+- search trial count: `N = 64`;
+- training fits per trial: `2`;
+- total planned search fits: `128`;
+- conservative planning time per fit: `290.522745 seconds`;
+- conservative serial search-time extrapolation: `37,186.91136 seconds = 10.3296976 hours`;
+- requested execution wall time: `12 hours`.
+
+The 12-hour requested wall time is an execution allowance, not a search stopping criterion. D006 stops after exactly 64 search trials regardless of unused wall time. Exhaustion of the requested wall time does not authorize additional trials, substitution of incomplete trials, or alteration of the search space.
+
+With `N = 64`, the frozen controller initialization is:
+
+`HyperOptSearch(n_initial_points=32, random_state_seed=20261016)`
+
+The first 32 points are therefore the initial-random portion specified by the frozen Chemprop-compatible `N // 2` rule, followed by the remaining search trials under the HyperOpt/TPE search state.
+
+The benchmark closes the D006 width-ceiling and trial-count decisions.
+
+## Final training seeds
+
+If and only if `T*` passes the validation advancement gate, train both the frozen selected configuration and C0 using the same five fresh training seeds:
+
+`20261019`
+
+`20261020`
+
+`20261021`
+
+`20261022`
+
+`20261023`
+
+These seeds are distinct from:
+
+- prior training seeds `20261001–20261005`;
+- D006 search training seeds `20261017–20261018`;
+- search RNG seed `20261016`;
+- prior relevant analysis RNG identities.
+
+No final seed may be replaced after outcomes are observed.
+
+## Final internal-test comparison
+
+For each final training seed `s`, evaluate the tuned configuration and C0 on the identical frozen 736-compound internal-test partition using the identical scoring contract.
+
+Define:
+
+`A_s = test macro ST-RAE(C0,s) - test macro ST-RAE(tuned,s)`
+
+Positive values favor the tuned configuration.
+
+Define training-seed noise as:
+
+`SD_seed = sample SD(A_1, A_2, A_3, A_4, A_5), ddof=1`
+
+D006 retains the D005 materiality principle:
+
+**the tuned configuration demonstrates improvement over C0 only if the preregistered lower confidence bound of the paired test advantage exceeds `SD_seed`.**
+
+In plain text:
+
+`LCB(paired test advantage) > SD_seed`
+
+Otherwise:
+
+**no demonstrated improvement over C0 under D006.**
+
+Failure to clear the rule does not establish equivalence or intrinsic inferiority.
+
+### Final D006 execution-contract amendment — approved 2026-10-21
+
+#### Confidence-bound construction
+
+The D006 final scientific comparison uses the five frozen paired training seeds:
+
+`20261019, 20261020, 20261021, 20261022, 20261023`.
+
+For each seed `s`:
+
+`A_s = test macro ST-RAE(C0,s) - test macro ST-RAE(tuned,s)`
+
+Positive values favor the tuned configuration.
+
+The training-seed noise scale is:
+
+`SD_seed = sample SD(A_1, A_2, A_3, A_4, A_5), ddof=1`
+
+The final lower confidence bound is constructed by a paired-seed nonparametric bootstrap:
+
+- bootstrap RNG seed: `20261024`;
+- bootstrap draws: `10,000`;
+- bootstrap unit: paired training seed;
+- observations per draw: `5`;
+- sampling: with replacement;
+- statistic: mean paired test advantage;
+- RNG: `np.random.default_rng(20261024)`;
+- index generation: `rng.integers(0, 5, size=(10000, 5))`;
+- confidence bound: one-sided 95% lower bound;
+- LCB percentile: `5.0`;
+- percentile implementation: `np.percentile(bootstrap_means, 5.0, method="linear")`;
+- seed-noise implementation: `np.std(paired_advantages, ddof=1)`.
+
+The same sampled indices are applied to the paired-advantage vector; C0 and tuned results are never bootstrapped independently.
+
+D006 has exactly one final tuned-versus-C0 comparison, so no multiplicity adjustment is applied.
+
+The final rule is:
+
+`LCB_95_one_sided(mean paired test advantage) > SD_seed`
+
+An exact equality does not pass.
+
+If the rule does not pass, the frozen scientific verdict is:
+
+`no demonstrated improvement over C0 under D006`
+
+Failure does not establish equivalence or intrinsic inferiority.
+
+The `10,000`-draw percentile-bootstrap design follows the established CYP bootstrap precedent. D006 prospectively freezes its own paired-seed implementation, RNG, one-sided confidence level, and percentile calculation.
+
+No alternative confidence level, bootstrap seed, draw count, interpolation method, uncertainty estimator, or post hoc analysis may replace this construction after internal-test outcomes are accessed.
+
+## Artifact and output contract
+
+The already-completed D006 compute benchmarks remain canonical at:
+
+`cyp/artifacts/cyp_002/runs/D006-BENCH-B1/`
+
+`cyp/artifacts/cyp_002/runs/D006-BENCH-B2/`
+
+`cyp/artifacts/cyp_002/runs/D006-BENCH-B3/`
+
+They are not moved, copied, or duplicated into the new D006 namespace.
+
+Their canonical paths, configurations, completion states, timing/resource summaries, and SHA-256 identities of decision-bearing artifacts are recorded in the frozen D006 search specification.
+
+All new post-benchmark D006 artifacts live under:
+
+`cyp/artifacts/cyp_006/`
+
+with:
+
+`cyp/artifacts/cyp_006/search/`
+- `search_specification.json`
+- `controller_manifest.json`
+- `controller_state/`
+- `trials/`
+- `search_history.jsonl`
+- `search_summary.json`
+- `SHA256SUMS.txt`
+
+`cyp/artifacts/cyp_006/selection/`
+- `selected_configuration.json`
+- `selection_manifest.json`
+
+`cyp/artifacts/cyp_006/advancement/`
+- `c0/`
+- `advancement_result.json`
+
+`cyp/artifacts/cyp_006/final/`
+- `c0/`
+- `tuned/`
+- `analysis/`
+
+### Search-trial artifacts
+
+Each search trial lives at:
+
+`cyp/artifacts/cyp_006/search/trials/trial_NNN/`
+
+and contains:
+
+- `trial_config.json`;
+- `seed_20261017/`;
+- `seed_20261018/`;
+- `trial_summary.json`;
+- `SHA256SUMS.txt`.
+
+`trial_config.json` is written before either fit begins and records the controller-proposed seven-parameter configuration and predetermined trial index.
+
+A trial counts as complete only when both frozen seed fits complete successfully and a valid two-seed mean validation objective has been written.
+
+After successful completion, `trial_summary.json` records both validation macro ST-RAE values and their arithmetic mean. That mean is the sole objective returned to the controller.
+
+### Failed or incomplete trial rule
+
+A failed or incomplete trial stops the D006 search immediately.
+
+The failed or incomplete trial and every artifact produced before failure are preserved.
+
+The trial is:
+
+- not substituted;
+- not silently rerun;
+- not renumbered;
+- not deleted;
+- not replaced by an additional proposal.
+
+No subsequent trial may be proposed until the failure has been reported and separately adjudicated.
+
+The frozen `N=64` budget does not authorize compensatory trials.
+
+### Mid-search interruption and resume rule
+
+The controller state is persisted after every successfully completed trial/objective update under:
+
+`cyp/artifacts/cyp_006/search/controller_state/`
+
+A controller, process, machine, or connection interruption occurring between completed scientific trial states resumes from the preserved controller state.
+
+The search must never restart from trial 1 or from a fresh HyperOpt state after any proposal or objective has been consumed.
+
+Before resume, the implementation must verify:
+
+- controller-state integrity;
+- controller-state hash;
+- search-history consistency;
+- last completed trial index;
+- frozen search specification;
+- frozen RNG/search configuration.
+
+If an interruption occurs during an in-progress seed fit and leaves the trial incomplete, the failed/incomplete-trial rule applies: the search stops and the incomplete trial is reported rather than silently rerun.
+
+### Search history and selection
+
+`search_history.jsonl` is append-only and records in trial-index order:
+
+- proposed configuration;
+- proposal time;
+- frozen training seeds;
+- completion state;
+- two validation scores when complete;
+- mean validation score when valid;
+- objective returned to HyperOpt;
+- relevant artifact hashes.
+
+After all 64 trials complete under the frozen contract:
+
+`cyp/artifacts/cyp_006/selection/selected_configuration.json`
+
+and
+
+`cyp/artifacts/cyp_006/selection/selection_manifest.json`
+
+freeze `T*`, its seven-parameter configuration, trial index, two-seed validation score, search-history hash, and controller-state hash.
+
+### Advancement artifacts
+
+C0 advancement runs live under:
+
+`cyp/artifacts/cyp_006/advancement/c0/seed_20261017/`
+
+`cyp/artifacts/cyp_006/advancement/c0/seed_20261018/`
+
+The advancement decision is frozen at:
+
+`cyp/artifacts/cyp_006/advancement/advancement_result.json`
+
+It records:
+
+- selected `T*` two-seed mean validation macro ST-RAE;
+- C0 two-seed mean validation macro ST-RAE;
+- strict comparison result;
+- `advance` or `stop`;
+- hashes of all decision inputs.
+
+If the result is `stop`, no D006 final directory may be created and D006 terminates at validation.
+
+### Final-evaluation artifacts
+
+If and only if the advancement result is `advance`, final evaluation uses:
+
+`cyp/artifacts/cyp_006/final/c0/seed_20261019/`
+
+through:
+
+`cyp/artifacts/cyp_006/final/c0/seed_20261023/`
+
+and:
+
+`cyp/artifacts/cyp_006/final/tuned/seed_20261019/`
+
+through:
+
+`cyp/artifacts/cyp_006/final/tuned/seed_20261023/`
+
+Each final seed directory preserves:
+
+- run manifest;
+- frozen model configuration;
+- best checkpoint;
+- internal-test metrics;
+- per-compound internal-test predictions;
+- integrity hashes.
+
+Final statistical analysis lives at:
+
+`cyp/artifacts/cyp_006/final/analysis/`
+
+with:
+
+- `d006_final_analysis.py`;
+- `d006_final_results.json`;
+- `d006_bootstrap_means.csv`;
+- `d006_final_provenance.txt`;
+- `SHA256SUMS.txt`.
+
+`d006_final_analysis.py` must be the actual executable analysis source.
+
+`d006_bootstrap_means.csv` preserves all 10,000 bootstrap mean paired advantages.
+
+`d006_final_results.json` records:
+
+- five C0 test macro ST-RAE values;
+- five tuned test macro ST-RAE values;
+- five paired advantages;
+- mean paired advantage;
+- median paired advantage;
+- `SD_seed`;
+- one-sided 95% LCB;
+- frozen-rule result;
+- scientific verdict.
+
+### Manifest and integrity requirements
+
+Every D006 manifest records:
+
+- `PYTHONNOUSERSITE=1`;
+- `site.ENABLE_USER_SITE=False`;
+- absence of user site from `sys.path`;
+- approved package versions and resolved import paths appropriate to that environment;
+- frozen dataset/split identity where applicable;
+- exact training seed;
+- exact configuration;
+- start/end timestamps;
+- execution status;
+- relevant input/output SHA-256 hashes.
+
+The controller manifest additionally records:
+
+- Python `3.12.14`;
+- Ray `2.56.1`;
+- HyperOpt `0.3.0`;
+- NumPy `2.5.4`;
+- Pydantic `2.14.1`;
+- setuptools `81.0.0`;
+- `idna==3.20`;
+- `click==8.5.0`;
+- search RNG `20261016`;
+- trial count `64`;
+- `n_initial_points=32`;
+- exact frozen search-space definitions.
+
+Scientific CYP-002 manifests record the approved CYP-002 runtime and resolved paths for at least Chemprop, PyTorch, Lightning, NumPy, pandas, RDKit, and SciPy.
+
+Integrity manifests hash all decision-bearing configuration, source, JSON, metrics, prediction, search-history, controller-state, and analysis artifacts required to reproduce the D006 result.
+
+A file's own SHA-256 is not stored inside that file.
+
+No existing D001-D005 artifact or D006 benchmark artifact may be overwritten, moved, deleted, or repurposed.
+
+Intermediate, incomplete, and failed artifacts are preserved.
+
+## Pre-execution closure
+
+Before trial one, one D006 preflight must assert:
+
+- canonical benchmark paths are exactly `D006-BENCH-B1`, `D006-BENCH-B2`, and `D006-BENCH-B3` under `cyp/artifacts/cyp_002/runs/`;
+- benchmark decision-bearing artifacts match their recorded hashes;
+- frozen molecular universe and split identity;
+- Chemprop `2.3.1`;
+- stock masked multitask loss;
+- four frozen CYP endpoints;
+- frozen seven-parameter search space;
+- message and FFN width ranges `300–2400`;
+- trial count `64`;
+- search fits per trial `2`;
+- search seeds `{20261017, 20261018}`;
+- search RNG `20261016`;
+- `n_initial_points=32`;
+- final seeds `{20261019, 20261020, 20261021, 20261022, 20261023}`;
+- final-analysis RNG `20261024`;
+- final bootstrap draws `10,000`;
+- final LCB is one-sided 95%, percentile `5.0`, `method="linear"`;
+- seed-noise SD uses `ddof=1`;
+- `PYTHONNOUSERSITE=1` for controller and CYP-002 execution;
+- frozen D006 artifact paths are collision-free;
+- failed/incomplete trials stop rather than substitute;
+- controller state is persisted after every completed trial;
+- resumed searches use preserved controller state and never restart after search state has been consumed;
+- search cannot consume internal-test outcomes;
+- final evaluation cannot execute without a frozen `advance` artifact;
+- challenge data and challenge feedback are excluded.
+
+Expected endpoint:
+
+`D006 PREFLIGHT PASS — NO TRAINING OR EVALUATION PERFORMED`
+
+Any failed assertion stops execution before trial one.
+
+## Final execution and closure amendment — 2026-10-27
+
+D006 completed the frozen search, validation advancement, five-seed paired final training, disclosed reused-internal-test evaluation, and preregistered final statistical analysis.
+
+This amendment records the executed result. It does not alter the prospectively frozen D006 methodology or retroactively change any selection, advancement, evaluation, or statistical rule.
+
+### Production search result
+
+The frozen 64-trial HyperOpt/TPE search completed all 64 trials.
+
+The selected configuration was trial 12:
+
+- message-passing depth: `5`;
+- message hidden dimension: `900`;
+- FFN hidden dimension: `1400`;
+- FFN layers: `1`;
+- dropout: `0.15`;
+- batch size: `32`;
+- maximum learning rate: `0.004351853828824332`.
+
+Its frozen two-seed validation results were:
+
+- seed `20261017`: `0.6737485938348882`;
+- seed `20261018`: `0.6599336141126925`;
+- mean validation macro ST-RAE: `0.6668411039737903`.
+
+The selected-configuration artifact SHA-256 is:
+
+`8f9a7a91a9a831ceb5f80ca8fdb72c4271f6c506480212226f91aec1591264a8`
+
+The selection-manifest SHA-256 is:
+
+`010b2fd52531148a38252d681163dc571791c004f7471164a9ff35fd4c88fdec`
+
+The frozen search-history SHA-256 is:
+
+`2587ac31fa85dc63702b423aba143b30dd8f2d33f92787d33a6267dc7e5db294`
+
+The frozen search-summary SHA-256 is:
+
+`c95911398ab6cc58b961c3814e862990d7562ea07fd016d8a7e4d556bbc90a4a`
+
+### Validation advancement result
+
+C0 was evaluated at the same two frozen search seeds.
+
+Its validation macro ST-RAE values were:
+
+- seed `20261017`: `0.694521853753266`;
+- seed `20261018`: `0.689300375140654`;
+- mean: `0.691911114446960`.
+
+The frozen advancement comparison was therefore:
+
+`0.6668411039737903 < 0.691911114446960`
+
+and trial 12 passed the preregistered validation advancement gate.
+
+The authoritative advancement artifact has SHA-256:
+
+`bb822c75d66cf38b236d1eb535fb0cc98dccade43fc22e8e73c80fbff7f3ac6b`
+
+Passing this gate authorized the final comparison only; it did not establish superiority over C0.
+
+### Final five-seed training
+
+C0 and the frozen trial-12 configuration were each trained at the five prospectively frozen final training seeds:
+
+`20261019, 20261020, 20261021, 20261022, 20261023`
+
+All ten fits completed successfully.
+
+The final-training audit established:
+
+- `5/5` C0 fits complete;
+- `5/5` tuned fits complete;
+- exact frozen seed identities;
+- stock masked multitask objective throughout;
+- exact frozen trial-12 configuration for every tuned fit;
+- checkpoint and metrics hashes consistent with their manifests;
+- no internal-test evaluation during final training.
+
+### Final internal-test execution
+
+The disclosed reused-internal-test comparison was subsequently performed once for all ten frozen final checkpoints.
+
+All ten evaluations completed successfully on the same frozen 736-compound internal-test partition.
+
+The integrity audit established:
+
+- `10/10` evaluations completed;
+- `10/10` prediction matrices contained 736 rows;
+- exact C0/tuned checkpoint identities;
+- prediction hashes verified;
+- score hashes verified;
+- provenance hashes verified;
+- frozen evaluator, dataset, and split identities verified;
+- zero incomplete evaluations.
+
+No configuration selection or methodological adaptation occurred from these internal-test results.
+
+### Paired final results
+
+For each final training seed:
+
+`A_s = test macro ST-RAE(C0,s) - test macro ST-RAE(tuned,s)`
+
+with positive values favoring the tuned configuration.
+
+The paired advantages, derived directly from the frozen score artifacts at their stored precision, were:
+
+- seed `20261019`: `-0.030287878144410918`;
+- seed `20261020`: `0.0002551160079967696`;
+- seed `20261021`: `0.0009163331800771113`;
+- seed `20261022`: `-0.030601358415503155`;
+- seed `20261023`: `0.01425235100408162`.
+
+The frozen Phase-C analysis produced:
+
+- mean paired advantage: `-0.009093087273551714`;
+- `SD_seed`, using `ddof=1`: `0.020275673714827715`;
+- bootstrap RNG: `20261024`;
+- bootstrap draws: `10,000`;
+- bootstrap unit: paired training seed;
+- one-sided 95% lower confidence bound;
+- percentile: `5.0`;
+- percentile method: `linear`;
+- bootstrap LCB: `-0.024172427987950208`.
+
+The preregistered final gate was:
+
+`LCB_95_one_sided(mean paired test advantage) > SD_seed`
+
+Observed:
+
+`-0.024172427987950208 > 0.020275673714827715`
+
+Result:
+
+**FALSE**
+
+The frozen D006 scientific verdict is therefore:
+
+**no demonstrated improvement over C0 under D006.**
+
+This result does not establish equivalence between the tuned configuration and C0 and does not establish intrinsic inferiority of Chemprop hyperparameter optimization.
+
+### Final scientific-core provenance
+
+The qualified checkpoint evaluator is:
+
+`cyp/scripts/cyp006_checkpoint_evaluation.py`
+
+SHA-256:
+
+`73d708bb1c0d47a91ecce44dac79e4e2a16efce24581af0f5b2c13e9ac659b48`
+
+Its regression test is:
+
+`cyp/tests/test_cyp006_checkpoint_evaluation.py`
+
+SHA-256:
+
+`b71076f08c80c40f76a98b28f5b42952a4ecd4c1eb735ca348f672b6cfc15634`
+
+The final statistical-analysis implementation is:
+
+`cyp/scripts/cyp006_final_analysis.py`
+
+SHA-256:
+
+`b87fbfbb9d5110ebebe3d3009cea6bd13c0526fe3c1c29070e66389409fe8a66`
+
+Its regression test is:
+
+`cyp/tests/test_cyp006_final_analysis.py`
+
+SHA-256:
+
+`f384a456d4845d3ff71d7c584c6a06e11fb514687900eecea693e8fa5eed359e`
+
+All final-analysis regression tests passed before closure.
+
+### Execution-path reconciliation
+
+The prospective artifact contract declared final artifacts under:
+
+`cyp/artifacts/cyp_006/final/`
+
+During qualified execution, the final workflow was separated into lifecycle-specific roots rather than written to that prospective combined root.
+
+Final training was executed and preserved under:
+
+`cyp/artifacts/cyp_006/final_training/`
+
+The one-time internal-test evaluation was executed and preserved under:
+
+`cyp/artifacts/cyp_006/phase_b_internal_test/attempt_001/`
+
+Qualification and production-wrapper evidence was preserved separately under the corresponding Phase-B qualification and production-wrapper directories.
+
+This is an execution-path deviation from the prospectively named final artifact layout. It does not change the frozen molecular population, split, configurations, seeds, scoring contract, advancement rule, internal-test evaluation procedure, bootstrap procedure, or scientific verdict.
+
+The actual executed paths are retained as canonical provenance. The prospective path declarations above are not rewritten or silently replaced.
+
+One Phase-B submission, Slurm job `2772687`, failed before creation of `attempt_001` because the production wrapper attempted to create the attempt directory before its parent existed. No `STARTED.json` was created and no internal-test evaluator call began. The failure evidence was preserved.
+
+The repaired wrapper retained `attempt_001` as the first scientific attempt. Slurm job `2773318` subsequently completed all ten internal-test evaluations successfully.
+
+### Post-D006 development boundary
+
+D006 is now closed.
+
+Its internal-test outcomes may not be used to:
+
+- rerank the 64 D006 trials;
+- substitute another D006 configuration;
+- alter the D006 search space;
+- change the D006 statistical rule;
+- add seeds to rescue the D006 result;
+- perform a result-driven D006 retry;
+- change the D006 scientific verdict.
+
+Further Chemprop development is permitted only under a separate prospectively defined decision record.
+
+Such development may use the completed D006 training and validation evidence, search history, training diagnostics, computational evidence, and implementation experience.
+
+The revealed D006 internal-test outcomes, including aggregate, per-seed, per-task, and per-compound results, have no model-selection or methodological-adaptation authority for that subsequent development.
+
+Blinded OpenADMET challenge feedback remains excluded from model development under the existing D003 boundary.
+
+### Final analysis artifact closure
+
+The prospectively required final statistical-analysis artifact set was completed under:
+
+`cyp/artifacts/cyp_006/final/analysis/`
+
+The artifacts were generated exclusively from the already-frozen and integrity-audited Phase-B score artifacts. No checkpoint loading, model inference, internal-test re-execution, or new methodological choice occurred during artifact serialization.
+
+Final artifact SHA-256 identities are:
+
+- `d006_final_analysis.py`: `b0c98ef2eead02f60bdc853bffce868068f0c85ae0813c114d6b146eeac2fc26`
+- `d006_final_results.json`: `ebdcfd8a5b4aebf8f5b0367bbdf4ec3226e8816b5f180284f726d913dc50478b`
+- `d006_bootstrap_means.csv`: `8ef37e0f74f3cf16457a9aa179a5c599332cb1b0856d44518aad1cc5aee782da`
+- `d006_final_provenance.txt`: `b1c949dd31d015d936a675a6a69bc054cf5e160e4ad623c17793820b95bf20d9`
+- `SHA256SUMS.txt`: `7b610a14439beb8c3337ce7912d8872cb61f6b093754d963889576d292bac1e9`
+
+The final artifact-producing `d006_final_analysis.py` includes the previously qualified Phase-C calculations plus deterministic result serialization. Its final SHA-256 therefore supersedes the earlier pre-serialization source hash for identification of the executable source that produced the canonical final artifact set; the earlier source hash remains part of the historical implementation provenance.
+
+The canonical D006 final artifact set is complete.
+
+## Governing principle
+
+D006 tested whether one prospectively frozen joint Chemprop hyperparameter search could identify a configuration that demonstrated robust improvement over C0 under the preregistered final rule.
+
+The selected configuration passed the validation advancement gate but failed the final frozen scientific gate.
+
+That negative scientific result is preserved independently of subsequent Chemprop development or eventual submission choice.
+
+## Revisit when
+
+D006 is closed.
+
+Do not reopen D006 for additional hyperparameter search, trial substitution, additional training seeds, alternative internal-test analyses, alternative confidence bounds, or result-driven model development.
+
+Revisit this record only to correct a demonstrated provenance, transcription, or artifact-identity error. Any new Chemprop optimization belongs to a separate decision record.
+
+# D007 — Expanded Joint Chemprop Optimization
+
+**Decision date:** 2026-10-27  
+**Status:** Approved/Frozen
+
+## Decision
+
+D007 will run a new joint Chemprop 2.3.1 hyperparameter search intended to identify a better development-validation configuration than C0.
+
+D006 remains closed and unchanged. D007 uses training/validation evidence only; the disclosed internal test and blinded challenge have no model-development or selection authority.
+
+## Rationale
+
+D006 searched architecture, dropout, batch size, and `max_lr`, but held the remainder of Chemprop's native NoamLR trajectory fixed.
+
+D007 therefore retains the complete seven-dimensional D006 search space and adds:
+
+- `init_lr_ratio`;
+- `final_lr_ratio`;
+- `warmup_epochs`.
+
+Because all ten dimensions are searched jointly, D007 can identify a better configuration but cannot attribute any improvement specifically to schedule tuning.
+
+## Search space
+
+Retain the frozen D006 ranges for:
+
+- message-passing depth: `2–6`;
+- message hidden dimension: `300–2400`;
+- FFN hidden dimension: `300–2400`;
+- FFN layers: `{1,2}`;
+- dropout: frozen D006 range;
+- batch size: `{16,32,64,128,256}`;
+- `max_lr`: log-uniform `1e-4–1e-2`.
+
+Add the Chemprop-native NoamLR dimensions:
+
+- `init_lr_ratio`: log-uniform `1e-2–1`;
+- `final_lr_ratio`: log-uniform `1e-2–1`;
+- `warmup_epochs`: integer `1–25`.
+
+Adam, NoamLR, stock masked multitask MSE, 50 maximum epochs, patience 20, and validation macro ST-RAE remain unchanged.
+
+## Development resampling
+
+D007 reuses the existing frozen molecular `cluster_id` assignments and the CYP-003 repeated clustered 10-fold precedent.
+
+The development universe is exactly the original train + validation population:
+
+`4,169 molecules`
+
+The original 736-molecule internal test is excluded.
+
+Use:
+
+- 5 clustered 10-fold repetitions;
+- 50 development folds total;
+- 3 prospectively declared training seeds per fold;
+- identical folds and seeds for every configuration and C0.
+
+Each configuration therefore receives:
+
+`50 × 3 = 150 fits`.
+
+## Objective
+
+For configuration `j`, let `V(j,r,f,s)` be validation macro ST-RAE for repetition `r`, fold `f`, and training seed `s`.
+
+First average the three seeds within each fold, then average the 50 fold means:
+
+`O(j) = mean_(r,f)[mean_s V(j,r,f,s)]`
+
+Because every fold has three seeds, this equals the arithmetic mean of all 150 fit-level macro ST-RAE values.
+
+The same `O(j)` is used for both TPE optimization and final candidate selection.
+
+### Amendment — reduced-fidelity search objective
+
+**Amendment date:** 2026-10-29  
+**Status:** Approved/Frozen
+
+This amendment supersedes only the existing D007 requirement that all 128 configurations receive the full 150-fit objective during search and that the same `O(j)` directly determines selection across all 128 configurations. All other D007 provisions remain unchanged.
+
+During search, each configuration is evaluated on a frozen 30-cell subset comprising 10 split manifests × all 3 training seeds. The 10 manifests were selected outcome-blind before scoring by choosing, within each of the five repetitions, the two frozen manifest files with the lowest SHA-256 hashes. The frozen subset is:
+
+- repetition 1: folds `1, 9`;
+- repetition 2: folds `2, 10`;
+- repetition 3: folds `2, 7`;
+- repetition 4: folds `1, 3`;
+- repetition 5: folds `2, 10`.
+
+Frozen subset artifact SHA-256:
+
+`6da42fbfb24a3bc3425bddb12ac2fb65c90b999aab3a981a62b4153d094331ea`
+
+Define the reduced search objective `O30(j)` as the arithmetic mean of the 30 corresponding fit-level validation macro ST-RAE values. This uses the same cell-level measurement and aggregation semantics as `O(j)`; only split coverage is reduced from 50 to 10 manifests. `O30(j)` has search-ranking authority only.
+
+Existing-data qualification on trials 1–14 showed strong but imperfect agreement between `O30(j)` and `O(j)`: Spearman `ρ = 0.947`, Kendall `τ = 0.846`; the full-objective winner remained reduced-objective rank 1, and 2 of the full-objective top 3 remained in the reduced-objective top 3. This explicitly does not establish equivalent ranking among later TPE proposals. Reduced-fidelity screening therefore accepts the risk that a genuinely strong configuration may be excluded from full evaluation and cannot subsequently be rescued.
+
+Existing trials 1–15 retain all completed 150-cell evidence. Their frozen 30-cell subsets supply the amended search observations; no completed scientific work is discarded. A fresh HyperOpt reconstruction using these reduced observations reproduced all 15 already-issued random-startup proposals exactly. The pre-amendment HyperOpt state is preserved as superseded and must not be continued as the amended search state.
+
+The search retains `128` total configurations, consisting of `32` random-startup and `96` sequential TPE configurations, with the existing search space and controller RNG unchanged. Every configuration receives exactly `O30(j)` before the next configuration may be proposed.
+
+After all 128 configurations complete, the three configurations with the lowest `O30(j)` advance to the original full 150-cell objective `O(j)`. Existing valid cells are reused: trials already possessing 150 valid cells require no additional fitting, while later finalists require only their 120 missing cells.
+
+The final D007 configuration is selected solely by the lowest full `O(j)` among these three finalists. Exact full-objective ties retain the existing lower-trial-index rule. `O30(j)` has no authority to override the final 150-cell result.
+
+This amendment preserves the 128-configuration search breadth, sequential TPE behavior, frozen search space, all three training seeds, cell-level scientific procedure, protected-test exclusion, and full 150-cell final-selection authority. Its accepted tradeoff is increased search-ranking uncertainty from reduced split replication.
+
+## Search controller
+
+Use a fresh HyperOpt/TPE search state.
+
+- total configurations: `128`;
+- random startup configurations: `32`;
+- adaptive TPE configurations: `96`;
+- fresh prospectively frozen controller RNG;
+- no pruning;
+- D006 trials are not imported as TPE observations.
+
+TPE receives only the completed aggregate `O(j)` for each configuration.
+
+## Selection
+
+After all 128 configurations complete:
+
+`T* = argmin_j O(j)`
+
+C0 is evaluated on the identical 50-fold × 3-seed matrix.
+
+T* replaces C0 as the preferred Chemprop development configuration iff:
+
+`O(T*) < O(C0)`.
+
+Exact ties are resolved by lower D007 trial index.
+
+This establishes preference under the D007 development procedure, not independent external generalization.
+
+## Execution contract
+
+Before training:
+
+- freeze the 50 cluster-aware split manifests;
+- freeze the three training seeds and controller RNG;
+- qualify all ten hyperparameters through the actual Chemprop training path;
+- verify internal-test exclusion;
+- verify the 150-fit aggregation and TPE interface;
+- establish artifact, overwrite, failure/resume, and compute-execution contracts.
+
+No D007 scientific fit is authorized until that qualification is reviewed and approved.
+
+## Implementation qualification
+
+D007 implementation qualification passed before scientific execution.
+
+Frozen prospective RNG identities:
+
+- training seeds: `20261101`, `20261102`, `20261103`;
+- HyperOpt/TPE controller RNG: `20261107`.
+
+Qualified implementation:
+
+- `cyp/scripts/cyp007_infrastructure.py` — SHA-256 `521469efc448af749a0849921d903d7c96e8e162ac8efbbc3e278abc367576fd`;
+- `cyp/tests/test_cyp007_infrastructure.py` — SHA-256 `7cd510c84a7ad72cb2f1e02cc6f68d3e56ee1880f622d0e9d23a759d89519297`;
+- split-manifest `FREEZE_RECORD.json` — SHA-256 `9c6b292b8ca58ae83057cda157a338c0954b18b6f9253f040b0ca7344d6a2a85`.
+
+Qualification result:
+
+`10 passed`
+
+The qualification established the frozen 10-dimensional search space, 50 deterministic common cluster-aware development splits, zero protected internal-test molecules in D007 partitions, three common training seeds, exact 150-cell objective aggregation, fresh 128-trial controller contract with 32 random startup trials and 96 TPE trials, no pruning, no imported D006 observations, and overwrite/failure guards.
+
+No D007 scientific training was performed during qualification.
+
+Production scientific execution remains blocked until the production execution wrapper, resource topology, resume/failure behavior, and preflight are qualified and reviewed.
+
+### Completion amendment — 2026-11-04
+
+**Status:** Approved and frozen — D007 complete
+
+This amendment records the completed D007 execution, final development-selection result, and post-deadline blind-prediction freeze. It does not retroactively change the prospectively frozen D007 methodology, reduced-fidelity amendment, finalist-selection rule, C0 comparison rule, or challenge non-adaptivity boundary.
+
+#### Completed reduced search
+
+The amended D007 search completed all `128/128` configurations under the frozen O30 search objective.
+
+The frozen top three were:
+
+1. trial 121 — `O30 = 0.698191004621`;
+2. trial 62 — `O30 = 0.698862474494`;
+3. trial 125 — `O30 = 0.698893654706`.
+
+These three configurations advanced to authoritative 150-cell evaluation.
+
+Search-controller state SHA-256 at freeze:
+
+`bc32e72e73a2e276ff8a14863c07a466f3cc4105aad09e786428eed61db99016`
+
+HyperOpt searcher SHA-256 at freeze:
+
+`835a87015dc2e911ce54bea7cb7fbea924eb6d1ad713094ce0951eb16734caa9`
+
+No additional TPE proposal is authorized.
+
+#### Authoritative finalist result
+
+All three finalists completed the exact frozen 150-cell matrix with zero failed cells.
+
+| Rank | Trial | O30 | O150 |
+|---|---:|---:|---:|
+| 1 | **121** | 0.698191004621 | **0.701212576796** |
+| 2 | 125 | 0.698893654706 | 0.702315231168 |
+| 3 | 62 | 0.698862474494 | 0.702505363217 |
+
+The frozen D007 search winner is:
+
+**D007-T121**
+
+O30 rank 1 remaining O150 rank 1 is retrospective evidence about this completed search only. It does not establish general equivalence between O30 and O150.
+
+#### C0 comparison and final D007 selection
+
+C0 was evaluated on the identical 50-fold × 3-seed development matrix.
+
+Authoritative comparison:
+
+- O150(T121): `0.701212576796`
+- O150(C0): `0.718103374388`
+- C0 minus T121: `+0.016890797592`
+
+The frozen rule requires T* to replace C0 iff O150(T*) is strictly lower than O150(C0).
+
+The rule passes.
+
+**D007-T121 replaces C0 as the preferred Chemprop development configuration under D007.**
+
+Authoritative selection record:
+
+`cyp/artifacts/cyp_007/finalist_completion_v1/C0_COMPARISON.json`
+
+SHA-256:
+
+`48bd619ebd42b30b0c8862f915b7696e2156e822f48e220789b1563eb46817a8`
+
+D007 selection is closed. Future internal-test results, challenge labels, challenge scores, ranks, leaderboard results, or post-deadline external evaluation may not reopen or rerank D007.
+
+#### OpenADMET deadline consequence
+
+The official OpenADMET CYP challenge submission deadline passed before the completed D007 model-selection and prediction workflow was ready.
+
+No official final OpenADMET submission was made from the completed D007-T121 model.
+
+Accordingly, the project does not claim an official prospective OpenADMET challenge result from D007.
+
+The missed deadline does not alter the completed D007 development result.
+
+#### Post-deadline blind-inference amendment
+
+After D007 selection closed, a separate inference-only amendment froze an ensemble containing exactly all 150 T121 `(repetition, fold, seed)` checkpoints.
+
+The inference contract is fail-closed:
+
+- exactly 150 members are required;
+- no missing checkpoint may be ignored;
+- no checkpoint may be substituted, excluded, or reweighted;
+- every checkpoint must match its frozen cell identity and training-fitted target transformation;
+- predictions are on the original pIC50 scale;
+- authoritative prediction = equal-weight arithmetic mean across exactly 150 members;
+- checkpoint SD uses `ddof=1` and is descriptive only;
+- no training, fine-tuning, calibration, model adaptation, checkpoint reselection, or ensemble-weight adaptation is permitted.
+
+Qualification established:
+
+- 150/150 canonical members present;
+- zero checkpoint/identity failures;
+- 150/150 training-only target transformations reconstructed;
+- all checkpoint hashes unchanged;
+- 150/150 strict checkpoint loads passed.
+
+#### Blind-inference attempt history
+
+Authoritative blinded-input SHA-256:
+
+`a342f8444a8dcb531ca12f3685293f0bd6c36ae9073f491e44a9bc1cc4b741f9`
+
+**Attempt 001 — Slurm job `2886913`**
+
+The run failed before challenge access because the blinded CSV had not yet been staged to CoreHPC. No prediction artifact was created.
+
+**Attempt 002 — Slurm job `2887724`**
+
+The blinded molecular input was accessed, but the initial adapter incorrectly reused a target-requiring training/evaluation dataset constructor. The run stopped before the first checkpoint prediction because the correctly blinded file lacked CYP target columns.
+
+No labels, scores, ranks, or leaderboard results were accessed and no predictions were generated.
+
+A narrowly scoped mechanical amendment replaced the target-requiring construction with target-free Chemprop `MoleculeDatapoint.from_smi(smiles)` construction.
+
+No model, checkpoint, ensemble, weighting, aggregation, prediction-scale, or scientific-selection rule changed.
+
+**Attempt 003 — Slurm job `2889407`**
+
+The amended frozen inference implementation completed:
+
+- 150/150 checkpoint predictions;
+- all 750 challenge molecules;
+- all four direct-inhibition pIC50 endpoints.
+
+No model adaptation occurred after challenge access.
+
+No challenge labels, scores, ranks, or leaderboard results were accessed.
+
+#### Frozen blind predictions
+
+Authoritative ensemble prediction artifact:
+
+`cyp/artifacts/cyp_007/t121_blind_inference_v1/prediction_attempt_003/ensemble_predictions.csv`
+
+SHA-256:
+
+`51002c6dbe75041bf4c874f1a4dce4d59f293e82d9d8e4771a2132160da7e7ca`
+
+Complete 150-member prediction matrix:
+
+`cyp/artifacts/cyp_007/t121_blind_inference_v1/prediction_attempt_003/member_predictions.csv`
+
+SHA-256:
+
+`f7e683c7ab8573762d19231e092fe7d48e708c9e572d526db12a4c502c02e8cb`
+
+The complete prediction artifact contains 150 checkpoints × 750 molecules × 4 CYP endpoints.
+
+The successful prediction artifact was frozen before authoritative challenge-label access in:
+
+`cyp/artifacts/cyp_007/t121_blind_inference_v1/BLIND_PREDICTION_FREEZE.json`
+
+At D007 closure:
+
+- authoritative OpenADMET challenge labels have not been released;
+- no blind scoring has occurred;
+- no challenge-performance claim is authorized.
+
+If authoritative labels are released later, the scoring contract must be frozen before labels are opened against the predictions.
+
+Any resulting evaluation is a **post-deadline blind evaluation, not an official prospective OpenADMET challenge result**.
+
+#### D007 closure
+
+D007 is complete.
+
+No additional D007 hyperparameter search, TPE proposal, training seed, finalist, C0 comparison, checkpoint selection, calibration, ensemble adaptation, or result-driven retry is authorized.
+
+The next CYP development task is implementation of a stable production inference interface around the already-selected T121 model.
+
+External blind scoring remains parked until authoritative labels are released.
+
+## Governing principle
+
+D007 expands Chemprop optimization while addressing both training-seed variability and dependence on a single molecular validation split. All configurations receive the same development evidence, and previously disclosed test results cannot influence the search.
+
+## Revisit when
+
+Revisit if the frozen Chemprop version, molecular cluster assignments, development universe, search space, split design, objective, or controller implementation changes.
+
+Otherwise, freeze D007 before the first scientific fit.
