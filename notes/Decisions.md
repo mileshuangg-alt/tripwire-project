@@ -4412,3 +4412,552 @@ Do not revisit D009 merely because P1 lost scientifically, because an endpoint-l
 The frozen result may not be changed by rerun, rescue, endpoint veto, alternative aggregation, recalibration, result-driven modification, or external rescoring.
 
 Any future model concept must be specified prospectively outside D009 and cannot rewrite this closure.
+
+# D010 — P2 Four-Isoform Exact-ANIL Meta-Regression
+
+**Decision date:** 2026-11-09
+
+**Status:** Approved — scientific design frozen; connected implementation/qualification authorized; bounded exact-ANIL runtime/memory benchmark authorized after qualification; production training not authorized.
+
+## Purpose
+
+D010 governs P2, a prospective four-isoform exact-ANIL meta-regression candidate evaluated against the frozen D007-T121 comparator.
+
+P1 is closed under D009 and is not modified, rerun, rescued, or incorporated into P2.
+
+P2 tests whether a shared molecular representation and task-head initialization, meta-learned specifically so that one support-gradient step adapts an isoform's output mapping, improves new-compound prediction across the four known CYP isoforms relative to frozen D007-T121.
+
+The four tasks are exactly:
+
+- CYP1A2 direct-inhibition pIC50;
+- CYP2C9 direct-inhibition pIC50;
+- CYP2D6 direct-inhibition pIC50;
+- CYP3A4 direct-inhibition pIC50.
+
+P2 concerns prediction for new compounds within these four known isoforms. It does not test or claim few-shot generalization to a previously unseen isoform.
+
+## Development evidence and comparator
+
+P2 reuses the exact frozen D007 development procedure:
+
+- 50 frozen repetition/fold molecule partitions;
+- three training seeds: `20261101`, `20261102`, and `20261103`;
+- exactly 150 development cells.
+
+The sole comparator is frozen D007-T121:
+
+\[
+O_{150}(\mathrm{T121}) = 0.701212576796.
+\]
+
+The 150 D007 cells are reused development evidence. They are not untouched confirmation data, and their repeated use does not make them independent external evidence.
+
+No additional model baseline or automatic ablation campaign is introduced by D010.
+
+## Data firewall
+
+For every P2 cell, the frozen compound-level training/validation boundary applies across all endpoints.
+
+Validation molecules and validation labels may not enter:
+
+- meta-training;
+- episode construction;
+- target-scaler fitting;
+- support adaptation.
+
+Held-out validation labels may be used only for the specified:
+
+- ST-RAE scoring;
+- checkpoint selection;
+- early stopping;
+- prospective P2 development-advancement rule.
+
+No validation molecule or validation label may contribute to an inner adaptation step.
+
+The protected internal test cannot enter any P2 procedure.
+
+D008 evidence cannot enter any P2 procedure, including model construction, training, adaptation, checkpoint selection, stopping, advancement, or post-result rescue.
+
+New partitions of molecules already used in development do not create independent confirmation. Any future claim of independent external generalization requires genuinely untouched compounds or assays.
+
+## Model architecture
+
+Each P2 cell is trained from scratch. Trained T121 weights are not imported.
+
+P2 reuses the T121 Chemprop 2.3.1 architecture where applicable:
+
+- BondMessagePassing;
+- message-passing depth 4;
+- molecular representation dimension 600;
+- normalized aggregation;
+- aggregation norm 100;
+- ReLU;
+- no batch normalization;
+- shared `600 -> 2000` hidden layer;
+- ReLU;
+- dropout 0.4;
+- final `2000 -> 4` linear regression output.
+
+Let:
+
+- \(\theta\) denote the molecular encoder parameters;
+- \(\psi\) denote the shared `600 -> 2000` hidden-layer parameters;
+- \(w_t,b_t\) denote the final linear output weight vector and scalar bias for isoform \(t\).
+
+The shared encoder and hidden layer are meta-learned across the four isoform tasks.
+
+## Inner-adaptation boundary
+
+For task \(t\), inner adaptation changes only:
+
+- \(w_t\), the selected isoform's final output weight vector;
+- \(b_t\), the selected isoform's final output bias.
+
+Exactly one inner gradient step is taken:
+
+\[
+(w'_t,b'_t)
+=
+(w_t,b_t)
+-
+0.01\nabla_{w_t,b_t}L^{S}_t.
+\]
+
+The inner learning rate is therefore fixed at:
+
+\[
+\alpha = 0.01.
+\]
+
+No inner update is permitted to:
+
+- encoder parameters \(\theta\);
+- shared hidden-layer parameters \(\psi\);
+- final-output parameters belonging to the other three isoforms.
+
+Final-output-only adaptation and exact-versus-first-order differentiation are separate methodological choices. D010 freezes final-output-only adaptation together with exact differentiation through that adaptation.
+
+## Episode construction
+
+Every outer optimizer update contains exactly four episodes:
+
+1. one CYP1A2 episode;
+2. one CYP2C9 episode;
+3. one CYP2D6 episode;
+4. one CYP3A4 episode.
+
+There is no independent stochastic task selection and no task-frequency weighting.
+
+For each task \(t\), an episode contains:
+
+- 13 support molecules;
+- 3 query molecules.
+
+Eligible molecules must:
+
+- belong to that cell's training partition;
+- have an observed label for the selected isoform.
+
+Support and query molecules are molecule-disjoint.
+
+Compound identity defines the support/query boundary across endpoints. A compound assigned to one side of an episode cannot supply information across that boundary through another endpoint.
+
+Only the selected isoform's label is consumed by that task episode. Missing task labels are not imputed.
+
+Each outer update therefore contains:
+
+- four task episodes;
+- 52 support-molecule appearances;
+- 12 query-molecule appearances;
+- 64 sampled molecule appearances in total.
+
+The 13-support/3-query construction is the frozen operationalization of the proposed approximately 80:20 support/query ratio at the inherited 16-molecule scale.
+
+## Target transformation and support loss
+
+P2 reuses the existing cell-specific training-only target-scaling machinery.
+
+For task \(t\), the support objective is the arithmetic mean squared error over its 13 observed standardized support labels:
+
+\[
+L^{S}_t
+=
+\frac{1}{13}
+\sum_{i\in S_t}
+(\hat z_{i,t}-z_{i,t})^2.
+\]
+
+No validation information participates in scaler fitting.
+
+Exactly one inner step at learning rate 0.01 is taken from this support objective.
+
+## Meta-training dropout
+
+Dropout 0.4 remains active during both:
+
+- meta-training support forward passes;
+- meta-training query forward passes.
+
+Ordinary dropout behavior is used.
+
+D010 introduces no coupled-dropout-mask machinery or other mask-control mechanism.
+
+## Exact-ANIL outer objective
+
+Following the one-step support adaptation for task \(t\), query loss is the arithmetic mean standardized MSE over its three molecule-disjoint query compounds:
+
+\[
+L^{Q}_t
+=
+\frac{1}{3}
+\sum_{i\in Q_t}
+(\hat z'_{i,t}-z_{i,t})^2.
+\]
+
+The four task query losses contribute equally:
+
+\[
+L_{\mathrm{outer}}
+=
+\frac{1}{4}
+\left(
+L^{Q}_{1A2}
++
+L^{Q}_{2C9}
++
+L^{Q}_{2D6}
++
+L^{Q}_{3A4}
+\right).
+\]
+
+P2 uses exact ANIL.
+
+Differentiation is retained through the support-gradient calculation. The support gradient must not be detached or replaced with a first-order approximation.
+
+Consequently, the outer gradient includes the dependence of the adapted \(w'_t,b'_t\) on:
+
+- their meta-initialization;
+- the support features produced by \(\theta\) and \(\psi\).
+
+Therefore:
+
+- \(\theta\) receives no inner update but receives exact through-adaptation outer query gradients;
+- \(\psi\) receives no inner update but receives exact through-adaptation outer query gradients;
+- \(w_t,b_t\) receive the one-step inner update and corresponding exact meta-gradient;
+- the other three task outputs are not inner-adapted by task \(t\).
+
+## Rationale for exact ANIL
+
+Exact ANIL is selected for fidelity to P2's defined post-support-adaptation query objective, not because exact ANIL has been demonstrated to outperform first-order ANIL for CYP regression.
+
+P2 explicitly defines one support-gradient step as the mechanism by which an isoform conditions its predictor. Exact ANIL retains the derivative through that defined adaptation operation when optimizing subsequent query performance.
+
+Collins et al. provide precedent that both exact and first-order ANIL variants can learn shared representations. That work does not establish superiority of exact ANIL for the present four-isoform CYP regression problem.
+
+First-order ANIL therefore remains an unrejected alternative. Under D010 it has no:
+
+- automatic fallback authority;
+- automatic comparison-campaign authority;
+- post-result rescue authority.
+
+D010 does not assume that the 13-molecule support size or dropout favors exact over first-order ANIL. It does not assume that an inner learning rate of 0.01 makes the omitted first-order term negligible. It also makes no claim about the incremental runtime or memory burden of exact differentiation before that cost is measured.
+
+## Outer optimization
+
+The four task episodes jointly constitute exactly one outer optimizer update.
+
+The task episodes may execute sequentially for memory efficiency. If they do, each task contributes exactly one quarter of its query objective to accumulated outer gradients.
+
+There is:
+
+- no optimizer step between task episodes;
+- no scheduler step between task episodes;
+- exactly one Adam optimizer step after all four task episodes;
+- exactly one NoamLR scheduler step after all four task episodes.
+
+Sequential execution is a computational implementation of the frozen equal four-task objective and may not change task weighting.
+
+## Training budget and learning-rate schedule
+
+One P2 pseudo-epoch is defined as:
+
+\[
+235
+\]
+
+outer optimizer updates.
+
+Because each outer update contains four task episodes, one pseudo-epoch contains:
+
+\[
+235\times4=940
+\]
+
+task episodes.
+
+The frozen schedule is:
+
+- validation every 235 outer updates;
+- warmup through outer update 2,350;
+- maximum 11,750 outer updates;
+- maximum 50 validation opportunities;
+- early-stopping patience 20 validation checks;
+- `min_delta = 0`.
+
+The outer optimizer is Adam.
+
+The outer NoamLR trajectory is:
+
+- initial learning rate `1.4283739994469765e-05`;
+- maximum learning rate `0.0008245400010426866`;
+- maximum reached at outer update 2,350;
+- final learning rate `0.00020141638331344468`;
+- final schedule point at outer update 11,750.
+
+These values preserve T121's optimizer-update and learning-rate breakpoints. They do not assert equivalent molecule exposure between T121 and P2.
+
+The inner learning rate remains fixed at 0.01 and is not controlled by NoamLR.
+
+## Evaluation-time adaptation
+
+Dropout is disabled during:
+
+- evaluation-time support adaptation;
+- validation prediction.
+
+At every validation check, each isoform begins from a separate fresh copy or equivalent fresh state of the checkpoint's unadapted meta-parameters.
+
+Adapted parameters may not carry:
+
+- from one isoform to another;
+- from one validation check to another.
+
+For task \(t\):
+
+1. use all cell-training molecules having an observed label for \(t\);
+2. compute the exact arithmetic-mean standardized MSE over that complete training-support population;
+3. take exactly one inner gradient step at learning rate 0.01;
+4. update only \(w_t,b_t\);
+5. predict endpoint \(t\) for every held-out validation molecule;
+6. invert the existing training-only scaler to original pIC50.
+
+If the full support population must be processed in minibatches for computational reasons, the implementation must accumulate the complete support squared-error sum and observation count and divide by the complete support count so that the single adaptation gradient corresponds to the arithmetic mean over the entire support population.
+
+Computational minibatching may not become multiple sequential adaptation steps.
+
+No held-out validation molecule or validation label participates in support adaptation.
+
+A validation molecule's four endpoint predictions therefore arise from four independently task-adapted versions of the same unadapted checkpoint state.
+
+## Validation scoring, checkpoint selection, and stopping
+
+The four original-pIC50 validation predictions pass through the existing qualified ST-RAE evaluation machinery.
+
+For development cell \(c\):
+
+\[
+S_c(P2)
+=
+\frac{1}{4}
+\sum_{t=1}^{4}
+ST\!-\!RAE_{c,t}(P2).
+\]
+
+The retained checkpoint is the checkpoint with the strictly lowest validation macro ST-RAE.
+
+Early stopping monitors exactly the same quantity with:
+
+- patience 20 validation checks;
+- `min_delta = 0`.
+
+Validation labels have authority only for this specified scoring, checkpoint-selection, early-stopping, and subsequent prospective development-advancement procedure.
+
+The meta-training objective has no direct advancement authority.
+
+## Prospective advancement rule
+
+After exactly the frozen 150 development cells:
+
+\[
+O_{150}(P2)
+=
+\frac{1}{150}
+\sum_{c=1}^{150}S_c(P2).
+\]
+
+The sole comparator is:
+
+\[
+O_{150}(\mathrm{T121})=0.701212576796.
+\]
+
+P2 advances if and only if:
+
+\[
+\boxed{
+O_{150}(P2)<0.701212576796
+}
+\]
+
+An exact tie does not advance.
+
+There is no:
+
+- endpoint veto;
+- minimum effect-size requirement;
+- secondary model comparator;
+- automatic ablation campaign;
+- first-order fallback;
+- D008 criterion;
+- post-result rescue.
+
+Per-cell and per-isoform results are characterization only and cannot override the advancement rule.
+
+## Claim boundary
+
+If P2 advances, the supported claim is limited to:
+
+> P2 achieved lower mean validation macro ST-RAE than frozen D007-T121 under the reused frozen D007 150-cell development procedure.
+
+Advancement does not establish:
+
+- independent external generalization;
+- independence of the 150 development cells;
+- a causal mechanism;
+- correction of the previously observed D008 CYP2D6 behavior.
+
+D008 is already-observed evidence and cannot validate P2.
+
+Independent confirmation requires genuinely untouched future compounds or assays.
+
+## Connected implementation and qualification
+
+After D010 is frozen in the repository, one connected P2 implementation/qualification package is authorized.
+
+Qualification is a single connected unit rather than a sequence of helper-by-helper scientific approvals.
+
+It must demonstrate at minimum:
+
+1. exact frozen four-task identity and order;
+2. exactly one episode per task per outer update;
+3. exact 13-support/3-query accounting;
+4. molecule-disjoint support/query membership;
+5. compound-level support/query boundary across endpoints;
+6. training-partition-only episode eligibility;
+7. training-only target-scaler fitting;
+8. exclusion of validation data from meta-training, episode construction, scaler fitting, and support adaptation;
+9. exclusion of the protected internal test and D008 from all P2 procedures;
+10. no missing-label imputation;
+11. only the selected task's \(w_t,b_t\) change during inner adaptation;
+12. encoder, shared hidden layer, and other task outputs receive no inner update;
+13. the support-gradient calculation remains differentiable;
+14. outer gradients include the dependence of adapted output parameters on support features and their initialization;
+15. encoder and shared hidden-layer parameters receive finite exact outer meta-gradients;
+16. all four query losses contribute exactly one quarter to the outer objective;
+17. dropout is active during meta-training support and query passes;
+18. dropout is disabled during evaluation adaptation and prediction;
+19. no dropout-mask coupling is introduced;
+20. exactly one optimizer step and one scheduler step occur per four task episodes;
+21. the `235 / 2,350 / 11,750` NoamLR update mapping is exact;
+22. evaluation starts from fresh unadapted checkpoint state independently for every isoform;
+23. full-training-support evaluation adaptation implements the exact arithmetic-mean support objective, including when computationally minibatched;
+24. validation labels are used only for authorized scoring, checkpoint selection, early stopping, and development advancement;
+25. strict-best macro-ST-RAE checkpoint behavior;
+26. save/reload/inference equivalence;
+27. deterministic frozen 150-cell routing;
+28. strict synthetic O150/T121 advancement arithmetic;
+29. malformed, nonfinite, incomplete, or mismatched inputs fail closed.
+
+Qualification does not authorize production training.
+
+## Bounded exact-ANIL runtime and memory benchmark
+
+If the connected qualification package passes, a bounded real-workload exact-ANIL runtime/memory benchmark is authorized on the intended L40S outside SLURM.
+
+The benchmark has compute-planning authority only. It has no model-performance or scientific-selection authority.
+
+It must measure:
+
+- complete four-task exact-ANIL outer-update timing, including support forward passes, differentiable inner-gradient calculations, query forward passes, exact meta-backward, Adam update, and NoamLR update;
+- timing stability after warmup;
+- peak allocated GPU memory;
+- peak reserved GPU memory;
+- complete four-isoform evaluation-time full-training-support adaptation plus validation-input prediction cost;
+- sufficient accounting to project training through 11,750 outer updates per cell;
+- sufficient accounting to project validation through at most 50 validation checks per cell;
+- the complete 150-cell measured-component workload.
+
+Warmup and measured updates must form one continuous optimizer/scheduler trajectory; benchmark state may not be reset between them.
+
+The benchmark may use held-out validation molecule inputs solely to measure prediction cost. It may not access validation labels or calculate validation performance.
+
+Timing drift must be reported descriptively. D010 establishes no invented drift threshold.
+
+The benchmark must state which costs are measured and which remain excluded, including as applicable:
+
+- data loading;
+- preprocessing;
+- checkpoint loading;
+- checkpoint serialization;
+- artifact writing;
+- validation scoring;
+- other caller-side or orchestration overhead.
+
+Any extrapolation is a representative measured-component projection, not a measured full experiment or a proven runtime upper bound.
+
+Before any production submission, the following must be shown together:
+
+- projected training workload per cell;
+- projected validation workload per cell;
+- projected total measured-component workload across 150 cells;
+- projected per-job workload;
+- proposed requested production wall time;
+- measured versus unmeasured cost boundary.
+
+P1's production wall time is not automatically inherited by P2.
+
+## Production authority
+
+D010 does not authorize production P2 training or submission.
+
+Production training requires separate human approval after:
+
+1. the connected implementation/qualification package passes; and
+2. the bounded exact-ANIL L40S runtime/memory benchmark and full workload projection have been reviewed.
+
+A qualification failure or operational benchmark problem does not authorize silent scientific modification.
+
+## Governing principle
+
+P2 must test the prospectively frozen exact-ANIL hypothesis as written.
+
+Implementation may realize the frozen methodology but may not silently alter:
+
+- data authority;
+- task definition;
+- episode construction;
+- adaptation boundary;
+- exact through-adaptation differentiation;
+- task weighting;
+- dropout policy;
+- optimization budget;
+- evaluation adaptation;
+- checkpoint-selection quantity;
+- advancement rule;
+- evidence or claim boundary.
+
+First-order ANIL remains an unrejected alternative, but D010 gives it no fallback, comparison, or rescue authority.
+
+## Revisit when
+
+Revisit D010 only if:
+
+- a demonstrated technical or integrity defect invalidates an assumption required by the frozen design;
+- a required frozen dependency changes before production;
+- the bounded exact-ANIL benchmark demonstrates an operational infeasibility requiring explicit human adjudication before any approximation is considered;
+- or a future separately approved scientific decision supersedes D010.
+
+A disappointing P2 result is not grounds to alter or rerun D010.
+
+First-order ANIL is not an automatic fallback or post-result rescue.
