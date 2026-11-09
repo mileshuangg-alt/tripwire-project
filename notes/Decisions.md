@@ -4417,9 +4417,21 @@ Any future model concept must be specified prospectively outside D009 and cannot
 
 **Decision date:** 2026-11-09
 
-**Status:** Approved — scientific design frozen; connected implementation/qualification authorized; bounded exact-ANIL runtime/memory benchmark authorized after qualification; production training not authorized.
+**Status:** Complete / frozen
 
 ## Purpose
+
+D010 is complete and frozen. P2 was implemented, qualified, benchmarked, run once across the 150 frozen D007 development cells, characterized against the recovered D007-T121 comparator evidence, and closed without advancement.
+
+The frozen final result is:
+
+- P2 O150: `0.7106082085193788`
+- T121 O150: `0.701212576796`
+- P2 minus T121: `+0.0093956317233788`
+- P2 advances: `false`
+- preferred configuration: **D007-T121**
+
+No P2 rerun, first-order fallback, endpoint rescue, checkpoint reselection, rescoring, split generation, or post-result modification is authorized.
 
 D010 governs P2, a prospective four-isoform exact-ANIL meta-regression candidate evaluated against the frozen D007-T121 comparator.
 
@@ -4918,6 +4930,141 @@ Before any production submission, the following must be shown together:
 P1's production wall time is not automatically inherited by P2.
 
 ## Production authority
+
+### Implementation record — complete-model bounded benchmark and production-readiness integration
+
+**Record date:** 2026-11-09
+
+The accepted corrected D010 complete-model bounded benchmark artifact is:
+
+`cyp/artifacts/cyp_010/p2_d010_complete_model_benchmark_rep01_fold01_seed20261101_warm10_measured100.json`
+
+SHA-256:
+
+`b44457583ab37b14a0f36b38b458cf4874f6fe2da7f742c5f81af4f80bf7b9f4`
+
+Artifact type:
+
+`D010_P2_exact_anil_complete_model_bounded_benchmark_v2`
+
+This corrected benchmark supersedes the earlier head-only diagnostic benchmark for runtime projection. The prior head-only benchmark timed `P2MetaHead` over synthetic 600-dimensional embeddings, did not instantiate or optimize the Chemprop encoder, and has no D010 runtime-projection authority.
+
+The accepted corrected benchmark used one NVIDIA L40S and ran 10 continuous warmup outer updates followed by 100 measured outer updates without resetting optimizer or scheduler state.
+
+Parameter accounting:
+
+- complete P2 model total/trainable parameters: `2,025,404`;
+- encoder total/trainable parameters: `815,400`;
+- meta-head total/trainable parameters: `1,210,004`.
+
+Measured timing and memory:
+
+- mean complete four-task outer update: `0.04574970336048864` seconds;
+- early-window mean: `0.045825388645894374` seconds;
+- late-window mean: `0.04577984815731532` seconds;
+- late-minus-early drift: `-0.00004554048857905585` seconds;
+- peak allocated GPU memory: `9,301,794,304` bytes;
+- peak reserved GPU memory: `9,500,098,560` bytes;
+- four-isoform validation adaptation/prediction: `2.6993121129926294` seconds per check.
+
+Representative measured-component projections:
+
+- projected training: `537.5590144857415` seconds per cell;
+- projected <=50 validation checks: `134.96560564963147` seconds per cell;
+- combined measured components: `672.524620135373` seconds per cell, approximately `11.21` minutes;
+- 150-cell measured-component projection: `100878.69302030595` seconds, approximately `28.02` GPU-hours.
+
+These are representative measured-component projections only. They are not complete experiment runtime measurements and not proven upper bounds.
+
+Excluded costs include one-time loading, SMILES parsing, static graph featurization/cache construction, checkpoint I/O, artifact writing, validation scoring/ST-RAE, checkpoint-selection/early-stopping overhead, and orchestration.
+
+The prospective production topology is one cell per one NVIDIA L40S. The proposed requested wall time is 20 minutes per cell. This requested wall time is prospective and not a demonstrated upper bound.
+
+The connected local production-readiness integration implements and synthetically qualifies:
+
+- complete P2 production cell runner;
+- deterministic 150-cell wrapper/preflight;
+- checkpoint/artifact layout with manifest, `best.ckpt`, metrics, and `SHA256SUMS.txt`;
+- completed/absent/incomplete-failed cell semantics;
+- integrity-verified aggregation to the frozen O150 rule;
+- synthetic toy-scale production-wrapper qualification.
+
+This implementation record does not authorize real P2 production training, Slurm submission, or development-performance exposure.
+
+### Closure record — production result and characterization
+
+**Closure date:** 2026-11-09
+
+D010 P2 production evidence is frozen from existing artifacts only. No training, inference, rescoring, checkpoint reselection, split generation, scientific amendment, first-order fallback, endpoint rescue, or post-result modification was performed during closure.
+
+Authoritative local D010 artifacts are under:
+
+`cyp/artifacts/cyp_010/`
+
+Verified SHA-256 values:
+
+- corrected complete-model benchmark: `b44457583ab37b14a0f36b38b458cf4874f6fe2da7f742c5f81af4f80bf7b9f4`
+- postproduction preflight: `593b77b9b757c80d58af74d9dbdc45eb20df552a43b3b4468c30b89d08c34fbc`
+- frozen 150-cell metrics: `8cf466eff7e123356f085f75b8559b40b6f29154c9fed72c23ebb7a08b70fa55`
+
+The requested separate O150 result SHA-256 `07362bb006e6130de436945493f0ec2479c00fa2ca582671f67ed5db35c1c1be` was not physically present as a local file under `cyp/artifacts/cyp_010/` at closure time. The final O150 value is reconstructed directly from the verified frozen 150-cell metrics artifact.
+
+Production integrity evidence records:
+
+- CoreHPC Slurm job `2968876`;
+- `150/150` tasks completed;
+- 150 `CELL COMPLETE` markers;
+- 0 nonempty error logs;
+- postproduction preflight: 150 complete, 0 absent, 0 incomplete/failed;
+- protected internal test excluded;
+- D008 excluded;
+- performance-driven scheduling `false`.
+
+The closure characterization artifact is:
+
+`cyp/artifacts/cyp_010/d010_p2_closure_characterization_20261109.json`
+
+SHA-256:
+
+`0cf25012223d31673e9a82dd89334124c24dcd6400da494aeded0abd53aeaf81`
+
+The evidence inventory is:
+
+`cyp/artifacts/cyp_010/d010_p2_evidence_inventory_20261109.json`
+
+SHA-256:
+
+`432a7012fb70985df91441dc78b5999af739059ec3451615efc19cfd59ec8270`
+
+P2 cells were paired to D007-T121 cells only by explicit `(repetition, fold, training_seed/seed)` identity. The characterization verified 150 P2 identities, 150 T121 identities, exact set equality, and zero duplicate, missing, or extra identities.
+
+The final frozen advancement result is:
+
+| Quantity | Value |
+| --- | ---: |
+| P2 O150 | `0.7106082085193788` |
+| T121 O150 | `0.701212576796` |
+| P2 minus T121 | `+0.0093956317233788` |
+| P2 advances | `false` |
+
+The final decision is that **P2 does not advance** and **D007-T121 remains preferred**.
+
+Per-endpoint paired characterization, using each model's already-selected macro-ST-RAE checkpoint, is:
+
+| Endpoint | T121 mean | P2 mean | Mean P2 minus T121 | P2 improved | P2 worsened | Exact ties |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| CYP1A2 | `0.8039443572593442` | `0.8099969589372771` | `+0.006052601677932758` | `63` | `87` | `0` |
+| CYP2C9 | `0.6098174041358858` | `0.6210036227472333` | `+0.011186218611347542` | `67` | `83` | `0` |
+| CYP2D6 | `0.9183171939206107` | `0.9206907011843659` | `+0.002373507263755171` | `66` | `84` | `0` |
+| CYP3A4 | `0.4727713518669417` | `0.49074155120863866` | `+0.01797019934169697` | `44` | `106` | `0` |
+
+All four endpoint mean differences favor T121. CYP3A4 has the largest mean degradation, followed by CYP2C9, CYP1A2, and CYP2D6. This is characterization only; no mechanism is assigned and no endpoint criterion or rescue rule is created.
+
+Checkpoint bytes are not preserved locally by this closure. The checkpoint-bearing production root is recorded as:
+
+`/scratch/user/mhuang8/p2_d010_production_20261109`
+
+The repository/session record does not unambiguously identify a persistent backed-up destination for the checkpoint-bearing production tree. This is an operational preservation item requiring human confirmation.
 
 D010 does not authorize production P2 training or submission.
 

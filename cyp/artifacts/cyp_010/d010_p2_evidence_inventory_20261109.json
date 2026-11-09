@@ -1,0 +1,56 @@
+{
+  "artifact_type": "D010_P2_evidence_inventory_v1",
+  "checkpoint_preservation_boundary": {
+    "checkpoint_bearing_corehpc_production_root": "/scratch/user/mhuang8/p2_d010_production_20261109",
+    "checkpoint_bytes_preserved_locally": false,
+    "local_closure_uses_frozen_lightweight_metrics_only": true,
+    "persistent_backed_up_destination_status": "not unambiguously identified in repository/session record; requires human confirmation"
+  },
+  "created_utc": "2026-11-09T23:35:46.151246+00:00",
+  "final_verdict": {
+    "p2_advances": false,
+    "p2_minus_t121": 0.009395631723378761,
+    "p2_o150": 0.7106082085193788,
+    "preferred_configuration": "D007-T121",
+    "strict_advancement_rule": "P2 advances iff O150(P2) < 0.701212576796",
+    "t121_o150": 0.701212576796
+  },
+  "locally_preserved_authoritative_lightweight_artifacts": [
+    {
+      "bytes": 201807,
+      "path": "cyp/artifacts/cyp_010/d010_p2_closure_characterization_20261109.json",
+      "sha256": "0cf25012223d31673e9a82dd89334124c24dcd6400da494aeded0abd53aeaf81"
+    },
+    {
+      "bytes": 12646,
+      "path": "cyp/artifacts/cyp_010/p2_d010_complete_model_benchmark_rep01_fold01_seed20261101_warm10_measured100.json",
+      "sha256": "b44457583ab37b14a0f36b38b458cf4874f6fe2da7f742c5f81af4f80bf7b9f4"
+    },
+    {
+      "bytes": 96019,
+      "path": "cyp/artifacts/cyp_010/p2_d010_frozen_cell_metrics_20261109.json",
+      "sha256": "8cf466eff7e123356f085f75b8559b40b6f29154c9fed72c23ebb7a08b70fa55"
+    },
+    {
+      "bytes": 40748,
+      "path": "cyp/artifacts/cyp_010/p2_d010_postproduction_preflight_20261109.json",
+      "sha256": "593b77b9b757c80d58af74d9dbdc45eb20df552a43b3b4468c30b89d08c34fbc"
+    }
+  ],
+  "o150_artifact_status": {
+    "expected_sha256": "07362bb006e6130de436945493f0ec2479c00fa2ca582671f67ed5db35c1c1be",
+    "local_file_found": false,
+    "note": "No separate O150 result file with this SHA256 was physically present under cyp/artifacts/cyp_010 at closure time; O150 was reconstructed from the verified frozen 150-cell metrics artifact."
+  },
+  "production_logs_and_provenance": {
+    "cell_complete_markers": 150,
+    "corehpc_slurm_job": 2968876,
+    "nonempty_error_logs": 0,
+    "postproduction_preflight_path": "cyp/artifacts/cyp_010/p2_d010_postproduction_preflight_20261109.json",
+    "production_root": "/scratch/user/mhuang8/p2_d010_production_20261109"
+  },
+  "t121_comparator_evidence": {
+    "path": "artifacts/d009_closure_workspace/d009_t121_comparator_20261109/",
+    "result_json_count": 150
+  }
+}
