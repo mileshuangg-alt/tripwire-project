@@ -3064,3 +3064,1351 @@ D007 expands Chemprop optimization while addressing both training-seed variabili
 Revisit if the frozen Chemprop version, molecular cluster assignments, development universe, search space, split design, objective, or controller implementation changes.
 
 Otherwise, freeze D007 before the first scientific fit.
+
+# D008 — Post-Deadline Blind External Evaluation of Frozen D007-T121
+
+**Decision date:** 2026-11-06
+
+**Status:** Approved and frozen before external label/prediction scoring
+
+## Purpose and claim boundary
+
+D008 governs the one-shot post-deadline blind external evaluation of the already-frozen D007-T121 ensemble against the organizer-released OpenADMET CYP direct-inhibition test labels.
+
+D007 is complete and closed. D008 does not reopen D007 and has zero model-development or model-selection authority.
+
+This evaluation is not an official prospective OpenADMET challenge result. The challenge deadline passed before the completed D007-T121 workflow was ready for submission.
+
+D008 results may not be used to retrain, recalibrate, rerank, select, replace, or otherwise adapt D007-T121; alter the 150-member ensemble; alter preprocessing or target transformations; regenerate predictions; or change any D007 development decision.
+
+The evaluation uses the already-frozen 750 x 4 ensemble prediction artifact. Inference may not be rerun merely because authoritative labels are now available.
+
+## Frozen external evidence
+
+Before any label/prediction scoring, the organizer-released OpenADMET unblinded release was preserved verbatim under:
+
+`cyp/data/openadmet_unblinded_release_2026-11-06/`
+
+The authoritative direct-inhibition label artifact is:
+
+`cyp/data/openadmet_unblinded_release_2026-11-06/cyp-challenge-TEST-UNBLINDED_inhibition.csv`
+
+SHA-256:
+
+`6551eba506c90cf51434bc1764424e928cfa19b45854148d692247b8eb49f74c`
+
+Provenance: organizer-released OpenADMET CYP Challenge unblinded dataset downloaded from the OpenADMET Hugging Face dataset repository and preserved verbatim before label/prediction scoring.
+
+The frozen D007-T121 ensemble prediction artifact is:
+
+`cyp/artifacts/cyp_007/t121_blind_inference_v1/prediction_attempt_003/ensemble_predictions.csv`
+
+SHA-256:
+
+`51002c6dbe75041bf4c874f1a4dce4d59f293e82d9d8e4771a2132160da7e7ca`
+
+The prediction artifact was generated and frozen before authoritative test labels were released.
+
+## Primary external-performance estimand
+
+The primary external evaluation is the absolute performance of the frozen D007-T121 ensemble on the released OpenADMET CYP direct-inhibition test set.
+
+The primary metric is the project's already-qualified ST-RAE implementation, which directly wraps the preserved upstream OpenADMET `rae_soft_threshold_absolute_error` implementation.
+
+No alternative ST-RAE definition is introduced for D008.
+
+ST-RAE is calculated independently for:
+
+- CYP1A2 direct-inhibition pIC50;
+- CYP2C9 direct-inhibition pIC50;
+- CYP2D6 direct-inhibition pIC50;
+- CYP3A4 direct-inhibition pIC50.
+
+For each endpoint, the authoritative released test labels and corresponding released assay confidence bounds are supplied to the frozen ST-RAE implementation together with the already-frozen ensemble predictions.
+
+The primary macro ST-RAE is the unweighted arithmetic mean of the four endpoint ST-RAE values.
+
+Lower ST-RAE is better.
+
+The primary reported external-performance quantities are:
+
+1. CYP1A2 ST-RAE;
+2. CYP2C9 ST-RAE;
+3. CYP2D6 ST-RAE;
+4. CYP3A4 ST-RAE; and
+5. arithmetic-mean macro ST-RAE.
+
+These full-test-set values are the project's primary post-deadline blind external-performance estimates.
+
+## Relationship to prior project bootstraps
+
+The project-specific 10,000-draw bootstrap procedures previously used in the CYP arm are not transferred to D008.
+
+Those procedures were prospectively designed for paired model-comparison questions, including scaffold/analog-cluster resampling for stock-versus-task-balanced comparisons and paired-training-seed resampling for tuned-versus-C0 comparisons.
+
+D008 instead measures the absolute external performance of one already-frozen ensemble on one newly released external test cohort.
+
+Accordingly, no prior paired cluster-bootstrap or paired-seed confidence interval is presented as the primary uncertainty procedure for D008.
+
+This does not amend, supersede, or reinterpret any previously frozen bootstrap analysis.
+
+## Organizer-compatible bootstrap characterization
+
+A secondary analysis reproduces the OpenADMET organizer-compatible bootstrap reporting procedure for the same frozen ensemble predictions.
+
+This analysis is descriptive and secondary to the full-test-set primary ST-RAE estimates.
+
+For each of 1,000 bootstrap iterations:
+
+1. test observations are sampled with replacement using the organizer-compatible sampling procedure;
+2. ST-RAE is recomputed from the resampled observations using the same preserved OpenADMET scoring implementation;
+3. the four endpoint ST-RAE values are calculated; and
+4. macro ST-RAE is calculated as the unweighted arithmetic mean of the four endpoint values.
+
+The bootstrap uses:
+
+`np.random.default_rng(seed=0)`
+
+The secondary report preserves the mean and standard deviation across the 1,000 bootstrap iterations for each endpoint and for macro ST-RAE.
+
+These quantities are explicitly reported as organizer-compatible bootstrap characterizations. They do not replace the primary full-test-set ST-RAE estimates and are not interpreted as the project's historical cluster-bootstrap confidence intervals.
+
+## Missing-label and identity handling
+
+Evaluation is endpoint-specific.
+
+Only observations possessing an authoritative released label for a given endpoint may contribute to that endpoint's score.
+
+No missing ground-truth label may be imputed.
+
+Predictions and released labels must be joined using the authoritative molecule identifier shared by the frozen prediction artifact and released test artifact.
+
+Before scoring, the implementation must establish that identifiers are unique where required and that every scored released-label observation has exactly one corresponding frozen prediction.
+
+Unexpected duplicate identifiers, missing required predictions, unexpected endpoint/schema changes, or identity mismatches are fail-closed integrity errors.
+
+Such errors do not authorize ad hoc row removal, prediction regeneration, inference reruns, or altered matching rules.
+
+The number of scored observations for each endpoint must be recorded.
+
+## Additional metrics
+
+No additional metric receives primary or model-selection authority through D008.
+
+MAE, R2, Spearman correlation, Kendall correlation, endpoint residual analyses, rank analyses, subgroup analyses, or other descriptive statistics are not part of the one-shot primary scoring operation unless separately frozen before authoritative labels are opened against predictions.
+
+They may not be added retrospectively in response to the observed ST-RAE result and represented as preregistered evidence.
+
+## Implementation qualification
+
+The D008 evaluator must be qualified before it is permitted to access the authoritative unblinded labels together with the frozen predictions.
+
+Qualification must use synthetic or already-disclosed non-external data and establish at minimum:
+
+- exact agreement with the already-qualified project ST-RAE implementation;
+- correct endpoint-wise scoring;
+- correct arithmetic macro aggregation;
+- correct confidence-bound routing;
+- correct identifier alignment independent of input row order;
+- correct endpoint-specific missing-label handling;
+- fail-closed behavior for duplicate identifiers and missing required predictions;
+- deterministic organizer-compatible bootstrap behavior under the frozen RNG contract;
+- exactly 1,000 organizer-compatible bootstrap iterations; and
+- correct calculation of bootstrap mean and standard deviation.
+
+Qualification must not inspect external performance.
+
+The executable evaluator and qualification tests must be frozen and hashed before the one-shot label/prediction evaluation.
+
+## One-shot execution
+
+After successful qualification and implementation freeze, the evaluator may access the preserved authoritative inhibition-label artifact and already-frozen D007-T121 ensemble prediction artifact together for the first time.
+
+The primary and secondary analyses are executed in the same frozen evaluation run.
+
+No result-driven retry, alternate scorer, changed random seed, changed bootstrap procedure, altered endpoint set, changed identity rule, recalibration, prediction modification, or alternative aggregation is authorized after external performance is observed.
+
+An operational failure before valid performance results are produced may be repaired only if the failure and repair are documented and the scientific scoring contract remains unchanged.
+
+## Reporting
+
+The result must be described as a:
+
+**post-deadline blind external evaluation of the frozen D007-T121 ensemble on the released OpenADMET CYP direct-inhibition test set.**
+
+It must not be described as an official OpenADMET challenge submission, official challenge score, or prospective leaderboard result.
+
+Reporting must distinguish:
+
+- primary full-test-set per-endpoint and macro ST-RAE;
+- secondary organizer-compatible 1,000-bootstrap mean +/- standard deviation;
+- integrity and sample-count diagnostics; and
+- any operational deviations encountered during execution.
+
+External results have no authority to modify D007-T121 or any earlier development decision.
+
+## Governing principle
+
+The released labels are used once to measure external generalization of a model and prediction artifact whose development and inference were already frozen before those labels became available.
+
+Evaluation methodology is frozen before performance is exposed. External performance is evidence about the frozen model, not feedback for adapting it.
+
+## Revisit when
+
+Revisit D008 only if an integrity failure demonstrates that the preserved authoritative label artifact or frozen prediction artifact cannot be evaluated under this contract, or if a factual error is discovered in the documented organizer scoring procedure before external performance is exposed.
+
+Observed external performance is not grounds for revision.
+
+### D008 completion amendment — 2026-11-06
+
+**Status:** Completed and frozen
+
+D008 completed the preregistered post-deadline blind external evaluation of the frozen D007-T121 150-checkpoint ensemble against the organizer-released OpenADMET CYP direct-inhibition test labels.
+
+This amendment records the executed result. It does not alter the prospectively frozen D008 methodology or grant the external result any model-development or model-selection authority.
+
+#### Frozen production inputs
+
+Authoritative released direct-inhibition labels:
+
+`cyp-challenge-TEST-UNBLINDED_inhibition.csv`
+
+SHA-256:
+
+`6551eba506c90cf51434bc1764424e928cfa19b45854148d692247b8eb49f74c`
+
+Frozen D007-T121 ensemble predictions:
+
+`cyp/artifacts/cyp_007/t121_blind_inference_v1/prediction_attempt_003/ensemble_predictions.csv`
+
+SHA-256:
+
+`51002c6dbe75041bf4c874f1a4dce4d59f293e82d9d8e4771a2132160da7e7ca`
+
+The prediction artifact was generated and frozen before authoritative test-label release.
+
+#### Qualified D008 implementation
+
+The original pre-exposure D008 evaluator and test suite were frozen before external scoring at:
+
+- evaluator SHA-256: `ad2f38a60bc8ba620a4db94d23b83e6691201059c2da147d2dee4cad4543ebbb`
+- tests SHA-256: `e812481978bb907d3e4d100b56a19b199dbe0fd4573bbcffe072344317ed225a`
+- qualification: `58 passed`
+
+Production Attempt 001 completed the frozen scientific calculation in memory but the ad hoc output wrapper failed during JSON serialization because the returned evaluation object contained pandas `DataFrame` objects. No external-performance value was printed or inspected from Attempt 001. The incomplete serialization artifact was preserved and not treated as a valid D008 result.
+
+A serialization-only reporting layer was subsequently added without changing molecular alignment, endpoint routing, ST-RAE calculation, macro aggregation, bootstrap calculation, input artifacts, or any other scientific computation.
+
+The serialization-recovery implementation was frozen at:
+
+- evaluator SHA-256: `bdb934b03a2ece685aea7c021e3d4d1221c4f28c6e51a2acc4e8d408bd52ccde`
+- tests SHA-256: `68d4853897a46935090a90021bcf8a3c1f39f4c3c84170a452f655e8f16efbb9`
+- local qualification: `59 passed`
+- CoreHPC qualification under the production D008 environment: `59 passed`
+
+The recovery execution reran the identical deterministic frozen scientific calculation solely to persist its outputs through the qualified serialization layer.
+
+#### Primary post-deadline blind external result
+
+The preregistered full-test-set ST-RAE results were:
+
+| Endpoint | n scored | n missing | ST-RAE |
+|---|---:|---:|---:|
+| CYP1A2 | 748 | 2 | `0.7728950609716935` |
+| CYP2C9 | 750 | 0 | `0.5558588275060217` |
+| CYP2D6 | 748 | 2 | `1.217061477884744` |
+| CYP3A4 | 748 | 2 | `0.5078206616488673` |
+
+The preregistered unweighted four-endpoint macro ST-RAE was:
+
+`0.7634090070028317`
+
+Lower ST-RAE is better.
+
+The result demonstrates heterogeneous external performance across endpoints. CYP2C9 and CYP3A4 produced the lowest external ST-RAE values, CYP1A2 was intermediate, and CYP2D6 was the weakest endpoint and exceeded `1.0`.
+
+No causal explanation for the endpoint heterogeneity is assigned by D008.
+
+#### Organizer-compatible bootstrap characterization
+
+The preregistered secondary organizer-compatible characterization used:
+
+- bootstrap iterations: `1000`;
+- RNG: `np.random.default_rng(seed=0)`;
+- reporting: mean and population standard deviation across bootstrap iterations.
+
+Results:
+
+| Endpoint | Bootstrap mean | Bootstrap SD |
+|---|---:|---:|
+| CYP1A2 | `0.7745453137726171` | `0.02728147930356748` |
+| CYP2C9 | `0.5571939927014358` | `0.020433515126421893` |
+| CYP2D6 | `1.2172319746112334` | `0.05332503578021169` |
+| CYP3A4 | `0.5084294889718826` | `0.02156381142675119` |
+| Macro | `0.7643501925142921` | `0.016520750512073138` |
+
+These bootstrap quantities remain secondary organizer-compatible characterizations. They do not replace the primary full-test-set ST-RAE values and are not interpreted as the project's historical cluster-bootstrap confidence intervals.
+
+#### Frozen result artifact
+
+The authoritative serialized D008 result is:
+
+`d008_external_evaluation_v1/D008_EXTERNAL_EVALUATION.json`
+
+SHA-256:
+
+`b9f9beeaaa36b6e9bedd65740f966b67bd1958e9c09299c05926dbb6558e3b30`
+
+This artifact is the authoritative D008 external-evaluation result.
+
+#### Claim boundary
+
+The D008 result is described as a:
+
+**post-deadline blind external evaluation of the frozen D007-T121 ensemble on the released OpenADMET CYP direct-inhibition test set.**
+
+It is not an official OpenADMET challenge submission, official challenge score, or prospective leaderboard result.
+
+D008 does not reopen D007.
+
+The external result may not be used to retroactively recalibrate, rerank, replace, or otherwise adapt D007-T121, its 150-member ensemble, its frozen predictions, or any D007 development decision.
+
+No residual analysis, subgroup analysis, alternative metric, recalibration, endpoint-specific rescue analysis, or other result-driven post-hoc investigation was performed under D008.
+
+The D007 development objective and D008 external macro ST-RAE are different estimands produced under different evaluation structures and are not interpreted as a paired generalization-gap statistic.
+
+#### D008 closure
+
+D008 is complete.
+
+The frozen external evidence establishes heterogeneous external generalization of D007-T121, including a marked weakness on CYP2D6. That observation is preserved as external evidence rather than used to alter the frozen model.
+
+Any future investigation motivated by the D008 result must be explicitly prospective, separately scoped, and unable to change the D008 result or retrospectively acquire D008 validation authority.
+
+Observed D008 performance is not grounds for revision of D007 or D008.
+
+# D009 — P1 Pairwise CYP Development Candidate
+
+**Decision date:** 2026-11-07
+
+**Status:** Complete / frozen
+
+## Decision and scope
+
+D009 is complete and frozen. P1 was implemented, qualified, benchmarked, run once across the 150 frozen development cells, characterized against the recovered D007-T121 comparator evidence, and closed without advancement.
+
+The frozen final result is:
+
+- P1 O150: `0.7074933757653159`
+- T121 O150: `0.701212576796`
+- P1 minus T121: `+0.006280798969315882`
+- P1 advances: `false`
+- preferred configuration: **D007-T121**
+
+No P1 rerun, rescue, endpoint veto, alternative aggregation, recalibration, external rescoring, or result-driven scientific modification is authorized.
+
+## Original decision and scope
+
+Approve P1 as the first prospective pairwise CYP development candidate for Tripwire-CYP.
+
+P1 tests whether a shared four-endpoint Chemprop D-MPNN trained to predict pairwise differences in CYP direct-inhibition pIC50 can improve held-out absolute-pIC50 prediction relative to frozen D007-T121.
+
+This approval covers methodology design and this decision record only.
+
+It does **not** authorize:
+
+- implementation;
+- production pair generation;
+- the all-reference cost benchmark;
+- model training;
+- performance evaluation;
+- modification of D007, T121, the frozen T121 ensemble, or D008.
+
+D008 may motivate future scientific questions, including new prospective model designs, but D008 has no architecture-selection, hyperparameter-selection, reference-selection, stopping, validation, or advancement authority for P1.
+
+## Scientific question
+
+On the identical frozen D007 molecule-level development matrix, does the approved P1 pairwise package achieve lower held-out absolute-pIC50 macro ST-RAE than D007-T121?
+
+P1 is a controlled **package comparison**, not a parameter-matched ablation.
+
+It does not presume that pairwise learning will repair CYP2D6 or that the cause of D008's endpoint heterogeneity has been established.
+
+## T121 comparator and authoritative development quantity
+
+P1's comparator is the **single-model D007-T121 development procedure**, not the later frozen 150-checkpoint blind-inference ensemble.
+
+For development cell \(c\), T121 trained one model on that cell's frozen training partition. Checkpoint selection and early stopping used held-out **validation macro ST-RAE**, defined as the unweighted macro across CYP1A2, CYP2C9, CYP2D6, and CYP3A4. The retained checkpoint was the checkpoint with the lowest validation macro ST-RAE for that fit.
+
+Let:
+
+\[
+S_c(M)
+=
+\frac{1}{4}
+\sum_{t=1}^{4}
+\operatorname{ST\!-\!RAE}_{c,t}(M)
+\]
+
+denote the retained single model's held-out validation macro ST-RAE in development cell \(c\).
+
+The authoritative full-fidelity D007 objective is:
+
+\[
+O_{150}(M)
+=
+\frac{1}{150}
+\sum_{c=1}^{150} S_c(M).
+\]
+
+The 150 cells are the frozen:
+
+\[
+50\ \text{repetition/fold partitions}
+\times
+3\ \text{training seeds}.
+\]
+
+Equivalently, D007 described this as averaging the three seed-level cell scores within each of 50 folds and then averaging those 50 fold values.
+
+The authoritative frozen comparator is:
+
+\[
+O_{150}(\mathrm{T121})
+=
+0.701212576796.
+\]
+
+### Source artifact
+
+The existing D007 selection record is:
+
+`cyp/artifacts/cyp_007/finalist_completion_v1/C0_COMPARISON.json`
+
+SHA-256:
+
+`48bd619ebd42b30b0c8862f915b7696e2156e822f48e220789b1563eb46817a8`
+
+The completed D007 record independently documents T121's full-fidelity O150 as `0.701212576796` and defines O150 as the arithmetic mean of the 150 fit-level validation macro ST-RAE values.
+
+This quantity is **not** the score of the later frozen 150-checkpoint ensemble. The blind ensemble was created only after D007 development selection had closed.
+
+P1 must reproduce the intended comparable development scoring procedure: one P1 fit per corresponding development cell, checkpoint selection using held-out absolute-pIC50 validation macro ST-RAE, and one retained cell-level validation macro score entering O150.
+
+## Frozen T121 configuration inherited where specified
+
+Recovered T121 configuration:
+
+- message-passing depth: `4`
+- message hidden dimension: `600`
+- FFN hidden dimension: `2000`
+- FFN layers: `1`
+- dropout: `0.4`
+- batch size: `16`
+- maximum epochs: `50`
+- early-stopping patience: `20` validation checks
+- warmup epochs: `10`
+- initial LR: `1.4283739994469765e-05`
+- maximum LR: `0.0008245400010426866`
+- final LR: `0.00020141638331344468`
+
+T121 uses stock Chemprop MSE rather than the previously evaluated task-balanced loss.
+
+The existing pipeline fits per-endpoint target standardization using the training partition only.
+
+D007-T121 remains frozen regardless of P1 outcome.
+
+## P1 architecture
+
+P1 uses a two-component shared Chemprop 2.3.1 D-MPNN.
+
+For molecules \(A\) and \(B\):
+
+\[
+h_A=E_\theta(A),
+\qquad
+h_B=E_\theta(B),
+\]
+
+where each embedding has dimension `600` and the same encoder parameters are used for both molecules.
+
+The pair function \(G\) receives ordered concatenation:
+
+\[
+[h_A,h_B]\in\mathbb{R}^{1200}.
+\]
+
+The approved pair head is:
+
+- input dimension: `1200`;
+- one `2000`-unit hidden layer;
+- T121 activation;
+- dropout `0.4`;
+- four endpoint outputs;
+- the same \(G\) parameters for both orientations.
+
+The reported delta is:
+
+\[
+\widehat{\Delta z}_t(A,B)
+=
+\frac{
+G_t(h_A,h_B)-G_t(h_B,h_A)
+}{2}.
+\]
+
+No additional width search or parameter-matching experiment is authorized for P1.
+
+### Deterministic symmetry guarantees
+
+In deterministic evaluation mode:
+
+\[
+\widehat{\Delta z}_t(A,B)
+=
+-\widehat{\Delta z}_t(B,A)
+\]
+
+and:
+
+\[
+\widehat{\Delta z}_t(A,A)=0
+\]
+
+are required architecture invariants, subject only to ordinary floating-point arithmetic.
+
+Training-mode stochastic symmetry is not guaranteed. Dropout is `0.4`, and ordinary dropout masks are not assumed to be coupled between ordered evaluations.
+
+Batching both orientations does not imply shared dropout masks.
+
+No coupled-dropout machinery is introduced solely to impose training-time symmetry.
+
+Cycle/transitivity residuals are diagnostic only. The unrestricted antisymmetric head does not guarantee:
+
+\[
+\widehat{\Delta}(A,B)
++
+\widehat{\Delta}(B,C)
+=
+\widehat{\Delta}(A,C).
+\]
+
+## Parameter accounting
+
+Before training authority is considered, qualification must record:
+
+- T121 total parameter count;
+- T121 trainable parameter count;
+- P1 total parameter count;
+- P1 trainable parameter count.
+
+P1 is expected to have more head parameters because the pair-head input is 1200-dimensional rather than the pointwise model's 600-dimensional molecular representation.
+
+Parameter counts are transparency measures.
+
+P1 is a controlled package comparison, **not a parameter-matched ablation**.
+
+No width search or parameter-matching experiment is required for P1.
+
+## Molecule-level splits
+
+P1 uses the identical frozen D007 molecule-level development partitions.
+
+Pair construction occurs only after molecule assignment.
+
+No molecule outside a cell's training partition may contribute to that cell's pairwise training.
+
+No new split generation is authorized.
+
+## Pair eligibility and missing labels
+
+For endpoint \(t\), pair \((A,B)\) has an eligible delta target only when both training labels are observed.
+
+Define:
+
+\[
+M_{ABt}
+=
+\begin{cases}
+1,& y_{A,t}\text{ and }y_{B,t}\text{ are both observed},\\
+0,& \text{otherwise}.
+\end{cases}
+\]
+
+For \(M_{ABt}=1\):
+
+\[
+\Delta y_t(A,B)
+=
+y_{A,t}-y_{B,t}.
+\]
+
+No endpoint label is imputed.
+
+No missing target is replaced by a self-pair, prediction, surrogate value, validation label, protected-test label, or D008 label.
+
+If \(n_t<2\) in a training partition, endpoint \(t\) has no valid within-partition pairwise supervision and must be explicitly reported.
+
+Existing-artifact accounting found zero such cases across the 50 frozen D007 partitions.
+
+## Pair sampling
+
+Pairs are sampled on-the-fly from the corresponding training partition.
+
+Sampling is uniform over ordered distinct pairs:
+
+\[
+A\ne B.
+\]
+
+The full \(N(N-1)\) pair universe is not materialized or represented as independent experimental evidence.
+
+A sampled pair may contain zero to four eligible endpoint targets.
+
+Pairs with zero eligible endpoints are classified as:
+
+`no_supervision`
+
+and:
+
+- produce no optimizer update;
+- are rejected and resampled;
+- are counted explicitly.
+
+Generated pairs are dependent transformations of the original molecular measurements, not independent new measurements.
+
+## Fold-specific pair weighting
+
+For training-partition size \(N\) and endpoint-specific observed-label count \(n_t\), uniform ordered-distinct pair sampling gives:
+
+\[
+q_t
+=
+\frac{n_t(n_t-1)}{N(N-1)}.
+\]
+
+The approved endpoint weight is:
+
+\[
+w_t
+=
+\frac{N-1}{n_t-1},
+\qquad n_t\ge2.
+\]
+
+Therefore:
+
+\[
+q_t w_t
+=
+\frac{n_t}{N}.
+\]
+
+This identity supports matching the **endpoint label mixture in the population limit**.
+
+It does **not** establish equivalence of:
+
+- finite-minibatch weighting;
+- stochastic gradients;
+- molecule exposure;
+- pair dependence;
+- optimization trajectories;
+- or the complete pointwise and pairwise objectives.
+
+### Recovered ranges across the 50 frozen partitions
+
+Training-label counts:
+
+- CYP1A2: `1062–1101`
+- CYP2C9: `965–1008`
+- CYP2D6: `1123–1157`
+- CYP3A4: `1766–1815`
+
+Approved \(w_t\) ranges:
+
+- CYP1A2: `3.41–3.53628652215`
+- CYP2C9: `3.72492552135–3.89107883817`
+- CYP2D6: `3.24480968858–3.3431372549`
+- CYP3A4: `2.06780595369–2.12521246459`
+
+Uniform-pair eligibility ranges:
+
+- CYP1A2: `0.0800199925348–0.0860538113788`
+- CYP2C9: `0.0660989336745–0.072124050502`
+- CYP2D6: `0.089528790901–0.0950345011053`
+- CYP3A4: `0.221475410395–0.233939748263`
+
+Weights are derived from training-partition membership and training-label availability only.
+
+Performance cannot alter them.
+
+## Approved P1 loss
+
+P1 uses:
+
+\[
+L_{\mathrm{P1}}
+=
+\frac{
+\displaystyle
+\sum_{j,t}
+M_{jt}w_t
+\left(
+\widehat{\Delta z}_{jt}
+-
+\Delta z_{jt}
+\right)^2
+}{
+\displaystyle
+\sum_{j,t}M_{jt}w_t
+}.
+\]
+
+The denominator is explicitly:
+
+\[
+\sum M w.
+\]
+
+This deliberately differs from stock Chemprop MSE's observed-entry-count denominator.
+
+The normalized weighted loss is intended to control relative endpoint contribution without allowing overall loss scale to change merely because a differently weighted endpoint appears in a particular minibatch.
+
+P1 loss and T121 pointwise training loss are different objectives.
+
+Their numerical training-loss values must not be compared as though they measured the same quantity.
+
+## Target transformation and delta inversion
+
+For each training partition and endpoint \(t\), fit the training-only scaler:
+
+\[
+z_t
+=
+\frac{y_t-\mu_t}{s_t}.
+\]
+
+The pairwise training target is:
+
+\[
+\Delta z_t(A,B)
+=
+z_{A,t}-z_{B,t}
+=
+\frac{y_{A,t}-y_{B,t}}{s_t}.
+\]
+
+The training mean cancels.
+
+At inference, convert the predicted standardized delta back to original pIC50 difference by:
+
+\[
+\widehat{\Delta y}_t(A,B)
+=
+s_t\widehat{\Delta z}_t(A,B).
+\]
+
+No scaler mean is added to a delta.
+
+No validation, protected-test, or D008 label contributes to scaler fitting.
+
+## Optimization and LR budget
+
+Recovered D007 training-partition sizes are:
+
+- `3751`: 1 partition;
+- `3752`: 43 partitions;
+- `3753`: 6 partitions.
+
+At batch size `16`, every partition produces exactly:
+
+\[
+235
+\]
+
+T121 optimizer updates per molecule epoch.
+
+P1 therefore defines one **pseudo-epoch** as exactly:
+
+\[
+235\ \text{optimizer updates}.
+\]
+
+A pseudo-epoch is an optimization-budget unit, not exhaustive traversal of the pair universe.
+
+### Frozen schedule
+
+- pair-row batch size: `16` initially;
+- validation cadence: every `235` optimizer updates;
+- warmup: `2350` optimizer updates;
+- maximum schedule: `11750` optimizer updates;
+- maximum validation opportunities: `50`;
+- early-stopping patience: `20` validation checks;
+- initial LR: `1.4283739994469765e-05`;
+- maximum LR: `0.0008245400010426866`;
+- final LR: `0.00020141638331344468`.
+
+The Noam-like LR trajectory is mapped to the same optimizer-update breakpoints as T121.
+
+Equal epoch counts are not claimed to establish equal training exposure.
+
+### Required budget reporting
+
+Every P1 cell must preserve:
+
+- \(N\);
+- each \(n_t\);
+- each \(q_t\);
+- each \(w_t\);
+- pair attempts;
+- accepted pair rows;
+- `no_supervision` rejections;
+- eligible target contributions by endpoint;
+- weighted target contribution by endpoint;
+- physical and effective batch size;
+- optimizer updates;
+- warmup updates;
+- maximum scheduled updates;
+- actual updates completed;
+- validation checks;
+- early-stopping state.
+
+These quantities do not convert pairs into independent experimental observations.
+
+## Reference-based absolute reconstruction
+
+For held-out query \(Q\) and endpoint \(t\), references are exactly the endpoint-labeled molecules in that cell's training partition:
+
+\[
+R_t^{\mathrm{train}}.
+\]
+
+No validation, protected-test, or D008 molecule may serve as a reference for development evaluation.
+
+For training reference \(R_j\):
+
+\[
+\widehat{\Delta y}_t(Q,R_j)
+=
+s_t\widehat{\Delta z}_t(Q,R_j).
+\]
+
+Then:
+
+\[
+\widehat y_t(Q\mid R_j)
+=
+y_{j,t}
++
+\widehat{\Delta y}_t(Q,R_j).
+\]
+
+The approved P1 absolute estimator is:
+
+\[
+\widehat y_t(Q)
+=
+\frac{1}{|R_t^{\mathrm{train}}|}
+\sum_{R_j\in R_t^{\mathrm{train}}}
+\widehat y_t(Q\mid R_j).
+\]
+
+The resulting prediction is in original pIC50 units before qualified ST-RAE scoring.
+
+Reference-derived dispersion may be recorded only as:
+
+**uncalibrated reference-prediction dispersion.**
+
+It has no calibrated-uncertainty, attrition, or independent selection authority.
+
+## All-reference validation-cost benchmark
+
+Before any long P1 development run, a bounded operational benchmark must measure all-reference validation cost on the intended execution hardware.
+
+It must report at minimum:
+
+- held-out molecule count;
+- endpoint-specific training-reference counts;
+- total pair evaluations;
+- wall time;
+- peak accelerator memory;
+- throughput.
+
+The benchmark is operational only.
+
+It may establish that the approved estimator is computationally infeasible and motivate a separately approved prospective approximation.
+
+It cannot silently alter the estimator.
+
+D009 does **not** authorize or launch this benchmark.
+
+## Comparable validation and checkpoint selection
+
+P1 uses the same scientific validation quantity as T121:
+
+**held-out absolute-pIC50 macro ST-RAE across the four CYP endpoints.**
+
+At each validation check:
+
+1. P1 produces held-out absolute-pIC50 predictions using training references only;
+2. those predictions are scored through the existing qualified ST-RAE path;
+3. the four endpoint ST-RAEs are averaged without endpoint weighting;
+4. the checkpoint with the lowest validation macro ST-RAE is retained;
+5. early stopping monitors that same validation macro quantity.
+
+The retained single-model cell score \(S_c(P1)\) enters O150.
+
+The pairwise training loss does not enter O150.
+
+## Prospective advancement rule
+
+The endpoint-veto question is closed:
+
+**P1 has no endpoint-harm veto.**
+
+Per-endpoint results are mandatory reporting but do not override the primary macro rule.
+
+The sole advancement rule is:
+
+\[
+P1\text{ advances over T121}
+\iff
+O_{150}(P1)
+<
+0.701212576796.
+\]
+
+where:
+
+\[
+O_{150}(P1)
+=
+\frac{1}{150}
+\sum_{c=1}^{150}S_c(P1).
+\]
+
+Any **strictly lower** O150 qualifies.
+
+There is no minimum effect-size requirement.
+
+### Meaning of advancement
+
+This is a **development-selection rule**.
+
+A P1 advancement means only that P1 achieved a lower mean validation macro ST-RAE than T121 under the frozen D007 150-cell development procedure.
+
+It does **not** by itself establish:
+
+- statistical significance;
+- a practically meaningful effect size;
+- unbiased generalization performance;
+- fresh external validation;
+- superiority on D008;
+- or correction of CYP2D6 external behavior.
+
+The 150 cells are correlated because they reuse the same finite development population across overlapping folds and seeds.
+
+T121 was itself selected using this development matrix.
+
+Therefore the P1-versus-T121 O150 comparison is not presented as fresh unbiased validation.
+
+Per-cell paired differences and per-endpoint results must be preserved and reported as characterization, but they do not replace the frozen advancement rule.
+
+### No endpoint veto
+
+No endpoint-harm veto applies.
+
+The rationale is continuity with D007's established macro development objective.
+
+This rationale does not assert that D008 cannot motivate new prospective scientific designs. D008 may motivate new questions, but its observed labels and performance cannot select, validate, stop, or advance P1.
+
+## Evaluation boundary
+
+The disclosed internal test cannot become fresh validation.
+
+D008 labels are already observed and cannot be used for:
+
+- P1 architecture selection;
+- pair sampling;
+- loss or weighting selection;
+- reference selection;
+- hyperparameter selection;
+- checkpoint selection;
+- early stopping;
+- advancement;
+- recalibration.
+
+No retrospective D008 rescoring is authorized by D009.
+
+A new prospective external-generalization claim requires new unseen evidence.
+
+## Diagnostic-integrity readiness
+
+The post-D008 Check-1 result remains:
+
+- member-artifact identity: verified;
+- ensemble-artifact identity: verified;
+- exact 150-member membership: **PASS**;
+- molecule coverage across all 150 members and 750 molecules: **PASS**;
+- required endpoint schema: **PASS**;
+- numerical member-to-ensemble consistency: **UNRESOLVED**.
+
+No numerical tolerance was manufactured.
+
+Therefore:
+
+- Check 1 is a **partial pass**;
+- numerical consistency remains unresolved;
+- I1 remains **NOT CLEARED**;
+- no residual-risk waiver is implied by D009;
+- design approval does not constitute acceptance of that unresolved numerical risk for training.
+
+A subsequently demonstrated material technical defect requires correction and adjudication before model interpretation.
+
+## Result-driven changes
+
+Observed P1 results cannot retroactively change:
+
+- the architecture;
+- loss;
+- sampler;
+- weights;
+- target transformation;
+- update/LR budget;
+- reference estimator;
+- validation quantity;
+- checkpoint-selection rule;
+- or advancement rule defined here.
+
+Results may motivate a **separately specified prospective future candidate**.
+
+Such a candidate must receive its own methodology and evaluation boundary and cannot rewrite P1's completed comparison.
+
+A demonstrated technical defect is different from a disappointing scientific result: a genuine defect may require correction, adjudication, and an explicitly documented disposition.
+
+## Historical implementation-readiness gates
+
+D009 initially authorized design only.
+
+Before implementation authority was considered, the record required:
+
+1. preserve the recorded Check-1 partial result and unresolved numerical limitation;
+2. specify and qualify exact T121 and P1 total/trainable parameter counting;
+3. review the implementation plan for the shared multicomponent encoder, antisymmetric pair head, normalized weighted loss, and sampler;
+4. preregister synthetic qualification tests for:
+   - molecule-level split isolation;
+   - pair eligibility;
+   - fold-specific \(n_t,q_t,w_t\);
+   - `no_supervision` handling;
+   - training-only target scaling;
+   - delta inversion;
+   - deterministic evaluation antisymmetry;
+   - deterministic evaluation self-zero;
+   - train-mode finite forward/backward behavior without symmetry claims;
+   - training-reference-only reconstruction;
+   - all-reference arithmetic averaging;
+   - absolute-pIC50 ST-RAE routing;
+5. specify the bounded all-reference validation-cost benchmark;
+6. verify that no D008 information enters implementation qualification or advancement logic.
+
+The subsequent D009 implementation and compute evidence closed these gates without reopening the scientific design or advancement rule.
+
+Implementation approval did not by itself constitute production-training approval.
+
+Production execution and closure are recorded below as frozen evidence.
+
+### Implementation record — representative P1 runtime benchmark
+
+**Record date:** 2026-11-08
+
+The accepted D009 P1 training-runtime benchmark artifact is:
+
+`/scratch/user/mhuang8/p1_training_runtime_rep01_fold01_seed20261101_warm10_measured100.json`
+
+SHA-256:
+
+`f918775490b054de548f8596cb7c68155b105e91f3c12a9bf05eaf79ebfd32df`
+
+The benchmark used one frozen D007 development cell on one NVIDIA L40S and ran 10 warmup optimizer updates followed continuously by 100 measured optimizer updates. Warmup was excluded from the measured timing and optimizer/scheduler state was not reset between warmup and measured updates.
+
+The complete measured-region training timing was:
+
+`0.05273915853991639` seconds per optimizer update.
+
+The representative extrapolation for the frozen P1 training-update budget is:
+
+`11,750 updates/cell × 150 cells = 1,762,500 training updates`
+
+which projects to approximately:
+
+`25.82` GPU-hours for measured training-update work.
+
+The separately closed D009 all-reference validation-inference projection is approximately:
+
+`4.40` GPU-hours.
+
+The combined approximately `30.22` GPU-hours is recorded only as a **representative measured-component subtotal** for training updates plus validation inference. It is not a complete experiment-runtime measurement, not a proven upper bound, and has no validation-performance, checkpoint-selection, stopping, model-selection, calibration, or scientific advancement authority.
+
+The runtime benchmark excludes loading, caller-side preprocessing, checkpoint/artifact serialization, and validation scoring where those operations were not part of the measured region. The one-cell / one-L40S / 30-minute execution layout remains prospective only and is not itself a production submission authorization.
+
+Implementation gates qualified to date:
+
+- all-reference validation-cost readiness: **PASS**;
+- P1 training/orchestration synthetic qualification: **PASS**;
+- bounded P1 training-runtime benchmark: **accepted as representative compute evidence**;
+- checkpoint save/reload/inference and artifact/failure qualification: **PASS**;
+- production cell wrapper, 150-cell preflight/orchestration, and completion aggregation synthetic qualification: **PASS**.
+
+This implementation record did not itself authorize production. The subsequent D009 production execution is recorded below and is now frozen.
+
+## Production execution and integrity closure
+
+D009 P1 production ran on CoreHPC as Slurm array job `2958137`.
+
+The execution covered exactly the 150 frozen D007 development cells:
+
+- 5 repetitions;
+- 10 folds per repetition;
+- 3 training seeds per repetition/fold cell;
+- one P1 cell per task;
+- one NVIDIA L40S per cell.
+
+Transferred production log evidence contains 150 `2958137_*.out` task logs with task IDs `0..149`; each records `NVIDIA L40S` and `=== CELL COMPLETE ===`.
+
+The post-production integrity gate is:
+
+`artifacts/d009_closure_workspace/p1_d009_postproduction_preflight_20261108.json`
+
+SHA-256:
+
+`9ea445ecdabf07f13884a89ddb8d2dd9854b2d3ba9657055e123999f421adbd3`
+
+Frozen state:
+
+- 150 expected cells;
+- 150 complete;
+- 0 absent;
+- 0 incomplete/failed;
+- protected internal test excluded;
+- D008 excluded;
+- performance-driven scheduling `false`.
+
+The transferred local closure package intentionally contains lightweight per-cell evidence only: 150 `manifest.json`, 150 `metrics.json`, 150 `run_cell.json`, and 150 `SHA256SUMS.txt`. It contains 0 local `best.ckpt` payloads by design.
+
+## Final P1 versus T121 result
+
+The authoritative final P1 O150 artifact is:
+
+`artifacts/d009_closure_workspace/p1_d009_o150_result_20261108.json`
+
+SHA-256:
+
+`b277f4ccd9138b688ff20bfaf2378ebfcb66bc118ab5943df48027168adc0e2b`
+
+It preserves the frozen advancement result:
+
+| Quantity | Value |
+| --- | ---: |
+| P1 O150 | `0.7074933757653159` |
+| T121 O150 | `0.701212576796` |
+| P1 minus T121 | `+0.006280798969315882` |
+| P1 advances | `false` |
+
+The final decision is that **P1 does not advance** and **D007-T121 remains preferred**.
+
+Characterization has no advancement authority. It cannot alter the frozen macro O150 rule or create an endpoint-level veto or rescue criterion.
+
+## Required closure characterization
+
+The D009 closure characterization artifact is:
+
+`artifacts/d009_closure_workspace/d009_p1_closure_characterization_20261109.json`
+
+SHA-256:
+
+`611ec29969b675fa46de710ca14ec206c6ca3fff8006f5b199efced1e79a50cd`
+
+The recovered D007-T121 comparator package is:
+
+`artifacts/d009_closure_workspace/d009_t121_comparator_20261109/`
+
+Its transfer archive is:
+
+`artifacts/d009_freeze_transfer/d009_t121_comparator_20261109.tar.gz`
+
+SHA-256:
+
+`580b44955b170a4e30647b537ffe54940374d7e4fc945565f1ec4d5ba002ae60`
+
+The comparator package contains 150 `result.json`, 150 `cell_plan.json`, and 150 `provenance.json` files. Cells were paired by explicit `(repetition, fold, training_seed/seed)` identity, not by directory order. No duplicate, missing, or extra identities were detected.
+
+As a direct internal consistency check, the arithmetic mean of the recovered 150 T121 cell macro ST-RAE values is:
+
+`0.7012125767956957`
+
+The direct difference from the frozen scalar `0.701212576796` is:
+
+`-3.043121310497554e-13`
+
+No new numerical tolerance is introduced and this check is not a new gate.
+
+The identity-matched paired macro difference summary, P1 minus T121, is:
+
+| Statistic | Value |
+| --- | ---: |
+| n | `150` |
+| mean | `0.0062807989696201825` |
+| median | `0.007745555153990058` |
+| sample SD | `0.017458604390571973` |
+| minimum | `-0.03154866274296275` |
+| maximum | `0.056337123105406506` |
+| P1 lower count | `56` |
+| P1 equal count | `0` |
+| P1 higher count | `94` |
+
+The four identity-matched per-endpoint paired comparisons are:
+
+| Endpoint | P1 mean | T121 mean | Mean P1 minus T121 | Median diff | P1 lower | P1 higher |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| CYP1A2 | `0.8155572297028921` | `0.8039443572593442` | `0.01161287244354784` | `0.010018096511007213` | `62` | `88` |
+| CYP2C9 | `0.6158902956632285` | `0.6098174041358858` | `0.006072891527342696` | `0.0027106702077795974` | `73` | `77` |
+| CYP2D6 | `0.9119082278829614` | `0.9183171939206107` | `-0.006408966037649143` | `-0.00915635314767771` | `83` | `67` |
+| CYP3A4 | `0.48661774981218114` | `0.4727713518669417` | `0.013846397945239352` | `0.013565696223148294` | `50` | `100` |
+
+Lower ST-RAE is better. This characterization records that P1 is higher on average for macro ST-RAE and for CYP1A2, CYP2C9, and CYP3A4, while lower on average for CYP2D6. No mechanism is assigned.
+
+## Evidence inventory and provenance
+
+The repository-side D009/P1 evidence inventory is:
+
+`artifacts/d009_closure_workspace/d009_p1_evidence_inventory_20261109.json`
+
+SHA-256:
+
+`116e39fc3289832450c3122f7a38dee0bbe1e6e93d392b387bdafc39b852568c`
+
+The inventory records local SHA-256 hashes for the lightweight closure evidence, including:
+
+- all 150 transferred P1 cell manifests;
+- all 150 P1 metrics files;
+- all 150 P1 run-cell records;
+- all 150 P1 per-cell `SHA256SUMS.txt` files;
+- all 150 T121 comparator result files;
+- all 150 T121 comparator cell plans;
+- all 150 T121 comparator provenance files;
+- checkpoint identities recorded by those cell artifacts;
+- final production source/test identities;
+- qualification evidence preserved in `p1_corehpc_stage_20261107/`;
+- validation-cost benchmark;
+- training-runtime benchmark;
+- initial production preflight;
+- production sbatch wrapper;
+- transferred production logs/accounting evidence;
+- post-production preflight;
+- authoritative O150 artifact;
+- final characterization artifact;
+- lightweight transfer archive SHA-256;
+- T121 comparator transfer archive SHA-256;
+- full CoreHPC checkpoint-bearing freeze path and SHA-256.
+
+The lightweight P1 transfer archive is:
+
+`artifacts/d009_freeze_transfer/d009_p1_closure_20261108.tar.gz`
+
+SHA-256:
+
+`ffeb387da7f3ab746bf61db7661855b29bf93a3eb97b9cac366f79478e2f3243`
+
+The full checkpoint-bearing CoreHPC freeze remains:
+
+`/scratch/user/mhuang8/d009_p1_freeze_20261108.tar.gz`
+
+SHA-256:
+
+`f77e6815b131da5caf69886e367a538f896e0aa7ee6e42076ae84a1ed3dc8d3e`
+
+The inventory distinguishes local lightweight evidence from checkpoint payloads. It does not claim local checkpoint-byte verification because checkpoint bytes are not present in the local closure package.
+
+## Compute evidence preserved
+
+The accepted bounded training-runtime benchmark remains:
+
+`artifacts/d009_closure_workspace/p1_training_runtime_rep01_fold01_seed20261101_warm10_measured100.json`
+
+SHA-256:
+
+`f918775490b054de548f8596cb7c68155b105e91f3c12a9bf05eaf79ebfd32df`
+
+It preserves:
+
+- complete measured timing: `0.05273915853991639` seconds per optimizer update;
+- approximately `25.82` GPU-hours projected training;
+- approximately `4.40` GPU-hours separately projected validation inference;
+- approximately `30.22` GPU-hours representative measured-component subtotal;
+- subtotal is not complete experiment runtime and not a proven upper bound.
+
+The accepted all-reference validation-cost benchmark remains:
+
+`artifacts/d009_closure_workspace/p1_real_benchmark_rep01_fold01_seed20261101_chunk8192.json`
+
+It remains operational compute evidence only and has no validation-performance, checkpoint-selection, stopping, model-selection, calibration, or advancement authority.
+
+## Post-D008 I1 reconciliation
+
+The existing post-D008 diagnostic/I1 record remains:
+
+- member identity/membership: **PASS**;
+- molecule coverage: **PASS**;
+- endpoint schema: **PASS**;
+- numerical member-to-ensemble consistency: **UNRESOLVED**;
+- I1: **NOT CLEARED**.
+
+No existing later artifact or record was found that resolves numerical member-to-ensemble consistency. No numerical tolerance was invented. No new external evaluation was performed. D008 labels were not reopened.
+
+## Artifact preservation status
+
+The full checkpoint-bearing freeze currently remains at:
+
+`/scratch/user/mhuang8/d009_p1_freeze_20261108.tar.gz`
+
+SHA-256:
+
+`f77e6815b131da5caf69886e367a538f896e0aa7ee6e42076ae84a1ed3dc8d3e`
+
+The repository/session record does not unambiguously identify a persistent backed-up destination for that full freeze. This is an operational item requiring human confirmation.
+
+No CoreHPC freeze was moved or deleted by this closure record.
+
+## Limitations
+
+P1 does not establish the cause of D008 endpoint heterogeneity.
+
+A P1 development win would establish only that the approved pairwise package achieved the lower frozen D007 development objective.
+
+It would not establish that:
+
+- pairwise learning alone caused the difference;
+- generated pairs created additional independent experimental information;
+- CYP2D6 external generalization was repaired;
+- external distribution shift caused D008;
+- D008 would have improved prospectively;
+- reference dispersion is calibrated uncertainty;
+- or the O150 difference is statistically significant or practically important.
+
+## Governing principle
+
+Change the learning formulation while preserving the strongest available controls: identical molecule-level development partitions, training-only transformations and references, prospectively fixed pair sampling and weighting, matched optimizer-update/LR budget, identical held-out absolute-pIC50 validation quantity, and the existing qualified ST-RAE metric.
+
+Generated pairs increase training representations, not experimental information.
+
+D007 and D008 remain frozen evidence.
+
+## Revisit when
+
+Revisit D009 only if a demonstrated technical or integrity defect requires adjudication, correction, and an explicitly documented disposition.
+
+Do not revisit D009 merely because P1 lost scientifically, because an endpoint-level characterization is disappointing, or because a future candidate design is desired.
+
+The frozen result may not be changed by rerun, rescue, endpoint veto, alternative aggregation, recalibration, result-driven modification, or external rescoring.
+
+Any future model concept must be specified prospectively outside D009 and cannot rewrite this closure.
