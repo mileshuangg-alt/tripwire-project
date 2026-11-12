@@ -1,0 +1,130 @@
+{
+  "arm_b": {
+    "batch_size": 16,
+    "loss": "mean_mse_per_task_local_minibatch",
+    "objective_bearing_exposure": "each_retained_identity_exactly_once_per_epoch",
+    "pooled_global_molecule_sampler": false,
+    "updates_per_epoch_distribution": {
+      "387": 10,
+      "388": 40
+    }
+  },
+  "arm_c": {
+    "inner_adaptation": {
+      "differentiation": "exact_through_adaptation",
+      "inner_lr": 0.01,
+      "inner_steps": 1,
+      "parameters": "scalar_head_weight_and_bias_only"
+    },
+    "q_rule": "max(1, ceil(0.20*N))",
+    "query_exposure": "each_retained_identity_exactly_once_per_epoch",
+    "support_policy": "all_retained_within_task_identities_not_in_query",
+    "support_query_disjoint_by_full_standard_inchikey": true,
+    "support_reuse_permitted_and_recorded": true,
+    "updates_per_epoch_distribution": {
+      "856": 9,
+      "857": 32,
+      "858": 9
+    }
+  },
+  "artifact_type": "D012_first_implementation_qualification_v1",
+  "authority": "qualification_only_no_training_no_target_transfer",
+  "boundaries": {
+    "d011_modified": false,
+    "hyperparameter_tuning": false,
+    "partition_changes": false,
+    "production_training_implemented": false,
+    "public_challenge_labels_accessed": false,
+    "target_transfer_implemented": false,
+    "task_size_filtering": false,
+    "validation_potency_labels_accessed": false
+  },
+  "firewall": {
+    "all_tasks_survive_every_manifest": true,
+    "cell_count": 150,
+    "fail_closed_on_missing_or_ambiguous_witness": true,
+    "global_minimum_post_mask_task_size": 14,
+    "manifest_count": 50,
+    "manifests_with_at_least_one_overlap": 49,
+    "max_tasks_below_15_per_manifest": 1,
+    "max_tasks_below_16_per_manifest": 2,
+    "removed_instances_max": 14,
+    "removed_instances_mean": 4.9,
+    "removed_instances_min": 0,
+    "retained_instances_max": 4664,
+    "retained_instances_min": 4650,
+    "unique_auxiliary_keys_ever_in_validation": 33,
+    "unmapped_validation_names": 0,
+    "validation_labels_read": false
+  },
+  "global_input": {
+    "task_identity_instances": 4664,
+    "task_units": 175
+  },
+  "inputs": {
+    "cyp/artifacts/cyp_007/split_manifests/rep_01_fold_01.json": "16aa90c786039b3f6f3ffeb071035742ca1641dbc9232c73eaa780a7f92e18df",
+    "cyp/artifacts/cyp_007/split_manifests/rep_01_fold_02.json": "daed03107acc56dc042f940b8d85fe3ff31ffd25c3df65a93f2f4512b7b1c291",
+    "cyp/artifacts/cyp_007/split_manifests/rep_01_fold_03.json": "f6075292b00889eefb3e64e0c6a35b55186e8b703614fc3b27f61f058d3452f3",
+    "cyp/artifacts/cyp_007/split_manifests/rep_01_fold_04.json": "7eadc3978cc86f633ca972bf5259b216b4d190ba65403cc85a0f4d77ff48784d",
+    "cyp/artifacts/cyp_007/split_manifests/rep_01_fold_05.json": "e1ccb43ab690487ef9a0f5e6f50fba62f7f72e12ebb90bb4b561493648041b40",
+    "cyp/artifacts/cyp_007/split_manifests/rep_01_fold_06.json": "87b5ea793aa2e9c772895e8760d880e29bc1d26e05965011731808049c0692dd",
+    "cyp/artifacts/cyp_007/split_manifests/rep_01_fold_07.json": "4e4c72359f640d080fd8045fc627fdb6a98fb9d28ad1fb256291ac3277f80abd",
+    "cyp/artifacts/cyp_007/split_manifests/rep_01_fold_08.json": "cf6ddc013d3c4b031521dbbc75bfb65af48c86d46bff8dc28520766f043b1071",
+    "cyp/artifacts/cyp_007/split_manifests/rep_01_fold_09.json": "43b153cd59febef787f19022c4971a2d6faf6a1b9366cdb16da9bec9d4e03ce1",
+    "cyp/artifacts/cyp_007/split_manifests/rep_01_fold_10.json": "df435df048726793aaae8041842b6276916efd3ce6deafeb50e9693afb84c32d",
+    "cyp/artifacts/cyp_007/split_manifests/rep_02_fold_01.json": "3729c072d1c18980d7725163ad05d9536d5fe61045d54cc58c64989bfb39f89a",
+    "cyp/artifacts/cyp_007/split_manifests/rep_02_fold_02.json": "0891e0b34cb00074d4034da59c7aa024361334252856b2d1f656b22c55e0be33",
+    "cyp/artifacts/cyp_007/split_manifests/rep_02_fold_03.json": "9064046ca4988e5e136455fe343713f411ee2607f08442d51dcee0f3e9b52bf4",
+    "cyp/artifacts/cyp_007/split_manifests/rep_02_fold_04.json": "c5357cca2369b55deec086ab38f912104e447b48eab12455a935a0040e1eb9ab",
+    "cyp/artifacts/cyp_007/split_manifests/rep_02_fold_05.json": "3b4ca5b950eb586b942fcb8ca7829e21b63f897cb6a3ea09534e0e88ad75eee0",
+    "cyp/artifacts/cyp_007/split_manifests/rep_02_fold_06.json": "4501aeae2ab539e7d8825d717f313c136d238848a17d251ef4fdfaae3000b342",
+    "cyp/artifacts/cyp_007/split_manifests/rep_02_fold_07.json": "2a0d36de963a0a6cda16fa92298f5b2d61f6f371313359a697536b96ba0a88ea",
+    "cyp/artifacts/cyp_007/split_manifests/rep_02_fold_08.json": "94da9896323bec51fc6f2e9c81531cc6126f61be9c87cfd8887ea9667cbcbd67",
+    "cyp/artifacts/cyp_007/split_manifests/rep_02_fold_09.json": "7c5ec309354e190d54f78b0cc29bf76632daaed155d029df82863781846aea4c",
+    "cyp/artifacts/cyp_007/split_manifests/rep_02_fold_10.json": "12c785f89f6eecaa333c31cc42e6595d601a590d0cb472ffe367ff548bf1f56d",
+    "cyp/artifacts/cyp_007/split_manifests/rep_03_fold_01.json": "fac2bbd2df2ff65c45e65886ee6b10d42c152bbc16d615cd8ad4d43ba75697c8",
+    "cyp/artifacts/cyp_007/split_manifests/rep_03_fold_02.json": "10366cd096640e995b9d9aae9b8708e8379d5b7c14fb01b54964b8ad932419ae",
+    "cyp/artifacts/cyp_007/split_manifests/rep_03_fold_03.json": "6536d537da6659774a9367d140fef91e3d8d0d5871cbdad25ea368226c61bdc9",
+    "cyp/artifacts/cyp_007/split_manifests/rep_03_fold_04.json": "d5c1cde9564b9b657ba5cc07c97d1787866167ec2e053ed00acabdaf0468f89d",
+    "cyp/artifacts/cyp_007/split_manifests/rep_03_fold_05.json": "9b6f07fc81807f236ab7b85ab47fc2d6da376fd406352a46f510923d8e726f0a",
+    "cyp/artifacts/cyp_007/split_manifests/rep_03_fold_06.json": "b9accbf79c0bf4be22ee97f6af89ffe41b7bae2e0e4a8b211bbe48ac4a48882a",
+    "cyp/artifacts/cyp_007/split_manifests/rep_03_fold_07.json": "3b1dc449e5c7e698776593f43595060394d3a414cc675f3b6b63b9efa433531d",
+    "cyp/artifacts/cyp_007/split_manifests/rep_03_fold_08.json": "e1d28dbd2f59510d627aa6a94165074f97249ab9ed07b2dddb3d74cf93ca6851",
+    "cyp/artifacts/cyp_007/split_manifests/rep_03_fold_09.json": "fe50f8a4620523ef7f009aeb48451057b3068823c71a124f4165efa588eb0970",
+    "cyp/artifacts/cyp_007/split_manifests/rep_03_fold_10.json": "71249d1ad6f0efe082ca865a9fdbdae756c6c1c16774ae270d52adbb71db01de",
+    "cyp/artifacts/cyp_007/split_manifests/rep_04_fold_01.json": "465143f38b437595309d25d114cc0a4f54708e3f740f6fc8768bc39bbed83f3c",
+    "cyp/artifacts/cyp_007/split_manifests/rep_04_fold_02.json": "fbc902f66579aa4d9b22308122b53a9429c5e306e391ebcb9f89715117ba4933",
+    "cyp/artifacts/cyp_007/split_manifests/rep_04_fold_03.json": "3338f34005d56bdcc274862481fa1850e61093a92aee0f01d824292563feb5a7",
+    "cyp/artifacts/cyp_007/split_manifests/rep_04_fold_04.json": "f7f67a4f8496b73b0f113c559c67c506faed72084feaa01ba27cb36d1ab7702d",
+    "cyp/artifacts/cyp_007/split_manifests/rep_04_fold_05.json": "a0ebb936a5122482893f2f3973e2847c00875230a553106d14fe578d28e2b69b",
+    "cyp/artifacts/cyp_007/split_manifests/rep_04_fold_06.json": "cab283877765f28a2e5b24b390914a1f6e6e4eb90ea6c55cc34b421c42264d29",
+    "cyp/artifacts/cyp_007/split_manifests/rep_04_fold_07.json": "9d004bbc3d69aa0731e4775898a943003808189e783c8abf31d4abf3afc4e92b",
+    "cyp/artifacts/cyp_007/split_manifests/rep_04_fold_08.json": "edaa9a15ed58cb087ee9d7861dbae739c1a52a57690ce4f80d8713f5289fbb1f",
+    "cyp/artifacts/cyp_007/split_manifests/rep_04_fold_09.json": "94cdfe221c9adc29d2608cad0b4c1f67899c97eb969a4a7454edc40aa5f182ad",
+    "cyp/artifacts/cyp_007/split_manifests/rep_04_fold_10.json": "9cdb63177b86bd93f37ec4947bfd4c7c52fb660b58bc56131351a851c0331cc7",
+    "cyp/artifacts/cyp_007/split_manifests/rep_05_fold_01.json": "0ad4a8bbb10a976fff8460a76942b98db5482ced7d0e010c6ce65aa44e7b86ad",
+    "cyp/artifacts/cyp_007/split_manifests/rep_05_fold_02.json": "09e38fbbed0c8ed2e0ee3a03f491ac48da2f385c1d4cac061a8f502840ed862d",
+    "cyp/artifacts/cyp_007/split_manifests/rep_05_fold_03.json": "36bdd14c139ffd5bb0ce32fa4e6c5a5d39bc11376cc6752680cd20d1184efe1d",
+    "cyp/artifacts/cyp_007/split_manifests/rep_05_fold_04.json": "cbb496291d02f569221b9be964e774926806a7f6a4dad506eac05f7cf34eeb28",
+    "cyp/artifacts/cyp_007/split_manifests/rep_05_fold_05.json": "f1a8d1a6f4b35f4b35880dd798c8e6e953a3a6dd969917ee29b178cdec57e614",
+    "cyp/artifacts/cyp_007/split_manifests/rep_05_fold_06.json": "7d0205418d83d9dec9d7d3b42de41227aceaa88f537ffbdb189538ceb954ca1f",
+    "cyp/artifacts/cyp_007/split_manifests/rep_05_fold_07.json": "acb353a04abc162185e552f858519e0924a89f87fb4ac430de7f53a80fb83233",
+    "cyp/artifacts/cyp_007/split_manifests/rep_05_fold_08.json": "c7ed4ec349baaf92afd2973208a6afd82dbb6764b2f41b4aff808b41b01ed64b",
+    "cyp/artifacts/cyp_007/split_manifests/rep_05_fold_09.json": "7a6e0ea1d8348ba55eebda64492c15f59e772ae4cdee7b648d6b47dfb37aca04",
+    "cyp/artifacts/cyp_007/split_manifests/rep_05_fold_10.json": "043b6e94e336788a5b544b1116ab7cbc184f26819bb21cdb88b17fd6e3fecab2",
+    "qualification/cyp_external_task_qualification_20261109/d012_auxiliary_population/d012_task_identity_instances.tsv": "b1b75ca32594183d5efce45dbefd25b2f4a22313dabe78d221ea70dc92e43ee1",
+    "qualification/cyp_external_task_qualification_20261109/identity_audit/bounded_representation_audit.tsv": "c0881d8f5e2e193b9e87479045934ca41c133d92f92ff3d453b5c28c8e2e9d3b"
+  },
+  "runtime": {
+    "python": "3.12.14 (main, Sep  3 2026, 03:46:19) [Clang 21.1.8 ]"
+  },
+  "scheduler": {
+    "assume_equal_b_c_step_counts": false,
+    "auxiliary_epochs": 50,
+    "budgets_derived_from_each_arm_own_u_value": true,
+    "lr_final": 0.00020141638331344468,
+    "lr_initial": 1.4283739994469765e-05,
+    "lr_max": 0.0008245400010426866,
+    "warmup_epochs": 10
+  }
+}

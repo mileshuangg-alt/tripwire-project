@@ -1,0 +1,171 @@
+{
+  "artifact_type": "D012_posthoc_audit_C_auxiliary_train_identity_concordance_v1",
+  "assay_observation_concordance_by_cyp": [
+    {
+      "isoform": "CYP1A2",
+      "level": "assay_observation",
+      "mae": 0.42611182302499995,
+      "max": 1.0578989890100008,
+      "mean": 0.2621267055575002,
+      "median": 0.22943978017499989,
+      "min": -0.3850749363299997,
+      "n": 8,
+      "pearson_r": 0.8106951830698993,
+      "rmse": 0.5236416739517227,
+      "sample_sd": 0.48460905354732975,
+      "spearman_rho": 0.5952380952380952
+    },
+    {
+      "isoform": "CYP2C9",
+      "level": "assay_observation",
+      "mae": 0.653083780223333,
+      "max": 0.9950579993399993,
+      "mean": 0.4279836593366664,
+      "median": 0.6265431599999998,
+      "min": -0.3376501813299999,
+      "n": 3,
+      "pearson_r": 0.3094106589110939,
+      "rmse": 0.7063295732978784,
+      "sample_sd": 0.6881839726293683,
+      "spearman_rho": 0.5
+    },
+    {
+      "isoform": "CYP2D6",
+      "level": "assay_observation",
+      "mae": 0.6554438545127775,
+      "max": 1.9823403600000002,
+      "mean": 0.4592581077805554,
+      "median": 0.4091625260449998,
+      "min": -0.9353510333799999,
+      "n": 18,
+      "pearson_r": 0.4313499657797612,
+      "rmse": 0.8306938122543526,
+      "sample_sd": 0.7122629885586659,
+      "spearman_rho": 0.33505687693898656
+    },
+    {
+      "isoform": "CYP3A4",
+      "level": "assay_observation",
+      "mae": 0.8040922454200004,
+      "max": 1.09514978101,
+      "mean": 0.8040922454200004,
+      "median": 0.9079898026550004,
+      "min": 0.30523959536000067,
+      "n": 4,
+      "pearson_r": 0.8557183637315148,
+      "rmse": 0.8666382927972086,
+      "sample_sd": 0.37326950299193074,
+      "spearman_rho": 0.9486832980505138
+    }
+  ],
+  "interpretation_boundary": "Poor agreement supports measurement/task mismatch as a hypothesis, not causation; strong agreement in this selected overlap does not clear other assays or chemical space.",
+  "molecule_level_concordance_by_cyp": [
+    {
+      "isoform": "CYP1A2",
+      "level": "molecule_endpoint_median",
+      "mae": 0.42611182302499995,
+      "max": 1.0578989890100008,
+      "mean": 0.2621267055575002,
+      "median": 0.22943978017499989,
+      "min": -0.3850749363299997,
+      "n": 8,
+      "pearson_r": 0.8106951830698993,
+      "rmse": 0.5236416739517227,
+      "sample_sd": 0.48460905354732975,
+      "spearman_rho": 0.5952380952380952
+    },
+    {
+      "isoform": "CYP2C9",
+      "level": "molecule_endpoint_median",
+      "mae": 0.653083780223333,
+      "max": 0.9950579993399993,
+      "mean": 0.4279836593366664,
+      "median": 0.6265431599999998,
+      "min": -0.3376501813299999,
+      "n": 3,
+      "pearson_r": 0.3094106589110939,
+      "rmse": 0.7063295732978784,
+      "sample_sd": 0.6881839726293683,
+      "spearman_rho": 0.5
+    },
+    {
+      "isoform": "CYP2D6",
+      "level": "molecule_endpoint_median",
+      "mae": 0.6402024437887499,
+      "max": 1.9823403600000002,
+      "mean": 0.4502035845793749,
+      "median": 0.4091625260449998,
+      "min": -0.9353510333799999,
+      "n": 16,
+      "pearson_r": 0.450543630119208,
+      "rmse": 0.8329652317913191,
+      "sample_sd": 0.7238031480488214,
+      "spearman_rho": 0.36764705882352944
+    },
+    {
+      "isoform": "CYP3A4",
+      "level": "molecule_endpoint_median",
+      "mae": 0.8387247644983337,
+      "max": 1.0852361076900001,
+      "mean": 0.8387247644983337,
+      "median": 0.7307434976200007,
+      "min": 0.7001946881850003,
+      "n": 3,
+      "pearson_r": 0.9938248554962741,
+      "rmse": 0.8567372351175405,
+      "sample_sd": 0.21403081362526669,
+      "spearman_rho": 1.0
+    }
+  ],
+  "population_counts": {
+    "assay_identity_observations": 49,
+    "assay_observation_multiplicity_per_molecule_endpoint": {
+      "max": 4,
+      "mean": 1.1395348837209303,
+      "median": 1,
+      "min": 1,
+      "n": 43,
+      "sample_sd": 0.5155392622264671
+    },
+    "counts_by_cyp": {
+      "CYP1A2": 8,
+      "CYP2C9": 10,
+      "CYP2D6": 18,
+      "CYP3A4": 13
+    },
+    "matched_nonmissing_observations": 33,
+    "matched_nonmissing_observations_by_cyp": {
+      "CYP1A2": 8,
+      "CYP2C9": 3,
+      "CYP2D6": 18,
+      "CYP3A4": 4
+    },
+    "matched_unique_molecules": 25,
+    "missing_train_endpoint_observations_counted_not_paired": 16,
+    "overlap_openadmet_train_auxiliary_task_identity_instances": 49,
+    "train_molecules_represented_by_identity_bridge": 33,
+    "unique_auxiliary_full_standard_inchikeys": 33
+  },
+  "provenance": {
+    "auxiliary_instances": {
+      "path": "qualification/cyp_external_task_qualification_20261109/d012_auxiliary_population/d012_task_identity_instances.tsv",
+      "sha256": "b1b75ca32594183d5efce45dbefd25b2f4a22313dabe78d221ea70dc92e43ee1"
+    },
+    "cross_source_matches": {
+      "path": "qualification/cyp_external_task_qualification_20261109/identity_audit/cross_source_matches.tsv",
+      "sha256": "6613d182fb4492b4e79f71dcd29d15c7c73f689fe15087d7b1a66aeb7967a8c5"
+    },
+    "train_labels": {
+      "path": "cyp/data/cyp-challenge-TRAIN_inhibition.csv",
+      "sha256": "b8f79addd266fb6f9f4c222c5e4e73d926362328b6a8d2841871a54e46bd2278"
+    }
+  },
+  "rules": {
+    "aggregation": "existing median within assay x identity replicate aggregation; established duplicate-assay consolidation preserved",
+    "auxiliary_records": "already-eligible exact uncensored IC50 records",
+    "conversion": "existing IC50 to pIC50 conversion from D012 auxiliary population",
+    "endpoint_pairing": "corresponding CYP endpoint only; missing TRAIN endpoint counted but not paired",
+    "identity": "full Standard InChIKey identity",
+    "train_labels_only": true
+  }
+}

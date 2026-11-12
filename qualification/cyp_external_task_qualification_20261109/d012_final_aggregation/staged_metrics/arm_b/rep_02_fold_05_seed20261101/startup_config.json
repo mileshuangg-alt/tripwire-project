@@ -1,0 +1,81 @@
+{
+  "arm": "B",
+  "artifact_type": "D012_first_cell_production_startup_v1",
+  "environment": {
+    "chemprop": "2.3.1",
+    "cuda_available": true,
+    "cuda_capability": [
+      8,
+      9
+    ],
+    "cuda_runtime": "12.6",
+    "device": "cuda",
+    "gpu_model": "NVIDIA L40S",
+    "hostname": "n4pu04",
+    "platform": "Linux-5.15.0-202-generic-x86_64-with-glibc2.35",
+    "python": "3.12.14 (main, Sep  2 2026, 23:27:36) [GCC 15.3.0]",
+    "torch": "2.14.1+cu126"
+  },
+  "inputs": {
+    "b_epoch_plan": {
+      "path": "qualification/cyp_external_task_qualification_20261109/d012_implementation_qualification/d012_arm_b_epoch_plan.tsv",
+      "sha256": "0c4d27d7771b125abb76c32935cc76cd2e1c72c6b5af8c07cc05b09ca18193d6"
+    },
+    "c_epoch_plan": {
+      "path": "qualification/cyp_external_task_qualification_20261109/d012_implementation_qualification/d012_arm_c_epoch_plan.tsv",
+      "sha256": "29ac9a574e392c7338ca497fef5a5c702e905e5b2098196cac71126b3d8159ae"
+    },
+    "d012_population": {
+      "path": "qualification/cyp_external_task_qualification_20261109/d012_auxiliary_population/d012_task_identity_instances.tsv",
+      "sha256": "b1b75ca32594183d5efce45dbefd25b2f4a22313dabe78d221ea70dc92e43ee1"
+    },
+    "scheduler_budgets": {
+      "path": "qualification/cyp_external_task_qualification_20261109/d012_implementation_qualification/d012_cell_scheduler_budgets.tsv",
+      "sha256": "4eb6b575f328c7f4a739875ceefa4e88dddafc1bf26c4bf10235190c2fe29f01"
+    },
+    "target_data": {
+      "path": "cyp/data/cyp-challenge-TRAIN_inhibition.csv",
+      "sha256": "b8f79addd266fb6f9f4c222c5e4e73d926362328b6a8d2841871a54e46bd2278"
+    }
+  },
+  "manifest_id": "rep_02_fold_05",
+  "method_boundaries": {
+    "arrays_submitted": false,
+    "d011_modified": false,
+    "methodology_changed": false,
+    "t121_retrained_or_retuned": false
+  },
+  "training_seed": 20261101,
+  "workload_assertions": {
+    "b_c_same_masked_auxiliary_population": true,
+    "b_total_aux_updates_50_epochs": 19350,
+    "b_updates_per_aux_epoch": 387,
+    "c_total_aux_updates_50_epochs": 42800,
+    "c_updates_per_aux_epoch": 856,
+    "manifest_id": "rep_02_fold_05",
+    "minimum_task_size_filter_applied": false,
+    "protected_test_or_challenge_labels_accessed": false,
+    "qualified_budget": {
+      "arm_b_minibatch_rows": "387",
+      "arm_c_episode_rows": "856",
+      "auxiliary_epochs": "50",
+      "b_total_steps": "19350",
+      "b_updates_per_epoch": "387",
+      "b_warmup_steps": "3870",
+      "c_total_steps": "42800",
+      "c_updates_per_epoch": "856",
+      "c_warmup_steps": "8560",
+      "lr_final": "0.00020141638331344468",
+      "lr_initial": "1.4283739994469765e-05",
+      "lr_max": "0.0008245400010426866",
+      "manifest_id": "rep_02_fold_05",
+      "retained_instance_count": "4654",
+      "training_seed": "20261101",
+      "warmup_epochs": "10"
+    },
+    "retained_auxiliary_instances": 4654,
+    "surviving_task_units": 175,
+    "training_seed": 20261101,
+    "validation_labels_enter_auxiliary_training": false
+  }
+}

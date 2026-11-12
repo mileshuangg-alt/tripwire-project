@@ -1,0 +1,253 @@
+{
+  "artifact_type": "CYP_successor_identity_routed_exact_IC50_preparation_v1",
+  "authority": "preparation_and_characterization_only_no_training_or_episode_design",
+  "final_task_population_characterization": {
+    "by_isoform": {
+      "CYP1A2": {
+        "distribution": {
+          "16": 2,
+          "17": 2,
+          "18": 2,
+          "19": 2,
+          "20": 2,
+          "21": 1,
+          "26": 1,
+          "29": 4,
+          "30": 1,
+          "32": 1,
+          "35": 1,
+          "38": 1,
+          "53": 1,
+          "60": 1
+        },
+        "max": 60,
+        "min": 16,
+        "task_count": 22,
+        "zero_available_task_count": 0
+      },
+      "CYP2C9": {
+        "distribution": {
+          "16": 6,
+          "17": 2,
+          "18": 3,
+          "19": 1,
+          "20": 4,
+          "21": 3,
+          "22": 1,
+          "23": 2,
+          "24": 2,
+          "25": 1,
+          "27": 2,
+          "29": 1,
+          "32": 2,
+          "33": 2,
+          "47": 1
+        },
+        "max": 47,
+        "min": 16,
+        "task_count": 33,
+        "zero_available_task_count": 0
+      },
+      "CYP2D6": {
+        "distribution": {
+          "140": 1,
+          "16": 4,
+          "17": 9,
+          "18": 2,
+          "19": 2,
+          "21": 1,
+          "22": 2,
+          "23": 4,
+          "24": 3,
+          "25": 1,
+          "26": 1,
+          "29": 2,
+          "30": 1,
+          "31": 1,
+          "32": 1,
+          "36": 1,
+          "48": 1,
+          "49": 1,
+          "56": 1,
+          "59": 1
+        },
+        "max": 140,
+        "min": 16,
+        "task_count": 40,
+        "zero_available_task_count": 0
+      },
+      "CYP3A4": {
+        "distribution": {
+          "125": 1,
+          "146": 1,
+          "15": 1,
+          "16": 6,
+          "160": 1,
+          "17": 13,
+          "18": 8,
+          "19": 6,
+          "20": 6,
+          "21": 8,
+          "22": 3,
+          "23": 1,
+          "24": 2,
+          "26": 2,
+          "27": 2,
+          "28": 3,
+          "29": 2,
+          "30": 3,
+          "31": 2,
+          "33": 2,
+          "34": 1,
+          "35": 2,
+          "36": 2,
+          "39": 1,
+          "41": 1,
+          "48": 1
+        },
+        "max": 160,
+        "min": 15,
+        "task_count": 81,
+        "zero_available_task_count": 0
+      }
+    },
+    "minimum_task_size_filter_applied": false,
+    "overall": {
+      "distribution": {
+        "125": 1,
+        "140": 1,
+        "146": 1,
+        "15": 1,
+        "16": 18,
+        "160": 1,
+        "17": 26,
+        "18": 15,
+        "19": 11,
+        "20": 12,
+        "21": 13,
+        "22": 6,
+        "23": 7,
+        "24": 7,
+        "25": 2,
+        "26": 4,
+        "27": 4,
+        "28": 3,
+        "29": 9,
+        "30": 5,
+        "31": 3,
+        "32": 4,
+        "33": 4,
+        "34": 1,
+        "35": 3,
+        "36": 3,
+        "38": 1,
+        "39": 1,
+        "41": 1,
+        "47": 1,
+        "48": 2,
+        "49": 1,
+        "53": 1,
+        "56": 1,
+        "59": 1,
+        "60": 1
+      },
+      "max": 160,
+      "min": 15,
+      "task_count": 176,
+      "zero_available_task_count": 0
+    },
+    "task_counts": {
+      "after_demonstrated_duplicate_consolidation": 175,
+      "before_demonstrated_duplicate_consolidation": 176,
+      "demonstrated_duplicate_relationship_count": 1,
+      "remaining_tasks_are_not_called_independent": true
+    },
+    "tasks_with_zero_available_identities": []
+  },
+  "inputs": {
+    "qualification/cyp_external_task_qualification_20261109/derived/p2_compatible_ic50_relationships.tsv": "60d3fb27537f528d5a78c96b38a6b6d18743f27bff55c4242282b2bb2c2a1ee5",
+    "qualification/cyp_external_task_qualification_20261109/derived/p2_compatible_ic50_task_provenance.tsv": "f3f8592b05559ebe4d00574879b52c536efd79e3acf4c2c3e6d9921373cd654b",
+    "qualification/cyp_external_task_qualification_20261109/derived/record_eligibility.tsv": "809487f10e0b2761a1a16992edc7aa8d928214f8dadbfbee5f349ad805a7a6ce",
+    "qualification/cyp_external_task_qualification_20261109/identity_audit/bounded_representation_audit.tsv": "c0881d8f5e2e193b9e87479045934ca41c133d92f92ff3d453b5c28c8e2e9d3b"
+  },
+  "measurement_aggregation": {
+    "aggregate_across_assays": false,
+    "aggregated_within_assay_identity_groups": 4690,
+    "grouping": [
+      "isoform",
+      "assay_chembl_id",
+      "full_standard_inchikey"
+    ],
+    "label": "median derived pIC50 from exact IC50 molar conversion",
+    "non_exact_records_incorporated": false,
+    "original_exact_records": 4822,
+    "represented_exact_records": 4821,
+    "source_structure_unavailable_records": 1
+  },
+  "molecular_identity_routing": {
+    "available_identity_count": 4664,
+    "overlap_counts_by_partition": {
+      "challenge_blinded_test": 0,
+      "internal_test": 17,
+      "train": 49,
+      "validation": 9
+    },
+    "protected_unavailable_identity_count": 26,
+    "routing_class_counts": {
+      "external_only": 4615,
+      "overlap_openadmet_train": 49,
+      "protected_internal_test_overlap": 17,
+      "protected_validation_overlap": 9
+    },
+    "train_overlap_retained_as_available": true
+  },
+  "pchembl_witness_discrepancies": {
+    "comparison_tolerance": "1e-6 absolute pIC50 units",
+    "groups_with_any_discrepancy": 4515,
+    "max_abs_discrepancy": "0.00548692633238",
+    "records_with_discrepancy": 4623
+  },
+  "qualified_identity_contract": {
+    "canonical_isomeric_smiles_witness_preserved": true,
+    "cross_source_molecular_identity": "full Standard InChIKey",
+    "full_standard_inchi_preserved": true,
+    "inchi_version": "1.07.3",
+    "molecule_name_partitions_unchanged": true,
+    "project_added_molecular_standardization": false,
+    "python": "3.12.14 (main, Sep  3 2026, 03:46:19) [Clang 21.1.8 ]",
+    "rdkit_version": "2026.03.6",
+    "source_smiles_preserved": true
+  },
+  "safeguards": {
+    "minimum_task_size_filter_applied": false,
+    "models_trained": false,
+    "openadmet_partitions_changed": false,
+    "public_test_labels_accessed": false,
+    "support_query_sizes_chosen": false
+  },
+  "task_level_demonstrated_duplicate_status": {
+    "after_consolidation_task_count": 175,
+    "before_consolidation_task_count": 176,
+    "demonstrated_duplicate_relationships": [
+      {
+        "affirmative_evidence": "Same nonblank assay source identifier pair: assay_src_id=14, assay_src_assay_id=1034082.",
+        "assay_description_exact_match": "false",
+        "assay_description_token_jaccard": "0.181818",
+        "exact_candidate_molecule_overlap_count": "0",
+        "exact_candidate_smiles_overlap_count": "0",
+        "left_assay_chembl_id": "CHEMBL2448771",
+        "left_isoform": "CYP3A4",
+        "relationship_category": "demonstrated_duplicate",
+        "right_assay_chembl_id": "CHEMBL3137501",
+        "right_isoform": "CYP3A4",
+        "shared_assay_src_assay_id": "1034082",
+        "shared_assay_src_id": "14",
+        "shared_document_chembl_ids": "",
+        "shared_source_ids": "14"
+      }
+    ],
+    "participating_task_count": 2,
+    "remaining_tasks_called_independent": false,
+    "unresolved_provenance_remains_unresolved": true
+  }
+}

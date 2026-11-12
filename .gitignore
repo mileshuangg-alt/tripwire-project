@@ -5,3 +5,20 @@ __pycache__/
 .mypy_cache/
 .venv/
 .env
+
+# Local deployment / transfer artifacts
+/backups/
+/d006_bundle.tar.gz
+/d006_refs.tar.gz
+/d010_deploy_files.txt
+/d010_deploy_SHA256SUMS.txt
+
+# Large transport copies; authoritative lightweight/expanded evidence is retained elsewhere
+/artifacts/d009_freeze_transfer/
+
+# External large source database; hash/provenance retained under qualification archives
+/qualification/cyp_external_task_qualification_20261109/bulk_chembl/chembl_37_sqlite.tar.gz
+
+# Python caches
+**/__pycache__/
+*.pyc

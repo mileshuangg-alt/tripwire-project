@@ -1,0 +1,25 @@
+{
+  "artifact_type": "D012_arm_b_c_bounded_qualification_v1",
+  "authority": "bounded_correctness_only_no_production_training",
+  "boundaries": {
+    "d011_modified": false,
+    "matrix_150_cell_run": false,
+    "production_training_run": false,
+    "slurm_submitted": false,
+    "t121_modified": false,
+    "tuning_performed": false
+  },
+  "qualified_semantics": {
+    "arm_b_target_update_changes_encoder": true,
+    "arm_b_validation_used_for_checkpoint_selection": true,
+    "arm_c_outer_gradient_reaches_encoder": true,
+    "arm_c_target_adaptation_changes_only_head": true,
+    "arm_c_validation_used_for_checkpoint_selection": false,
+    "qualified_plans_consumed": true,
+    "training_only_target_scaling": true
+  },
+  "smoke_cell": {
+    "manifest_id": "rep_01_fold_01",
+    "training_seed": 20261101
+  }
+}

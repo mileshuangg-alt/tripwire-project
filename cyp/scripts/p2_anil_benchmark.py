@@ -150,6 +150,8 @@ def p2_complete_model_outer_update_step(
     name_to_index: dict[str, int],
     device: torch.device,
     batch_size: int,
+    inner_lr: float = 0.01,
+    inner_steps: int = 1,
 ):
     message_passing.train()
     aggregation.train()
@@ -191,6 +193,8 @@ def p2_complete_model_outer_update_step(
             query_embeddings,
             query_targets,
             task_index=episode.task_index,
+            inner_lr=inner_lr,
+            inner_steps=inner_steps,
         )
         query_losses.append(query_loss)
         support_losses.append(support_loss)
@@ -229,6 +233,8 @@ def _validation_cost_complete_model(
     scaler_scales,
     device: torch.device,
     batch_size: int,
+    inner_lr: float = 0.01,
+    inner_steps: int = 1,
 ) -> tuple[float, list[int]]:
     message_passing.eval()
     aggregation.eval()
@@ -269,6 +275,8 @@ def _validation_cost_complete_model(
             scaler_means=means_t,
             scaler_scales=scales_t,
             task_index=task_index,
+            inner_lr=inner_lr,
+            inner_steps=inner_steps,
         )
         validation_counts.append(int(pred.numel()))
     _sync(device)
@@ -286,6 +294,8 @@ def run_p2_exact_anil_benchmark(
     measured_update_count: int,
     output_json: str | Path | None = None,
     device: str | torch.device = "cuda:0",
+    inner_lr: float = 0.01,
+    inner_steps: int = 1,
 ) -> dict[str, Any]:
     if warmup_update_count < 0 or measured_update_count <= 0:
         raise ValueError("warmup_update_count must be >=0 and measured_update_count must be >0.")
@@ -336,6 +346,8 @@ def run_p2_exact_anil_benchmark(
             name_to_index=name_to_index,
             device=benchmark_device,
             batch_size=config.batch_size,
+            inner_lr=inner_lr,
+            inner_steps=inner_steps,
         )
         _sync(benchmark_device)
         elapsed = time.perf_counter() - start
@@ -356,6 +368,8 @@ def run_p2_exact_anil_benchmark(
         scaler_scales=scaler_scales,
         device=benchmark_device,
         batch_size=config.batch_size,
+        inner_lr=inner_lr,
+        inner_steps=inner_steps,
     )
     measured_total = sum(timings)
     seconds_per_update = measured_total / measured_update_count
@@ -387,7 +401,7 @@ def run_p2_exact_anil_benchmark(
             "training_only_scaler_scales": scaler_scales.tolist(),
             "endpoint_eligible_training_reference_counts": reference_metadata["endpoint_eligible_reference_counts"],
         },
-        "configuration": {"t121_config_provenance": config_provenance, "inner_lr": 0.01},
+        "configuration": {"t121_config_provenance": config_provenance, "inner_lr": float(inner_lr), "inner_steps": int(inner_steps)},
         "parameter_counts": parameter_counts,
         "training_timing": {
             "warmup_update_count": warmup_update_count,
@@ -407,7 +421,7 @@ def run_p2_exact_anil_benchmark(
         "validation_cost_timing": {
             "seconds_for_four_isoform_full_support_adaptation_and_validation_input_prediction": validation_seconds,
             "prediction_counts_by_isoform": validation_counts,
-            "timing_includes": ["fresh unadapted state per isoform", "all eligible training-support molecular graphs through encoder/aggregation/head", "one full-support inner step", "validation molecule graphs through encoder/aggregation/adapted head"],
+            "timing_includes": ["fresh unadapted state per isoform", "all eligible training-support molecular graphs through encoder/aggregation/head", "candidate-specific full-support inner steps", "validation molecule graphs through encoder/aggregation/adapted head"],
         },
         "memory": {
             "peak_allocated_gpu_memory_bytes": torch.cuda.max_memory_allocated(benchmark_device) if benchmark_device.type == "cuda" else None,
@@ -441,6 +455,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--measured-update-count", required=True, type=int)
     parser.add_argument("--output-json", required=True, type=Path)
     parser.add_argument("--device", default="cuda:0")
+    parser.add_argument("--inner-lr", required=True, type=float)
+    parser.add_argument("--inner-steps", required=True, type=int)
     return parser
 
 
@@ -456,6 +472,8 @@ def main(argv: list[str] | None = None) -> int:
         measured_update_count=args.measured_update_count,
         output_json=args.output_json,
         device=args.device,
+        inner_lr=args.inner_lr,
+        inner_steps=args.inner_steps,
     )
     return 0
 

@@ -1,0 +1,61 @@
+{
+  "cell_identity": {
+    "dataset_path": "/scratch/user/mhuang8/tripwire-d006/d006_bundle/cyp/data/cyp-challenge-TRAIN_inhibition.csv",
+    "dataset_sha256": "b8f79addd266fb6f9f4c222c5e4e73d926362328b6a8d2841871a54e46bd2278",
+    "fold": 9,
+    "repetition": 4,
+    "split_manifest_path": "/scratch/user/mhuang8/tripwire-d006/d006_bundle/cyp/artifacts/cyp_007/split_manifests/rep_04_fold_09.json",
+    "split_manifest_sha256": "94cdfe221c9adc29d2608cad0b4c1f67899c97eb969a4a7454edc40aa5f182ad",
+    "t121_config_path": "/scratch/user/mhuang8/tripwire-d006/d006_bundle/cyp/artifacts/cyp_007/production_run/attempt_001/trials/trial_121/proposal.json",
+    "t121_config_sha256": "71f4cad969981cbe60a0b5eccc904089ffe8b9b029d023cda6678661fe27dbe6",
+    "training_seed": 20261102
+  },
+  "environment": {
+    "device": "cuda:0"
+  },
+  "execution": {
+    "end_utc": "2026-11-09T00:34:33.931206+00:00",
+    "start_utc": null,
+    "status": "completed"
+  },
+  "manifest_schema_version": "D009-P1-cell-manifest-v1",
+  "outputs": {
+    "best_checkpoint_path": "/scratch/user/mhuang8/p1_d009_production_20261108/rep_04/fold_09/seed_20261102/best.ckpt",
+    "best_checkpoint_sha256": "19af9ede6560ffa567df3a1001106a0d02dceaa6b9da594a8bf427915046c5d0",
+    "metrics_path": "/scratch/user/mhuang8/p1_d009_production_20261108/rep_04/fold_09/seed_20261102/metrics.json",
+    "metrics_sha256": "bfd9e750c178bb18046ceee5163974bbad5034c77b8802d1deefa540ad4b7a01"
+  },
+  "p1_config": {
+    "early_stopping_patience": 20,
+    "max_updates": 11750,
+    "model": "D009-P1",
+    "selection": "strictly lowest validation macro ST-RAE",
+    "t121_reconstructed_config": {
+      "activation": "relu",
+      "aggregation": "norm",
+      "aggregation_norm": 100,
+      "batch_norm": false,
+      "batch_size": 16,
+      "dropout": 0.4,
+      "early_stopping_min_delta": 0.0,
+      "early_stopping_patience": 20,
+      "ffn_hidden_dim": 2000,
+      "ffn_num_layers": 1,
+      "final_lr": 0.00020141638331344468,
+      "initial_lr": 1.4283739994469765e-05,
+      "max_epochs": 50,
+      "max_lr": 0.0008245400010426866,
+      "message_hidden_dim": 600,
+      "message_passing_depth": 4,
+      "name": "D007-T121-P1-real-workload-benchmark",
+      "num_tasks": 4,
+      "seed": 20261102,
+      "warmup_epochs": 10
+    },
+    "validation_interval_updates": 235
+  },
+  "p1_config_sha256": "4342c52fcbbde12795c8aa2ca73f4b89ba5bb9af88b45fc499f2b27a700f7da9",
+  "provenance": {
+    "split_manifest_sha256": "94cdfe221c9adc29d2608cad0b4c1f67899c97eb969a4a7454edc40aa5f182ad"
+  }
+}

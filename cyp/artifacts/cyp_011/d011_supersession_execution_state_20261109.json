@@ -1,0 +1,76 @@
+{
+  "artifact_type": "D011_prospective_supersession_execution_state_v1",
+  "authoritative_execution_state": {
+    "completed_array_cells": 57,
+    "completed_array_indices": [
+      0,
+      56
+    ],
+    "held_pending_array_cells": 1593,
+    "held_pending_array_indices": [
+      57,
+      1649
+    ],
+    "held_remainder_cancelled": false,
+    "held_remainder_released": false,
+    "hold_reason": "JobHeldUser",
+    "running_array_cells": 0
+  },
+  "decision_date": "2026-11-09",
+  "declared_study": {
+    "advancement_rule": "selected O150 < 0.701212576796",
+    "cells_per_configuration": 150,
+    "d010_anchor": {
+      "inner_lr": 0.01,
+      "inner_steps": 1,
+      "o150": 0.7106082085193788,
+      "reused": true
+    },
+    "declared_configurations": 12,
+    "inner_lrs": [
+      0.001,
+      0.003,
+      0.01,
+      0.03
+    ],
+    "inner_steps": [
+      1,
+      2,
+      3
+    ],
+    "new_cells_planned": 1650,
+    "new_configurations_planned": 11,
+    "search_extension_after_results_authorized": false,
+    "selection_rule": "lowest O150; exact ties favor fewer inner steps, then smaller inner LR"
+  },
+  "observational_checks": {
+    "completed_child_task_ids_seen": [],
+    "corrected_complete_marker_log_count": 0,
+    "corrected_nonempty_error_log_count": 0,
+    "deployment_root_checked": "/mnt/scratch/user/mhuang8/d011_corehpc_complete_deploy_20261109",
+    "sacct_state_counts_raw": {
+      "COMPLETED": 57,
+      "PENDING": 1
+    }
+  },
+  "qualification_claim_boundary": {
+    "candidate_tasks_after_one_demonstrated_duplicate": 175,
+    "counts_are_independent_tasks": false,
+    "counts_are_training_ready_tasks": false,
+    "identity_leakage_routing_complete_before_count": false,
+    "old_16_molecule_requirement_has_successor_authority": false,
+    "old_episode_compatible_candidate_tasks": 176,
+    "repeat_handling_complete_before_count": false,
+    "unresolved_provenance_remains_unresolved": true
+  },
+  "scientific_status": "prospectively_superseded_incomplete",
+  "scontrol_snapshot": "JobId=2979324 ArrayJobId=2979324 ArrayTaskId=57-1649 JobName=d011-anil\n   UserId=mhuang8(1631922706) GroupId=mhuang8(1631922706) MCS_label=N/A\n   Priority=0 Nice=0 Account=hpc_core QOS=hpc_core\n   JobState=PENDING Reason=JobHeldUser Dependency=(null)\n   Requeue=1 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0\n   RunTime=00:00:00 TimeLimit=00:25:00 TimeMin=N/A\n   SubmitTime=2026-11-09T16:24:03 EligibleTime=Unknown\n   AccrueTime=Unknown\n   StartTime=Unknown EndTime=Unknown Deadline=N/A\n   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2026-11-09T18:44:27 Scheduler=Main\n   Partition=gpu AllocNode:Sid=chpc-ucsf-login-vm1.corehpc.ucsf.edu:1201279\n   ReqNodeList=(null) ExcNodeList=(null)\n   NodeList=\n   NumNodes=1-1 NumCPUs=4 NumTasks=1 CPUs/Task=4 ReqB:S:C:T=0:0:*:*\n   ReqTRES=cpu=4,mem=32G,node=1,billing=4,gres/gpu=1,gres/gpu:nvidia_l40s=1\n   AllocTRES=(null)\n   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*\n   MinCPUsNode=4 MinMemoryNode=32G MinTmpDiskNode=0\n   Features=(null) DelayBoot=00:00:00\n   OverSubscribe=OK Contiguous=0 Licenses=(null) LicensesAlloc=(null) Network=(null)\n   Command=/scratch/user/mhuang8/d011_production_20261109.sbatch\n   SubmitLine=sbatch /scratch/user/mhuang8/d011_production_20261109.sbatch\n   WorkDir=/mnt/scratch/user/mhuang8/d011_corehpc_complete_deploy_20261109\n   StdErr=/scratch/user/mhuang8/d011_logs/2979324_4294967294.err\n   StdIn=/dev/null\n   StdOut=/scratch/user/mhuang8/d011_logs/2979324_4294967294.out\n   TresPerNode=gres/gpu:nvidia_l40s:1\n   TresPerTask=cpu=4",
+  "slurm_job_id": 2979324,
+  "supersession": {
+    "basis": "prospective external-source qualification identified a materially richer assay-resolved IC50 task regime warranting a separately declared equal-data successor study",
+    "completed_artifacts_preserved": true,
+    "partial_candidate_score_aggregation_authorized": false,
+    "partial_d011_performance_used": false,
+    "scheduler_hold_preserved_pending_human_decision": true
+  }
+}

@@ -1,0 +1,9 @@
+D012 complete-model runtime qualification
+Date: 2026-11-10
+Host: n4pu04 / gpu-dev1
+GPU: NVIDIA L40S
+Manifest: rep_01_fold_01
+Training seed: 20261101
+Protocol: 10 continuous warmup complete updates + 100 measured complete updates
+Model path: Chemprop 2.3.1 D-MPNN
+Purpose: bounded runtime/memory qualification; not production training

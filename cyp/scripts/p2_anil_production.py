@@ -55,6 +55,7 @@ from p2_anil_training import (
     fit_training_only_scaler,
     full_support_task_adaptation_prediction,
     p2_strict_o150_advancement,
+    D011Candidate,
 )
 
 
@@ -186,6 +187,8 @@ def evaluate_p2_validation(
     scaler_scales,
     device: torch.device,
     batch_size: int,
+    inner_lr: float = 0.01,
+    inner_steps: int = 1,
 ) -> dict[str, Any]:
     message_passing.eval()
     aggregation.eval()
@@ -225,6 +228,8 @@ def evaluate_p2_validation(
             scaler_means=means_t,
             scaler_scales=scales_t,
             task_index=task_index,
+            inner_lr=inner_lr,
+            inner_steps=inner_steps,
         )
         y_pred_all[task] = pred.detach().cpu().numpy()
     y_true, conf_low, conf_high, observed_mask = _validation_arrays(validation_df)
@@ -286,10 +291,13 @@ def run_p2_cell(
     device: str | torch.device = "cuda:0",
     max_updates: int = P2_MAX_UPDATES,
     validation_interval_updates: int = P2_VALIDATION_INTERVAL_UPDATES,
+    inner_lr: float = 0.01,
+    inner_steps: int = 1,
 ) -> dict[str, Any]:
     if max_updates <= 0 or validation_interval_updates <= 0:
         raise ValueError("max_updates and validation_interval_updates must be positive.")
     device = torch.device(device)
+    candidate = D011Candidate(float(inner_lr), int(inner_steps))
     loaded = _load_cell_inputs(
         dataset_path=dataset_path,
         repository_root=repository_root,
@@ -315,6 +323,8 @@ def run_p2_cell(
         "model": "D010-P2",
         "artifact_type": "D010-P2-production-cell-v1",
         "inner_lr": 0.01,
+        "candidate_inner_lr": candidate.inner_lr,
+        "candidate_inner_steps": candidate.inner_steps,
         "max_updates": P2_MAX_UPDATES,
         "validation_interval_updates": P2_VALIDATION_INTERVAL_UPDATES,
         "early_stopping_patience": P2_EARLY_STOPPING_PATIENCE,
@@ -363,6 +373,8 @@ def run_p2_cell(
             name_to_index=name_to_index,
             device=device,
             batch_size=loaded["config"].batch_size,
+            inner_lr=candidate.inner_lr,
+            inner_steps=candidate.inner_steps,
         )
         if update % validation_interval_updates == 0:
             validation_result = evaluate_p2_validation(
@@ -379,6 +391,8 @@ def run_p2_cell(
                 scaler_scales=loaded["scaler_scales"],
                 device=device,
                 batch_size=loaded["config"].batch_size,
+                inner_lr=candidate.inner_lr,
+                inner_steps=candidate.inner_steps,
             )
             improved = controller.observe(update=update, validation_result=validation_result, state_dict={"dummy": torch.tensor([0.0])})
             if improved:
@@ -513,6 +527,8 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--t121-config-artifact-path", required=True, type=Path)
     run.add_argument("--training-seed", required=True, type=int)
     run.add_argument("--device", default="cuda:0")
+    run.add_argument("--inner-lr", default=0.01, type=float)
+    run.add_argument("--inner-steps", default=1, type=int)
     aggregate = sub.add_parser("aggregate")
     aggregate.add_argument("--production-root", required=True, type=Path)
     aggregate.add_argument("--output-json", required=True, type=Path)
@@ -545,6 +561,8 @@ def main(argv: list[str] | None = None) -> int:
             t121_config_path=args.t121_config_artifact_path,
             training_seed=args.training_seed,
             device=args.device,
+            inner_lr=args.inner_lr,
+            inner_steps=args.inner_steps,
         )
         _write_json(args.output_dir / "run_cell.json", report)
     elif args.command == "aggregate":

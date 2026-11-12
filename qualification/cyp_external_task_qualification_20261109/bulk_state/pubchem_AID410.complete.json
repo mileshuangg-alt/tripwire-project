@@ -1,0 +1,110 @@
+{
+  "aid": 410,
+  "artifact_contract": "PubChem_full_table_with_schema_rows_v2",
+  "artifact_contract_migration": "Existing hash-verified AID410 table reclassified losslessly: RESULT_TYPE/RESULT_DESCR/RESULT_UNIT are schema metadata, not assay measurements. No source rows removed or modified.",
+  "columns": [
+    "PUBCHEM_RESULT_TAG",
+    "PUBCHEM_SID",
+    "PUBCHEM_CID",
+    "PUBCHEM_EXT_DATASOURCE_SMILES",
+    "PUBCHEM_ACTIVITY_OUTCOME",
+    "PUBCHEM_ACTIVITY_SCORE",
+    "PUBCHEM_ACTIVITY_URL",
+    "PUBCHEM_ASSAYDATA_COMMENT",
+    "Activity Direction",
+    "Activity Qualifier",
+    "Qualified AC50",
+    "Log of AC50",
+    "Hill Coefficient",
+    "Curve R2",
+    "Data Type",
+    "Compound Type",
+    "Compound QC",
+    "Data Analysis QC",
+    "NCGC Comment",
+    "Curve Fit Model",
+    "Hill S0",
+    "Hill Sinf",
+    "Hill dS",
+    "Log AC50 Std Error",
+    "Curve Chi2f",
+    "Excluded Points",
+    "Number of Points",
+    "Activity at 0.732nM",
+    "Activity at 1.636nM",
+    "Activity at 3.658nM",
+    "Activity at 8.18nM",
+    "Activity at 18.291nM",
+    "Activity at 0.041uM",
+    "Activity at 0.091uM",
+    "Activity at 0.204uM",
+    "Activity at 0.457uM",
+    "Activity at 1.022uM",
+    "Activity at 2.286uM",
+    "Activity at 5.111uM",
+    "Activity at 11.429uM",
+    "Activity at 25.556uM",
+    "Activity at 0.057mM"
+  ],
+  "description_sha256": "3552b746b00465cd837f443953418beac7c6bb7b649d58eb9e81e4037c37c7f9",
+  "duplicate_result_sids": 0,
+  "field_groups": {
+    "activity_outcome_score": [
+      "PUBCHEM_ACTIVITY_OUTCOME",
+      "PUBCHEM_ACTIVITY_SCORE",
+      "Activity Direction",
+      "Activity Qualifier"
+    ],
+    "concentration_response": [
+      "Activity at 0.732nM",
+      "Activity at 1.636nM",
+      "Activity at 3.658nM",
+      "Activity at 8.18nM",
+      "Activity at 18.291nM",
+      "Activity at 0.041uM",
+      "Activity at 0.091uM",
+      "Activity at 0.204uM",
+      "Activity at 0.457uM",
+      "Activity at 1.022uM",
+      "Activity at 2.286uM",
+      "Activity at 5.111uM",
+      "Activity at 11.429uM",
+      "Activity at 25.556uM",
+      "Activity at 0.057mM"
+    ],
+    "curve_quality": [
+      "Curve R2",
+      "Data Analysis QC",
+      "Curve Fit Model",
+      "Curve Chi2f",
+      "Excluded Points",
+      "Number of Points"
+    ],
+    "efficacy_literal": [
+      "Hill Coefficient"
+    ],
+    "hill_slope": [
+      "Hill Coefficient"
+    ],
+    "potency": [
+      "Qualified AC50",
+      "Log of AC50",
+      "Log AC50 Std Error"
+    ]
+  },
+  "isoform": "CYP1A2",
+  "raw_csv_rows": 9201,
+  "raw_records": 9201,
+  "result_rows": 9198,
+  "result_rows_with_cid": 9174,
+  "result_rows_without_cid": 24,
+  "result_sid_identity_complete": true,
+  "schema_metadata_rows": 3,
+  "schema_metadata_tag_counts": {
+    "RESULT_DESCR": 1,
+    "RESULT_TYPE": 1,
+    "RESULT_UNIT": 1
+  },
+  "table_sha256": "ed95bdef73c7dee1698f060499f677906ec798aec671cd8a7a3e33ea4ce668dd",
+  "unique_result_sids": 9198
+}

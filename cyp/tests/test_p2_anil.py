@@ -849,11 +849,17 @@ def test_benchmark_cli_contract_and_no_validation_performance_language():
             "3",
             "--output-json",
             "/tmp/out.json",
+            "--inner-lr",
+            "0.01",
+            "--inner-steps",
+            "1",
         ]
     )
     assert args.repository_root == Path("/repo")
     assert args.training_seed == 20261101
     assert args.warmup_update_count == 2
     assert args.measured_update_count == 3
+    assert args.inner_lr == pytest.approx(0.01)
+    assert args.inner_steps == 1
     assert "does not access validation labels" in NO_PERFORMANCE_STATEMENT
     assert "calculate ST-RAE" in NO_PERFORMANCE_STATEMENT

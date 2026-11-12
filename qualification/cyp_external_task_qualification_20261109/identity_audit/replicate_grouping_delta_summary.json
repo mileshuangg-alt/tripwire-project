@@ -1,0 +1,55 @@
+{
+  "affected_activity_id_count": 0,
+  "affected_activity_ids": [],
+  "affected_assay_task_count": 0,
+  "affected_assays": [],
+  "artifact_type": "CYP_selected_exact_IC50_replicate_grouping_delta_characterization_v1",
+  "authority": "characterization_only_no_aggregation_or_routing_authority",
+  "full_inchikey_groups": 4690,
+  "full_key_groups_containing_multiple_molecule_chembl_ids": 0,
+  "grouping_definitions": {
+    "old_source_grouping": [
+      "isoform",
+      "assay_chembl_id",
+      "molecule_chembl_id"
+    ],
+    "proposed_qualified_identity_grouping": [
+      "isoform",
+      "assay_chembl_id",
+      "full_standard_inchikey"
+    ]
+  },
+  "groups_identical_under_both_definitions": 4690,
+  "inputs": {
+    "record_eligibility": "qualification/cyp_external_task_qualification_20261109/derived/record_eligibility.tsv",
+    "record_eligibility_sha256": "809487f10e0b2761a1a16992edc7aa8d928214f8dadbfbee5f349ad805a7a6ce",
+    "representation_audit": "qualification/cyp_external_task_qualification_20261109/identity_audit/bounded_representation_audit.tsv",
+    "representation_audit_sha256": "c0881d8f5e2e193b9e87479045934ca41c133d92f92ff3d453b5c28c8e2e9d3b"
+  },
+  "molecule_chembl_id_groups_mapping_to_multiple_full_keys": 0,
+  "non_aggregating_contract": {
+    "measurement_aggregation_performed": false,
+    "median_used_as_modeling_label": false,
+    "partition_changes_performed": false,
+    "public_test_label_access": false,
+    "routing_or_exclusion_performed": false,
+    "task_removal_performed": false,
+    "training_performed": false
+  },
+  "represented_exact_records_analyzed": 4821,
+  "same_key_different_standard_inchi": {},
+  "same_key_different_standard_inchi_count": 0,
+  "source_molecule_id_groups": 4690,
+  "unresolved_records_kept_outside_represented_key_comparison": [
+    {
+      "activity_id": "7817060",
+      "assay_chembl_id": "CHEMBL1909136",
+      "identity_state": "source_structure_unavailable",
+      "isoform": "CYP2D6",
+      "molecule_chembl_id": "CHEMBL508338",
+      "pchembl_value": "5.52",
+      "standard_units": "nM",
+      "standard_value": "3000.0"
+    }
+  ]
+}

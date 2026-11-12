@@ -17,6 +17,7 @@ from p2_anil_model import (
     query_loss_after_exact_adaptation,
     selected_task_prediction,
     standardized_mse,
+    validate_inner_adaptation_settings,
 )
 
 
@@ -51,6 +52,15 @@ class P2OuterUpdateResult:
     outer_loss: Tensor
     query_losses: tuple[Tensor, Tensor, Tensor, Tensor]
     support_losses: tuple[Tensor, Tensor, Tensor, Tensor]
+
+
+@dataclass(frozen=True, order=True)
+class D011Candidate:
+    inner_lr: float
+    inner_steps: int
+
+    def __post_init__(self) -> None:
+        validate_inner_adaptation_settings(self.inner_lr, self.inner_steps)
 
 
 def build_p2_optimizer_and_scheduler(parameters) -> tuple[torch.optim.Optimizer, object]:
@@ -151,7 +161,10 @@ def p2_outer_loss_from_episode_embeddings(
     meta_head: P2MetaHead,
     episodes: Sequence[P2Episode],
     embedding_table: Mapping[str, Tensor],
+    inner_lr: float = P2_INNER_LR,
+    inner_steps: int = 1,
 ) -> P2OuterUpdateResult:
+    validate_inner_adaptation_settings(inner_lr, inner_steps)
     if tuple(episode.task_name for episode in episodes) != tuple(CYP002_TASK_NAMES):
         raise ValueError("P2 episodes must appear in the frozen four-task order.")
     meta_head.train()
@@ -175,6 +188,8 @@ def p2_outer_loss_from_episode_embeddings(
             query_embeddings,
             query_targets,
             task_index=episode.task_index,
+            inner_lr=inner_lr,
+            inner_steps=inner_steps,
         )
         query_losses.append(query_loss)
         support_losses.append(support_loss)
@@ -195,12 +210,16 @@ def p2_exact_outer_update_step(
     scheduler,
     episodes: Sequence[P2Episode],
     embedding_table: Mapping[str, Tensor],
+    inner_lr: float = P2_INNER_LR,
+    inner_steps: int = 1,
 ) -> P2OuterUpdateResult:
     optimizer.zero_grad(set_to_none=True)
     result = p2_outer_loss_from_episode_embeddings(
         meta_head=meta_head,
         episodes=episodes,
         embedding_table=embedding_table,
+        inner_lr=inner_lr,
+        inner_steps=inner_steps,
     )
     result.outer_loss.backward()
     for parameter in meta_head.parameters():
@@ -225,7 +244,10 @@ def full_support_task_adaptation_prediction(
     scaler_scales: Tensor,
     task_index: int,
     support_batch_size: int | None = None,
+    inner_lr: float = P2_INNER_LR,
+    inner_steps: int = 1,
 ) -> Tensor:
+    validate_inner_adaptation_settings(inner_lr, inner_steps)
     if task_index < 0 or task_index >= P2_N_TASKS:
         raise ValueError("task_index is outside the frozen four-task range.")
     meta_head.eval()
@@ -243,19 +265,22 @@ def full_support_task_adaptation_prediction(
         support_batch_size = support_embeddings.shape[0]
     if support_batch_size <= 0:
         raise ValueError("support_batch_size must be positive.")
-    squared_sum = None
-    count = 0
-    for start in range(0, support_embeddings.shape[0], support_batch_size):
-        stop = min(start + support_batch_size, support_embeddings.shape[0])
-        features = meta_head.features(support_embeddings[start:stop])
-        pred = selected_task_prediction(features, task_index=task_index, weight=weight, bias=bias)
-        errors = (pred - support_z[start:stop]).square().sum()
-        squared_sum = errors if squared_sum is None else squared_sum + errors
-        count += stop - start
-    support_loss = squared_sum / count
-    grad_w, grad_b = torch.autograd.grad(support_loss, (weight, bias), create_graph=False)
-    adapted_w = weight - P2_INNER_LR * grad_w
-    adapted_b = bias - P2_INNER_LR * grad_b
+    adapted_w = weight
+    adapted_b = bias
+    for _step in range(int(inner_steps)):
+        squared_sum = None
+        count = 0
+        for start in range(0, support_embeddings.shape[0], support_batch_size):
+            stop = min(start + support_batch_size, support_embeddings.shape[0])
+            features = meta_head.features(support_embeddings[start:stop])
+            pred = selected_task_prediction(features, task_index=task_index, weight=adapted_w, bias=adapted_b)
+            errors = (pred - support_z[start:stop]).square().sum()
+            squared_sum = errors if squared_sum is None else squared_sum + errors
+            count += stop - start
+        support_loss = squared_sum / count
+        grad_w, grad_b = torch.autograd.grad(support_loss, (adapted_w, adapted_b), create_graph=False)
+        adapted_w = adapted_w - float(inner_lr) * grad_w
+        adapted_b = adapted_b - float(inner_lr) * grad_b
     val_features = meta_head.features(validation_embeddings)
     pred_z = selected_task_prediction(val_features, task_index=task_index, weight=adapted_w, bias=adapted_b)
     return pred_z * scaler_scales[task_index] + scaler_means[task_index]

@@ -1,0 +1,33 @@
+{
+  "consolidated_task_unit_id": "D012_CONSOLIDATED_CYP3A4_CHEMBL2448771_CHEMBL3137501",
+  "identity_intersection_count": 0,
+  "identity_union_count": 63,
+  "left_task": {
+    "assay_chembl_id": "CHEMBL2448771",
+    "available_identity_count": 36,
+    "isoform": "CYP3A4"
+  },
+  "relationship": {
+    "affirmative_evidence": "Same nonblank assay source identifier pair: assay_src_id=14, assay_src_assay_id=1034082.",
+    "assay_description_exact_match": "false",
+    "assay_description_token_jaccard": "0.181818",
+    "exact_candidate_molecule_overlap_count": "0",
+    "exact_candidate_smiles_overlap_count": "0",
+    "left_assay_chembl_id": "CHEMBL2448771",
+    "left_isoform": "CYP3A4",
+    "relationship_category": "demonstrated_duplicate",
+    "right_assay_chembl_id": "CHEMBL3137501",
+    "right_isoform": "CYP3A4",
+    "shared_assay_src_assay_id": "1034082",
+    "shared_assay_src_id": "14",
+    "shared_document_chembl_ids": "",
+    "shared_source_ids": "14"
+  },
+  "right_task": {
+    "assay_chembl_id": "CHEMBL3137501",
+    "available_identity_count": 27,
+    "isoform": "CYP3A4"
+  },
+  "shared_full_standard_inchikeys": [],
+  "shared_identity_observations": []
+}

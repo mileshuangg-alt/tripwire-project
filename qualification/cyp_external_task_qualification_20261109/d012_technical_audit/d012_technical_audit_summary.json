@@ -1,0 +1,566 @@
+{
+  "artifact_hashes": {
+    "artifacts/d009_closure_workspace/d009_t121_comparator_20261109/proposal.json": "71f4cad969981cbe60a0b5eccc904089ffe8b9b029d023cda6678661fe27dbe6",
+    "cyp/data/cyp-challenge-TRAIN_inhibition.csv": "b8f79addd266fb6f9f4c222c5e4e73d926362328b6a8d2841871a54e46bd2278",
+    "qualification/cyp_external_task_qualification_20261109/d012_final_aggregation/d012_cell_level_joined_results.tsv": "930ceb880620779328e0c461ac4f900b2849c27795edb541218acf717c033c47",
+    "qualification/cyp_external_task_qualification_20261109/d012_final_aggregation/d012_final_aggregate_summary.json": "8e732b1534b954e92163422e8b56b819298c67f7b2f936bd96d6f01dd079d60f"
+  },
+  "artifact_type": "D012_technical_evaluation_forensic_audit_v1",
+  "executive": {
+    "b_target_training_equivalent_to_t121_except_initialization": false,
+    "c_matches_frozen_anil_semantics": false,
+    "confirmed_defects": [
+      {
+        "claim": "D012 production adapts all parameters of D012ScalarHead, not only selected output/head weight and bias as in the frozen ANIL reference semantics.",
+        "classification": "CONFIRMED_DEFECT",
+        "evidence": [
+          {
+            "end_line": 329,
+            "path": "cyp/scripts/d012_complete_model_runtime_benchmark.py",
+            "start_line": 320
+          },
+          {
+            "line": 321,
+            "path": "cyp/scripts/d012_complete_model_runtime_benchmark.py",
+            "text": "params = dict(head.named_parameters())"
+          },
+          {
+            "end_line": 134,
+            "path": "cyp/scripts/p2_anil_model.py",
+            "start_line": 101
+          },
+          {
+            "line": 115,
+            "path": "cyp/scripts/p2_anil_model.py",
+            "text": "weight = meta_head.output.weight[task_index]"
+          },
+          {
+            "line": 116,
+            "path": "cyp/scripts/p2_anil_model.py",
+            "text": "bias = meta_head.output.bias[task_index]"
+          }
+        ],
+        "rationale": "D012ScalarHead contains hidden and output layers. `dict(head.named_parameters())` adapts hidden.weight, hidden.bias, output.weight, and output.bias; frozen ANIL code adapts only selected output weight/bias.",
+        "scope": "C"
+      }
+    ],
+    "potential_defects": [
+      {
+        "classification": "POTENTIAL_DEFECT",
+        "evidence": [
+          {
+            "line": 423,
+            "path": "cyp/scripts/d012_first_cell_runner.py",
+            "text": "batches = list(range(0, train_values.shape[0], TARGET_BATCH_SIZE))"
+          },
+          {
+            "line": 327,
+            "path": "cyp/scripts/cyp002_train.py",
+            "text": "shuffle=True,"
+          }
+        ],
+        "item": "batch_order_semantics",
+        "rationale": "D012 B target training iterates manifest order without shuffling; frozen direct Chemprop/T121 training uses a shuffled dataloader seeded by the cell seed.",
+        "scope": "B_vs_T121"
+      },
+      {
+        "classification": "POTENTIAL_DEFECT",
+        "evidence": [
+          {
+            "line": 424,
+            "path": "cyp/scripts/d012_first_cell_runner.py",
+            "text": "target_scheduler = LinearAnchorScheduler(target_optimizer, 10 * len(batches), TARGET_MAX_EPOCHS * len(batches))"
+          },
+          {
+            "line": 143,
+            "path": "cyp/scripts/p1_pairwise_training.py",
+            "text": "scheduler = schedulers.build_NoamLike_LRSched("
+          }
+        ],
+        "item": "lr_schedule",
+        "rationale": "D012 B uses a custom linear anchor scheduler rather than Chemprop NoamLike scheduler used by frozen production training utilities.",
+        "scope": "B_vs_T121"
+      }
+    ],
+    "section_status": {
+      "arm_b_vs_t121_target_training": "UNRESOLVED",
+      "arm_c_anil_implementation": "DEFECT",
+      "end_to_end_alignment": "UNRESOLVED",
+      "scoring_equivalence": "UNRESOLVED",
+      "target_transformation": "UNRESOLVED",
+      "validation_population_equality": "PASS"
+    },
+    "stored_predictions_allowed_independent_recompute": false
+  },
+  "limitations": [
+    "No B/C/T121 saved validation prediction tensors/files found; independent score recomputation from predictions was not possible.",
+    "Checkpoint payloads are not inspected or replayed; state freshness and tensor-level output alignment remain unresolved where they require checkpoint execution.",
+    "Audit is source/artifact forensic only and preserves original outputs."
+  ],
+  "scope": "Technical forensic audit only; no training, prediction regeneration, tuning, filtering, protected-test/challenge access, D/E interpretation, or D013 proposals.",
+  "sections": {
+    "arm_b_vs_t121_target_training": {
+      "equivalent_except_initialization": false,
+      "line_item_classifications": [
+        {
+          "classification": "MECHANICAL_EQUIVALENT",
+          "evidence": [
+            {
+              "line": 73,
+              "path": "cyp/scripts/d012_complete_model_runtime_benchmark.py",
+              "text": "message_passing_depth=4,"
+            },
+            {
+              "line": 64,
+              "path": "cyp/scripts/d012_first_cell_runner.py",
+              "text": "self.hidden = nn.Linear(600, 2000)"
+            },
+            {
+              "line": 16,
+              "path": "artifacts/d009_closure_workspace/d009_t121_comparator_20261109/proposal.json",
+              "text": "\"message_passing_depth\": 4,"
+            }
+          ],
+          "item": "architecture",
+          "scope": "B,T121"
+        },
+        {
+          "classification": "EXPECTED_BY_D012",
+          "evidence": [
+            {
+              "line": 421,
+              "path": "cyp/scripts/d012_first_cell_runner.py",
+              "text": "target_head = D012BTargetHead().to(device)"
+            }
+          ],
+          "item": "fresh_head_initialization",
+          "scope": "B"
+        },
+        {
+          "classification": "MECHANICAL_EQUIVALENT",
+          "evidence": [
+            {
+              "end_line": 337,
+              "path": "cyp/scripts/d012_first_cell_runner.py",
+              "start_line": 333
+            },
+            {
+              "line": 160,
+              "path": "cyp/scripts/cyp002_train.py",
+              "text": "scaler = train_dataset.normalize_targets()"
+            }
+          ],
+          "item": "loss_masking",
+          "scope": "B,T121"
+        },
+        {
+          "classification": "MECHANICAL_EQUIVALENT",
+          "evidence": [
+            {
+              "line": 422,
+              "path": "cyp/scripts/d012_first_cell_runner.py",
+              "text": "target_optimizer = torch.optim.Adam([*model.encoder.parameters(), *target_head.parameters()], lr=D012_INITIAL_LR)"
+            },
+            {
+              "line": 139,
+              "path": "cyp/scripts/p1_pairwise_training.py",
+              "text": "optimizer = torch.optim.Adam("
+            }
+          ],
+          "item": "optimizer",
+          "scope": "B,T121"
+        },
+        {
+          "classification": "MECHANICAL_EQUIVALENT",
+          "evidence": [
+            {
+              "line": 56,
+              "path": "cyp/scripts/d012_first_cell_runner.py",
+              "text": "TARGET_BATCH_SIZE = 16"
+            },
+            {
+              "line": 8,
+              "path": "artifacts/d009_closure_workspace/d009_t121_comparator_20261109/proposal.json",
+              "text": "\"batch_size\": 16,"
+            }
+          ],
+          "item": "batch_size",
+          "scope": "B,T121"
+        },
+        {
+          "classification": "POTENTIAL_DEFECT",
+          "evidence": [
+            {
+              "line": 423,
+              "path": "cyp/scripts/d012_first_cell_runner.py",
+              "text": "batches = list(range(0, train_values.shape[0], TARGET_BATCH_SIZE))"
+            },
+            {
+              "line": 327,
+              "path": "cyp/scripts/cyp002_train.py",
+              "text": "shuffle=True,"
+            }
+          ],
+          "item": "batch_order_semantics",
+          "rationale": "D012 B target training iterates manifest order without shuffling; frozen direct Chemprop/T121 training uses a shuffled dataloader seeded by the cell seed.",
+          "scope": "B_vs_T121"
+        },
+        {
+          "classification": "POTENTIAL_DEFECT",
+          "evidence": [
+            {
+              "line": 424,
+              "path": "cyp/scripts/d012_first_cell_runner.py",
+              "text": "target_scheduler = LinearAnchorScheduler(target_optimizer, 10 * len(batches), TARGET_MAX_EPOCHS * len(batches))"
+            },
+            {
+              "line": 143,
+              "path": "cyp/scripts/p1_pairwise_training.py",
+              "text": "scheduler = schedulers.build_NoamLike_LRSched("
+            }
+          ],
+          "item": "lr_schedule",
+          "rationale": "D012 B uses a custom linear anchor scheduler rather than Chemprop NoamLike scheduler used by frozen production training utilities.",
+          "scope": "B_vs_T121"
+        },
+        {
+          "classification": "MECHANICAL_EQUIVALENT",
+          "evidence": [
+            {
+              "line": 57,
+              "path": "cyp/scripts/d012_first_cell_runner.py",
+              "text": "TARGET_MAX_EPOCHS = 50"
+            },
+            {
+              "line": 58,
+              "path": "cyp/scripts/d012_first_cell_runner.py",
+              "text": "TARGET_PATIENCE = 20"
+            },
+            {
+              "line": 446,
+              "path": "cyp/scripts/d012_first_cell_runner.py",
+              "text": "if macro < best_score:"
+            }
+          ],
+          "item": "max_epochs_patience_validation_frequency_checkpoint_selection",
+          "scope": "B,T121"
+        },
+        {
+          "classification": "UNRESOLVED",
+          "evidence": [
+            {
+              "line": 450,
+              "path": "cyp/scripts/d012_first_cell_runner.py",
+              "text": "writer.checkpoint(\"arm_b_best_target_checkpoint.pt\", {\"encoder\": model.encoder.state_dict(), \"target_head\": target_head.state_dict(), \"epoch\": epoch, \"macro_st_rae\": macro})"
+            }
+          ],
+          "item": "best_checkpoint_restoration",
+          "rationale": "D012 records best checkpoint and best metric, but lightweight evidence does not include checkpoint payloads and final in-memory state is not restored before completion. This does not alter stored best score, but affects any later use of final state if checkpoint payloads were used elsewhere.",
+          "scope": "B"
+        }
+      ],
+      "status": "UNRESOLVED"
+    },
+    "arm_c_anil_implementation": {
+      "findings": [
+        {
+          "claim": "Auxiliary support/query identity disjointness is implemented by excluding query_ids from task_to_ids; plan tests also verify disjointness.",
+          "classification": "MECHANICAL_EQUIVALENT",
+          "evidence": [
+            {
+              "line": 486,
+              "path": "cyp/scripts/d012_first_cell_runner.py",
+              "text": "support_ids = [item for item in task_to_ids[row[\"task_unit_id\"]] if item not in query_set]"
+            }
+          ],
+          "scope": "C"
+        },
+        {
+          "claim": "K=1, LR=0.01, exact differentiable inner update, query-only outer loss, final epoch-50 auxiliary state, target encoder frozen, and no target checkpoint selection are present.",
+          "classification": "MECHANICAL_EQUIVALENT",
+          "evidence": [
+            {
+              "line": 30,
+              "path": "cyp/scripts/d012_arms.py",
+              "text": "D012_INNER_LR = 0.01"
+            },
+            {
+              "line": 324,
+              "path": "cyp/scripts/d012_complete_model_runtime_benchmark.py",
+              "text": "grads = torch.autograd.grad(loss, tuple(params.values()), create_graph=True, retain_graph=True)"
+            },
+            {
+              "line": 496,
+              "path": "cyp/scripts/d012_first_cell_runner.py",
+              "text": "query_loss.backward()"
+            },
+            {
+              "line": 392,
+              "path": "cyp/scripts/d012_first_cell_runner.py",
+              "text": "for epoch in range(1, max_aux_epochs + 1):"
+            },
+            {
+              "line": 528,
+              "path": "cyp/scripts/d012_first_cell_runner.py",
+              "text": "writer.write_json(\"arm_c_validation_metrics.json\", {\"score\": score, \"validation_checkpoint_selection\": False, \"target_update\": \"one_head_only_step_lr_0.01_k1_encoder_frozen\"})"
+            }
+          ],
+          "scope": "C"
+        },
+        {
+          "claim": "D012 production adapts all parameters of D012ScalarHead, not only selected output/head weight and bias as in the frozen ANIL reference semantics.",
+          "classification": "CONFIRMED_DEFECT",
+          "evidence": [
+            {
+              "end_line": 329,
+              "path": "cyp/scripts/d012_complete_model_runtime_benchmark.py",
+              "start_line": 320
+            },
+            {
+              "line": 321,
+              "path": "cyp/scripts/d012_complete_model_runtime_benchmark.py",
+              "text": "params = dict(head.named_parameters())"
+            },
+            {
+              "end_line": 134,
+              "path": "cyp/scripts/p2_anil_model.py",
+              "start_line": 101
+            },
+            {
+              "line": 115,
+              "path": "cyp/scripts/p2_anil_model.py",
+              "text": "weight = meta_head.output.weight[task_index]"
+            },
+            {
+              "line": 116,
+              "path": "cyp/scripts/p2_anil_model.py",
+              "text": "bias = meta_head.output.bias[task_index]"
+            }
+          ],
+          "rationale": "D012ScalarHead contains hidden and output layers. `dict(head.named_parameters())` adapts hidden.weight, hidden.bias, output.weight, and output.bias; frozen ANIL code adapts only selected output weight/bias.",
+          "scope": "C"
+        },
+        {
+          "claim": "Target stage starts from learned scalar head initialization, uses all complete target-training support for each endpoint, one inner update, and validates with post-update head.",
+          "classification": "MECHANICAL_EQUIVALENT",
+          "evidence": [
+            {
+              "line": 520,
+              "path": "cyp/scripts/d012_first_cell_runner.py",
+              "text": "head.load_state_dict(model.scalar_head_initialization.state_dict())"
+            },
+            {
+              "line": 517,
+              "path": "cyp/scripts/d012_first_cell_runner.py",
+              "text": "support_dataset = data.MoleculeDataset([train_dataset.data[i] for i, flag in enumerate(keep.tolist()) if flag])"
+            },
+            {
+              "line": 522,
+              "path": "cyp/scripts/d012_first_cell_runner.py",
+              "text": "adapted, _support_loss = adapt_head_exact(head, support_embeddings, support_y)"
+            },
+            {
+              "line": 524,
+              "path": "cyp/scripts/d012_first_cell_runner.py",
+              "text": "pred_z = functional_call(head, adapted, (val_embeddings,)).detach().cpu()"
+            }
+          ],
+          "scope": "C"
+        }
+      ],
+      "matches_frozen_anil_semantics": false,
+      "status": "DEFECT"
+    },
+    "end_to_end_alignment": {
+      "findings": [
+        {
+          "claim": "Deterministic first/middle/last cell and row examples trace to the frozen manifest Molecule_Name order, target columns, and masks without manifest/key mismatch.",
+          "classification": "MECHANICAL_EQUIVALENT",
+          "evidence": {
+            "example_count": 9,
+            "population_rows": 150
+          },
+          "scope": "B,C,T121"
+        },
+        {
+          "claim": "Graph tensor outputs, inverse transformed predictions, checkpoint freshness, and prediction/label tensor alignment cannot be independently replayed because checkpoints/predictions are not preserved locally and regeneration is forbidden.",
+          "classification": "UNRESOLVED",
+          "evidence": [
+            {
+              "independent_score_recompute_possible": false,
+              "limitation": "No saved B/C/T121 validation prediction files were found in preserved lightweight evidence; scores can be recomputed only from preserved metrics, not raw predictions.",
+              "saved_prediction_artifact_count": 0,
+              "saved_prediction_artifacts": []
+            }
+          ],
+          "scope": "B,C,T121"
+        }
+      ],
+      "status": "UNRESOLVED"
+    },
+    "scoring_equivalence": {
+      "findings": [
+        {
+          "claim": "D012 B/C and T121 preserved metrics use the same frozen compute_validation_macro_st_rae wrapper over st_rae_metric with unweighted four-endpoint macro.",
+          "classification": "MECHANICAL_EQUIVALENT",
+          "evidence": [
+            {
+              "end_line": 52,
+              "path": "cyp/scripts/cyp002_validation.py",
+              "start_line": 17
+            },
+            {
+              "line": 49,
+              "path": "cyp/scripts/cyp002_validation.py",
+              "text": "\"macro_st_rae\": float(values.mean()),"
+            },
+            {
+              "line": 367,
+              "path": "cyp/scripts/d012_first_cell_runner.py",
+              "text": "return compute_validation_macro_st_rae(y_true, predictions, lows, highs, TARGET_TASKS)"
+            },
+            {
+              "line": 527,
+              "path": "cyp/scripts/d012_first_cell_runner.py",
+              "text": "score = compute_validation_macro_st_rae(val_true, val_predictions, val_low, val_high, TARGET_TASKS)"
+            }
+          ],
+          "scope": "B,C,T121"
+        },
+        {
+          "claim": "Endpoint order is the frozen CYP1A2, CYP2C9, CYP2D6, CYP3A4 order in D012 and T121 artifacts.",
+          "classification": "MECHANICAL_EQUIVALENT",
+          "evidence": [
+            {
+              "line": 38,
+              "path": "cyp/scripts/d012_arms.py",
+              "text": "TARGET_TASKS = ("
+            },
+            {
+              "line": 10,
+              "path": "artifacts/d009_closure_workspace/d009_t121_comparator_20261109/cells/cell_000/result.json",
+              "text": "\"task_order\": ["
+            }
+          ],
+          "scope": "B,C,T121"
+        },
+        {
+          "claim": "Independent score recomputation from saved validation predictions is not possible because preserved prediction files were not found.",
+          "classification": "UNRESOLVED",
+          "evidence": [
+            {
+              "independent_score_recompute_possible": false,
+              "limitation": "No saved B/C/T121 validation prediction files were found in preserved lightweight evidence; scores can be recomputed only from preserved metrics, not raw predictions.",
+              "saved_prediction_artifact_count": 0,
+              "saved_prediction_artifacts": []
+            }
+          ],
+          "scope": "B,C,T121"
+        }
+      ],
+      "prediction_artifacts": {
+        "independent_score_recompute_possible": false,
+        "limitation": "No saved B/C/T121 validation prediction files were found in preserved lightweight evidence; scores can be recomputed only from preserved metrics, not raw predictions.",
+        "saved_prediction_artifact_count": 0,
+        "saved_prediction_artifacts": []
+      },
+      "status": "UNRESOLVED"
+    },
+    "target_transformation": {
+      "findings": [
+        {
+          "claim": "D012 target scalers are fitted per endpoint on cell training labels only with population standard deviation.",
+          "classification": "MECHANICAL_EQUIVALENT",
+          "evidence": [
+            {
+              "end_line": 330,
+              "path": "cyp/scripts/d012_first_cell_runner.py",
+              "start_line": 319
+            },
+            {
+              "line": 323,
+              "path": "cyp/scripts/d012_first_cell_runner.py",
+              "text": "observed = train_values[train_mask[:, j], j]"
+            }
+          ],
+          "scope": "B,C"
+        },
+        {
+          "claim": "D012 scoring inverts standardized outputs exactly once into original pIC50 units before ST-RAE.",
+          "classification": "MECHANICAL_EQUIVALENT",
+          "evidence": [
+            {
+              "line": 362,
+              "path": "cyp/scripts/d012_first_cell_runner.py",
+              "text": "pred = pred_z * scales.cpu() + means.cpu()"
+            },
+            {
+              "line": 525,
+              "path": "cyp/scripts/d012_first_cell_runner.py",
+              "text": "pred = pred_z * scales[j].cpu() + means[j].cpu()"
+            }
+          ],
+          "scope": "B,C"
+        },
+        {
+          "claim": "Masks are built in TARGET_TASKS order from the same Molecule_Name-ordered matrices used to assemble validation predictions.",
+          "classification": "MECHANICAL_EQUIVALENT",
+          "evidence": [
+            {
+              "end_line": 316,
+              "path": "cyp/scripts/d012_first_cell_runner.py",
+              "start_line": 299
+            },
+            {
+              "line": 366,
+              "path": "cyp/scripts/d012_first_cell_runner.py",
+              "text": "predictions[task] = pred[keep, j].numpy().astype(np.float64)"
+            }
+          ],
+          "scope": "B,C"
+        },
+        {
+          "claim": "Wrong-cell scaler or endpoint permutation cannot be independently falsified from raw prediction tensors because prediction tensors were not preserved, but code and population hashes align.",
+          "classification": "UNRESOLVED",
+          "evidence": [
+            {
+              "independent_score_recompute_possible": false,
+              "limitation": "No saved B/C/T121 validation prediction files were found in preserved lightweight evidence; scores can be recomputed only from preserved metrics, not raw predictions.",
+              "saved_prediction_artifact_count": 0,
+              "saved_prediction_artifacts": []
+            }
+          ],
+          "scope": "B,C"
+        }
+      ],
+      "status": "UNRESOLVED"
+    },
+    "validation_population_equality": {
+      "findings": [
+        {
+          "claim": "All 150 cells share exact D007 validation populations by manifest hash, validation-name hash, endpoint mask counts/hashes, and zero train/validation crossover.",
+          "classification": "MECHANICAL_EQUIVALENT",
+          "evidence": {
+            "cell_count": 150,
+            "failure_count": 0,
+            "first_failures": []
+          },
+          "scope": "B,C,T121"
+        }
+      ],
+      "status": "PASS"
+    }
+  },
+  "source_hashes": {
+    "cyp/scripts/cyp002_train.py": "76c925dd36784f02404c9bd00268b9381073b8297515382d7fd4c25ed5bddde7",
+    "cyp/scripts/cyp002_validation.py": "f0693b9294be0570988f08cc28256bf8ae995ea0cb82b421c45d40acb8bbc81e",
+    "cyp/scripts/d012_arms.py": "15e4252925f7fece1668be916bf4a706ce9b0febb3eadb9f5442cf349ddfee50",
+    "cyp/scripts/d012_complete_model_runtime_benchmark.py": "6b4289bd43682df803f99da69fef2a0dafb675d50a4e30a9b154f9a96857fbf6",
+    "cyp/scripts/d012_first_cell_runner.py": "dd475aec38e96d2a9372bd2eca491c4caddf4911103a481668c4f2aca4d60877",
+    "cyp/scripts/p1_pairwise_production.py": "37dcfd1e7cb63c51e4bf0430be85a6935f2e94d6f7700a0d332ed831316bf6b1",
+    "cyp/scripts/p1_pairwise_training.py": "994118181b32961657d3e43102d06fddbdd0804b47616bd4e44b984356b5e28f",
+    "cyp/scripts/p2_anil_model.py": "0a994cbdadfd3baf900d4b4e70fcc5575e5e1d62f65622a4f801bc7e21818d9f",
+    "cyp/scripts/p2_anil_training.py": "0bbcc42263929d16f6a4c604d76e963c99ad348b27eb29574257e2e1bfc35ae5",
+    "cyp/scripts/st_rae.py": "f533a6ef1e279bee922e03c3d6a69bae9313d3d1cf14a448041221bc5b274edf"
+  }
+}

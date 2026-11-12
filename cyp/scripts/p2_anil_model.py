@@ -14,6 +14,8 @@ P2_HIDDEN_DIM = 2000
 P2_N_TASKS = 4
 P2_DROPOUT = 0.4
 P2_INNER_LR = 0.01
+D011_ALLOWED_INNER_LRS = (0.001, 0.003, 0.01, 0.03)
+D011_ALLOWED_INNER_STEPS = (1, 2, 3)
 
 
 @dataclass(frozen=True)
@@ -89,6 +91,13 @@ def standardized_mse(predictions: Tensor, targets: Tensor) -> Tensor:
     return loss
 
 
+def validate_inner_adaptation_settings(inner_lr: float, inner_steps: int) -> None:
+    if float(inner_lr) not in D011_ALLOWED_INNER_LRS:
+        raise ValueError("inner_lr is outside the frozen D011 grid.")
+    if int(inner_steps) not in D011_ALLOWED_INNER_STEPS:
+        raise ValueError("inner_steps is outside the frozen D011 grid.")
+
+
 def adapt_selected_output_exact(
     meta_head: P2MetaHead,
     support_embeddings: Tensor,
@@ -96,29 +105,33 @@ def adapt_selected_output_exact(
     *,
     task_index: int,
     inner_lr: float = P2_INNER_LR,
+    inner_steps: int = 1,
 ) -> tuple[Tensor, Tensor, Tensor]:
-    """Return exact differentiable one-step ANIL-adapted w_t/b_t."""
+    """Return exact differentiable K-step ANIL-adapted w_t/b_t."""
     if support_targets_z.shape != (13,):
         raise ValueError("D010 meta-training support target shape must be exactly (13,).")
-    if inner_lr != P2_INNER_LR:
-        raise ValueError("D010 freezes the inner learning rate at 0.01.")
+    validate_inner_adaptation_settings(inner_lr, inner_steps)
     features = meta_head.features(support_embeddings)
     weight = meta_head.output.weight[task_index]
     bias = meta_head.output.bias[task_index]
-    support_pred = selected_task_prediction(
-        features,
-        task_index=task_index,
-        weight=weight,
-        bias=bias,
-    )
-    support_loss = standardized_mse(support_pred, support_targets_z)
-    grad_w, grad_b = torch.autograd.grad(
-        support_loss,
-        (weight, bias),
-        create_graph=True,
-        retain_graph=True,
-    )
-    return weight - inner_lr * grad_w, bias - inner_lr * grad_b, support_loss
+    support_loss = None
+    for _step in range(int(inner_steps)):
+        support_pred = selected_task_prediction(
+            features,
+            task_index=task_index,
+            weight=weight,
+            bias=bias,
+        )
+        support_loss = standardized_mse(support_pred, support_targets_z)
+        grad_w, grad_b = torch.autograd.grad(
+            support_loss,
+            (weight, bias),
+            create_graph=True,
+            retain_graph=True,
+        )
+        weight = weight - float(inner_lr) * grad_w
+        bias = bias - float(inner_lr) * grad_b
+    return weight, bias, support_loss
 
 
 def query_loss_after_exact_adaptation(
@@ -129,6 +142,8 @@ def query_loss_after_exact_adaptation(
     query_targets_z: Tensor,
     *,
     task_index: int,
+    inner_lr: float = P2_INNER_LR,
+    inner_steps: int = 1,
 ) -> tuple[Tensor, Tensor]:
     if query_targets_z.shape != (3,):
         raise ValueError("D010 meta-training query target shape must be exactly (3,).")
@@ -137,6 +152,8 @@ def query_loss_after_exact_adaptation(
         support_embeddings,
         support_targets_z,
         task_index=task_index,
+        inner_lr=inner_lr,
+        inner_steps=inner_steps,
     )
     query_features = meta_head.features(query_embeddings)
     query_pred = selected_task_prediction(

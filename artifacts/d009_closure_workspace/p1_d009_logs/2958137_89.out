@@ -1,0 +1,22 @@
+=== D009 P1 CELL ===
+2026-11-08T15:48:27-08:00
+ggpu1-08
+SLURM_JOB_ID=2959530
+SLURM_ARRAY_JOB_ID=2958137
+SLURM_ARRAY_TASK_ID=89
+repetition=3
+fold=10
+training_seed=20261103
+cell_dir=/scratch/user/mhuang8/p1_d009_production_20261108/rep_03/fold_10/seed_20261103
+
+=== GPU ===
+index, name, memory.total [MiB]
+0, NVIDIA L40S, 46068 MiB
+
+=== CELL COMPLETE ===
+2026-11-08T15:58:57-08:00
+06840332a8dfeaf717dcc690604cda9570573c7ba5e9a2aeb360378ccbbdf9fc  /scratch/user/mhuang8/p1_d009_production_20261108/rep_03/fold_10/seed_20261103/manifest.json
+c4b913496af4cfad33d0606bb44dfe203107dfc76390da09a67863a3c43232fd  /scratch/user/mhuang8/p1_d009_production_20261108/rep_03/fold_10/seed_20261103/best.ckpt
+b73a58a6a8c3a97d885fd293f04066d51f9d92e55558d99bdcad16b7e90d102e  /scratch/user/mhuang8/p1_d009_production_20261108/rep_03/fold_10/seed_20261103/metrics.json
+ff436c5d4ba4408e2243e3a355a7319aa1a18a27a1332e6c511006f957f7b24c  /scratch/user/mhuang8/p1_d009_production_20261108/rep_03/fold_10/seed_20261103/SHA256SUMS.txt
+cfede05f9141553cd87b22e15a8bc9cf6f86833e74383f255272edf6705d2084  /scratch/user/mhuang8/p1_d009_production_20261108/rep_03/fold_10/seed_20261103/run_cell.json

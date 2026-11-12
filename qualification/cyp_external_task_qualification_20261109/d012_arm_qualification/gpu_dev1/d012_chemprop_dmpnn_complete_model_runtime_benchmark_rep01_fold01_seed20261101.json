@@ -1,0 +1,239 @@
+{
+  "architecture": {
+    "aggregation": "NormAggregation(norm=100)",
+    "arm_b_heads": "assay/task-specific scalar heads",
+    "arm_c_heads": "learned scalar-head initialization with exact K=1 LR=0.01 head-only adaptation",
+    "chemprop_version": "2.3.1",
+    "depth": 4,
+    "dropout": 0.4,
+    "ffn_hidden_dim": 2000,
+    "ffn_layers": 1,
+    "message_hidden_dim": 600,
+    "message_passing": "Chemprop BondMessagePassing D-MPNN",
+    "uses_ecfp4": false
+  },
+  "arm_b_auxiliary_complete_update": {
+    "measured_complete_updates": 100,
+    "measured_loss_first_last": [
+      24.731006622314453,
+      1.4788691997528076
+    ],
+    "optimizer_scheduler_reset_between_warmup_and_measurement": false,
+    "timing": {
+      "count": 100,
+      "max_seconds": 0.01292663998901844,
+      "mean_seconds": 0.011155181091744452,
+      "median_seconds": 0.011129406513646245,
+      "min_seconds": 0.010982693987898529,
+      "total_measured_seconds": 1.1155181091744453
+    },
+    "warmup_complete_updates": 10,
+    "warmup_loss_first_last": [
+      25.316068649291992,
+      24.785892486572266
+    ]
+  },
+  "arm_b_target_transfer_complete_update": {
+    "measured_complete_updates": 100,
+    "measured_loss_first_last": [
+      1.0080446004867554,
+      0.8531688451766968
+    ],
+    "optimizer_scheduler_reset_between_warmup_and_measurement": false,
+    "timing": {
+      "count": 100,
+      "max_seconds": 0.5937839420512319,
+      "mean_seconds": 0.5731749844748992,
+      "median_seconds": 0.572048989997711,
+      "min_seconds": 0.5648283989867195,
+      "total_measured_seconds": 57.317498447489925
+    },
+    "warmup_complete_updates": 10,
+    "warmup_loss_first_last": [
+      1.0347086191177368,
+      1.004183053970337
+    ]
+  },
+  "arm_b_validation_scoring_path": {
+    "measured_complete_updates": 100,
+    "measured_loss_first_last": [
+      0.8744985461235046,
+      0.8744985461235046
+    ],
+    "optimizer_scheduler_reset_between_warmup_and_measurement": false,
+    "timing": {
+      "count": 100,
+      "max_seconds": 0.06094036600552499,
+      "mean_seconds": 0.05998615073272959,
+      "median_seconds": 0.05993901751935482,
+      "min_seconds": 0.05947426101192832,
+      "total_measured_seconds": 5.998615073272958
+    },
+    "warmup_complete_updates": 10,
+    "warmup_loss_first_last": [
+      0.8744985461235046,
+      0.8744985461235046
+    ]
+  },
+  "arm_c_complete_target_support_adaptation_validation_path": {
+    "measured_complete_updates": 100,
+    "measured_loss_first_last": [
+      0.001228966168127954,
+      0.0012645741226151586
+    ],
+    "optimizer_scheduler_reset_between_warmup_and_measurement": false,
+    "timing": {
+      "count": 100,
+      "max_seconds": 0.7059851860394701,
+      "mean_seconds": 0.6830431252485141,
+      "median_seconds": 0.6824706930201501,
+      "min_seconds": 0.6768010010709986,
+      "total_measured_seconds": 68.30431252485141
+    },
+    "warmup_complete_updates": 10,
+    "warmup_loss_first_last": [
+      0.0012234988389536738,
+      0.0011687008664011955
+    ]
+  },
+  "arm_c_exact_anil_auxiliary_outer_update": {
+    "measured_complete_updates": 100,
+    "measured_loss_first_last": [
+      20.602298736572266,
+      1.1704566478729248
+    ],
+    "optimizer_scheduler_reset_between_warmup_and_measurement": false,
+    "timing": {
+      "count": 100,
+      "max_seconds": 0.017939851968549192,
+      "mean_seconds": 0.01690428246627562,
+      "median_seconds": 0.016892173560336232,
+      "min_seconds": 0.016205698950216174,
+      "total_measured_seconds": 1.6904282466275617
+    },
+    "warmup_complete_updates": 10,
+    "warmup_loss_first_last": [
+      21.13492202758789,
+      20.747272491455078
+    ]
+  },
+  "artifact_type": "D012_Chemprop_2_3_1_DMPNN_complete_model_runtime_benchmark_v1",
+  "boundaries": {
+    "d011_modified": false,
+    "methodology_changed": false,
+    "production_training_run": false,
+    "t121_modified": false,
+    "tuning_performed": false
+  },
+  "environment": {
+    "chemprop_version": "2.3.1",
+    "cuda_available": true,
+    "cuda_capability": [
+      8,
+      9
+    ],
+    "cuda_runtime_version": "12.6",
+    "device": "cuda",
+    "device_index": 0,
+    "gpu_model": "NVIDIA L40S",
+    "hostname": "n4pu04",
+    "platform": "Linux-5.15.0-202-generic-x86_64-with-glibc2.35",
+    "python_version": "3.12.14 (main, Sep  2 2026, 23:27:36) [GCC 15.3.0]",
+    "torch_version": "2.14.1+cu126",
+    "visible_gpu_count": 1
+  },
+  "input_hashes": {
+    "b_epoch_plan": "0c4d27d7771b125abb76c32935cc76cd2e1c72c6b5af8c07cc05b09ca18193d6",
+    "c_epoch_plan": "29ac9a574e392c7338ca497fef5a5c702e905e5b2098196cac71126b3d8159ae",
+    "d012_population": "b1b75ca32594183d5efce45dbefd25b2f4a22313dabe78d221ea70dc92e43ee1",
+    "scheduler_budgets": "4eb6b575f328c7f4a739875ceefa4e88dddafc1bf26c4bf10235190c2fe29f01",
+    "target_data": "b8f79addd266fb6f9f4c222c5e4e73d926362328b6a8d2841871a54e46bd2278"
+  },
+  "manifest_id": "rep_01_fold_01",
+  "memory": {
+    "max_rss_mb": 2433.76953125,
+    "peak_cuda_allocated_mb": 4465.87548828125,
+    "peak_cuda_reserved_mb": 4778.0
+  },
+  "projections": {
+    "full_150_cell_seconds": {
+      "b_auxiliary": 32461.576976976357,
+      "b_target_transfer": 288470.32582913234,
+      "b_total": 320931.9028061087,
+      "c_auxiliary": 108652.27555198653,
+      "c_target_adaptation": 102.45646878727712,
+      "c_total": 108754.73202077381
+    },
+    "projection_basis": {
+      "auxiliary_epochs": 50,
+      "b_target_updates_per_cell": 3350,
+      "b_updates_per_epoch": 388,
+      "b_validation_checks_per_cell_proxy": 50,
+      "c_target_adaptations_per_cell": 1,
+      "c_updates_per_epoch": 857,
+      "cell_count": 150
+    },
+    "single_cell_seconds": {
+      "b_50_epoch_auxiliary": 216.41051317984238,
+      "b_target_transfer": 1923.135505527549,
+      "b_total": 2139.5460187073913,
+      "c_50_epoch_auxiliary": 724.3485036799102,
+      "c_target_adaptation": 0.6830431252485141,
+      "c_total": 725.0315468051588
+    }
+  },
+  "protocol": {
+    "cuda_synchronization_around_measured_timing": true,
+    "measured_complete_updates": 100,
+    "optimizer_scheduler_reset_between_warmup_and_measurement": false,
+    "warmup_complete_updates": 10
+  },
+  "qualified_budget": {
+    "arm_b_minibatch_rows": "388",
+    "arm_c_episode_rows": "857",
+    "auxiliary_epochs": "50",
+    "b_total_steps": "19400",
+    "b_updates_per_epoch": "388",
+    "b_warmup_steps": "3880",
+    "c_total_steps": "42850",
+    "c_updates_per_epoch": "857",
+    "c_warmup_steps": "8570",
+    "lr_final": "0.00020141638331344468",
+    "lr_initial": "1.4283739994469765e-05",
+    "lr_max": "0.0008245400010426866",
+    "manifest_id": "rep_01_fold_01",
+    "retained_instance_count": "4660",
+    "training_seed": "20261101",
+    "warmup_epochs": "10"
+  },
+  "timed_operations": {
+    "excluded": [
+      "TSV/CSV/JSON file loading",
+      "qualified firewall/epoch-plan construction",
+      "SMILES-to-MoleculeDatapoint preprocessing and dataset object construction",
+      "model/module construction",
+      "artifact JSON writing",
+      "SLURM queue time"
+    ],
+    "included": [
+      "Chemprop MoleculeDataset DataLoader graph batching/collation",
+      "D-MPNN message-passing forward",
+      "NormAggregation forward",
+      "D012 FFN/scalar-head forward",
+      "MSE loss computation",
+      "backward pass where applicable",
+      "Adam optimizer step where applicable",
+      "scheduler step where applicable",
+      "CUDA synchronization around measured timing"
+    ]
+  },
+  "training_seed": 20261101,
+  "workload_counts": {
+    "b_auxiliary_batch_size": 16,
+    "c_query_count": 4,
+    "c_support_count": 12,
+    "target_training_labeled_support_count": 1069,
+    "target_validation_input_count": 418,
+    "target_validation_labeled_count": 132
+  }
+}

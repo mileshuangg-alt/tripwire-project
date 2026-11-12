@@ -5108,3 +5108,854 @@ Revisit D010 only if:
 A disappointing P2 result is not grounds to alter or rerun D010.
 
 First-order ANIL is not an automatic fallback or post-result rescue.
+
+# D011 — Bounded Exact-ANIL Inner-Adaptation Tuning Study
+
+**Decision date:** 2026-11-09
+
+**Status:** Approved — prospective tuning design frozen; implementation and production not yet authorized.
+
+## Purpose
+
+D011 is a separately declared tuning study downstream of closed D010.
+
+D010 remains closed. P2 did not advance, and D007-T121 remains the preferred configuration.
+
+D011 asks one comparative question:
+
+> Does any configuration in the predeclared exact-ANIL inner-adaptation grid achieve lower O150 than frozen D007-T121?
+
+D011 does not test or establish that D010's original one-step, inner-LR-0.01 adaptation setting caused D010's loss.
+
+## Frozen candidate grid
+
+D011 varies exactly two quantities:
+
+- inner adaptation learning rate: `{0.001, 0.003, 0.01, 0.03}`;
+- number of inner adaptation steps: `{1, 2, 3}`.
+
+The full factorial grid therefore contains exactly 12 configurations.
+
+No other D010 scientific parameter changes.
+
+The LR range and spacing are prospective bounded tuning choices around D010's `0.01` setting; they are not claimed CYP-specific optima.
+
+The 1–3-step range is a prospective bounded test of adaptation depth. It does not imply that additional steps are expected to improve performance.
+
+## D010 anchor reuse
+
+The configuration:
+
+- inner LR = `0.01`;
+- inner steps = `1`;
+
+is exactly the frozen D010 adaptation configuration.
+
+Its existing frozen 150-cell D010 results are reused as the D011 anchor rather than retrained, provided implementation preparation confirms that the D011 candidate protocol is identical to D010 for this configuration with respect to data partitions, architecture, training procedure, adaptation procedure, checkpoint selection, scoring, and aggregation.
+
+If a concrete protocol incompatibility is identified before execution, it must be documented and adjudicated before any anchor rerun. The anchor may not be silently rerun for symmetry.
+
+Subject to that compatibility check:
+
+- configurations compared = 12;
+- newly trained configurations = 11;
+- frozen cells per configuration = 150;
+- new production cells = 1,650.
+
+## Candidate protocol
+
+For candidate \(c=(\alpha,K)\), the same inner learning rate \(\alpha\) and number of adaptation steps \(K\) are used during both meta-training and evaluation-time adaptation.
+
+During each meta-training task episode, exactly \(K\) sequential exact-ANIL inner steps are taken on the selected isoform's final output weight vector and bias only.
+
+Differentiation is retained exactly through all \(K\) adaptation steps.
+
+During evaluation, each isoform begins from a fresh unadapted selected checkpoint state and receives exactly \(K\) full-training-support adaptation steps at the same candidate-specific inner learning rate.
+
+No adapted state carries between isoforms or validation checks.
+
+All other D010 methodology remains frozen, including:
+
+- four known CYP isoforms as tasks;
+- complete Chemprop encoder and shared hidden layer;
+- final-output-only inner adaptation;
+- exact through-adaptation differentiation;
+- 13 support / 3 query molecules per task episode;
+- one episode per isoform per outer update;
+- equal four-task outer weighting;
+- dropout policy;
+- Adam and NoamLR outer optimization;
+- optimizer-update budget and validation schedule;
+- frozen 150 development cells;
+- training-only scalers;
+- data firewall;
+- macro ST-RAE checkpoint selection;
+- early-stopping rule;
+- T121 comparator.
+
+No architecture change, first-order branch, additional baseline, endpoint veto, or secondary advancement criterion is introduced.
+
+## Candidate scoring and selection
+
+For every candidate \(c\):
+
+\[
+O_{150}(c)
+=
+\frac{1}{150}
+\sum_{i=1}^{150} S_i(c),
+\]
+
+where each \(S_i(c)\) is the retained macro ST-RAE from that cell's already-defined macro-selected checkpoint.
+
+After all 12 declared configurations have complete eligible results, select the configuration with the strictly lowest O150.
+
+If two or more configurations have exactly equal O150, break the tie deterministically by:
+
+1. fewer inner adaptation steps;
+2. then smaller inner learning rate.
+
+No numerical tolerance is introduced for candidate ties.
+
+Candidate evaluation order has no selection authority, and the study does not stop when a candidate first beats T121.
+
+## Final comparison and advancement
+
+The sole comparator remains frozen D007-T121:
+
+\[
+O_{150}(\mathrm{T121}) = 0.701212576796.
+\]
+
+After candidate selection, the selected D011 configuration advances if and only if:
+
+\[
+O_{150}(\mathrm{selected}) < 0.701212576796.
+\]
+
+An exact tie does not advance.
+
+There is no:
+
+- endpoint veto;
+- minimum effect-size requirement;
+- secondary comparator;
+- post-result candidate refinement;
+- first-order fallback;
+- architecture rescue;
+- extension of the declared LR or step grid.
+
+## Study endpoint and stopping rule
+
+D011 ends after the complete declared 12-configuration grid has been adjudicated under the frozen selection rule.
+
+If no selected configuration beats T121, D011 closes negative and T121 remains preferred.
+
+If the selected configuration beats T121, D011 also ends. No additional tuning around the winner is authorized by D011.
+
+The search may not be expanded after observing results.
+
+## Evidence and claim boundary
+
+D011 reuses the frozen D007 150-cell development procedure.
+
+The D010 `(0.01, 1)` anchor is already-observed development evidence.
+
+The remaining 11 configurations will also be evaluated on the same reused development cells.
+
+Consequently, the selected configuration's O150 is tuning-selected development performance.
+
+A D011 win supports advancement of that tuned configuration for subsequent work. It does not constitute untouched confirmation or independent external evidence that the selected configuration is superior to T121.
+
+New partitions of already-used molecules do not create independent confirmation.
+
+Protected internal-test evidence and D008 evidence remain excluded from D011 tuning, selection, and advancement.
+
+## Runtime qualification
+
+Before any D011 production authorization, the changed multi-step exact-ANIL workload must receive a bounded complete-model real-graph runtime/memory benchmark on one NVIDIA L40S outside SLURM.
+
+Benchmark the worst planned adaptation depth:
+
+- `K = 3`.
+
+The benchmark must execute the complete D010 molecular graph encoder, aggregation, meta-head, exact through-adaptation computation through all three inner steps, outer backward, optimizer, scheduler, and the corresponding three-step full-support evaluation adaptation/prediction path.
+
+The D010 runtime benchmark may not be automatically inherited because changing \(K\) changes the exact differentiation and evaluation workload.
+
+The benchmark must report:
+
+- synchronized complete outer-update timing after warmup;
+- timing stability;
+- peak allocated and reserved GPU memory;
+- three-step four-isoform validation adaptation/prediction cost;
+- projected training and validation workload per cell;
+- projected workload for 150 cells per newly trained configuration;
+- projected total workload for exactly 1,650 new cells;
+- measured versus excluded costs;
+- proposed requested wall time per one-cell/one-L40S job.
+
+The production wall-time request is set only after this benchmark.
+
+## Production authority
+
+D011 does not authorize implementation, candidate evaluation, training, or production submission merely by approving this scientific record.
+
+The next authorized preparation step, after this record is frozen, is a connected implementation/qualification package that:
+
+- parameterizes only inner LR and inner-step count;
+- verifies exact differentiation through \(K=1,2,3\);
+- verifies matched candidate settings during meta-training and evaluation;
+- proves D010 `(0.01,1)` protocol compatibility for anchor reuse;
+- implements deterministic 12-candidate selection and tie-breaking;
+- preserves all D010 firewall and artifact contracts;
+- prepares the bounded `K=3` complete-model benchmark.
+
+Production remains separately approval-gated after qualification and runtime projection.
+
+## Governing principle
+
+D011 is a bounded tuning study of the exact-ANIL adaptation operator, not a reopening of D010 or an unrestricted meta-learning search.
+
+Only inner learning rate and inner-step count may vary. Results cannot authorize extension of the search space or modification of the frozen selection and advancement rules.
+
+## Revisit when
+
+Revisit D011 only if:
+
+- a concrete protocol incompatibility prevents valid reuse of the frozen D010 `(0.01,1)` anchor;
+- a demonstrated technical or integrity defect invalidates a required assumption;
+- the `K=3` runtime qualification demonstrates an operational infeasibility requiring explicit human adjudication;
+- or a separately approved future decision supersedes D011.
+
+A disappointing tuning result is not grounds to extend the grid, add candidates, change architecture, introduce first-order ANIL, or otherwise modify D011 after results are observed.
+## D012 — Assay-resolved CYP transfer study
+
+**Decision date:** 2026-11-10
+
+**Status:** Approved; preregistration complete. Implementation and qualification may proceed; production training remains separately approval-gated.
+
+### Decision
+
+D012 prospectively replaces D011 as the CYP meta-learning development study. D011 remains superseded/incomplete; its completed artifacts are preserved, its partial candidate scores do not inform D012, and its held remainder is not released or cancelled without explicit human approval.
+
+D012 tests whether assay-episodic ANIL pretraining on routed, assay-resolved CYP IC50 measurements improves prediction of the four fixed OpenADMET direct-inhibition pIC50 endpoints beyond conventional multitask transfer trained with equivalent auxiliary information.
+
+This is a whole-method comparison. It does not isolate feature reuse, make a few-shot target-learning claim, or establish that the four-task D010/D011 formulation caused prior performance. Both transfer methods use all available frozen target-training observations.
+
+### Study arms
+
+D012 has three arms:
+
+1. **A — target-only control:** frozen T121. Existing T121 configuration and results are reused wherever target data, endpoints, partitions, seeds and evaluation protocol match D012. T121 is not automatically retuned or retrained.
+2. **B — conventional transfer:** assay-preserving auxiliary multitask Chemprop training followed by target fine-tuning.
+3. **C — meta-learning:** assay-episodic ANIL auxiliary training followed by target adaptation/fine-tuning.
+
+The primary comparison is C versus B. B versus A and C versus A are secondary comparisons testing whether auxiliary training improves upon target-only T121.
+
+### Auxiliary endpoint and target relationship
+
+Auxiliary labels are exact ChEMBL IC50 concentrations converted deterministically to pIC50:
+
+`pIC50 = -log10(IC50_M)`.
+
+The four OpenADMET targets are continuous direct-inhibition pIC50 regression endpoints for CYP1A2, CYP2C9, CYP2D6 and CYP3A4.
+
+The numerical quantity is therefore pIC50 in both auxiliary and target data, but the experimental measurements are not treated as interchangeable. Auxiliary measurements retain assay identity because their experimental contexts differ.
+
+### Molecular identity and leakage contract
+
+Cross-source identity uses full Standard InChIKey under:
+
+- Python 3.12.14;
+- RDKit 2026.03.6;
+- InChI 1.07.3;
+- no project-added molecular standardization.
+
+Standard InChI intrinsic normalization is acknowledged. Verbatim source SMILES, canonical-isomeric-SMILES witnesses and full Standard InChI are preserved.
+
+Frozen OpenADMET `Molecule_Name` partitions remain unchanged.
+
+The bounded audit represented all 5,655 OpenADMET structures and 4,821 of 4,822 selected ChEMBL exact records. Activity 7817060 / CHEMBL508338 / CHEMBL1909136 remains `source_structure_unavailable` and identity-unresolved.
+
+Within-assay source molecule-ID grouping and qualified full-InChIKey grouping were exactly concordant across the 4,821 represented records: 4,690 groups under each definition, with zero merges, zero splits and zero same-key/different-InChI cases.
+
+External identities matching OpenADMET validation, internal test or original blinded challenge are protected and unavailable to auxiliary training. OpenADMET-training overlaps remain available but explicitly flagged. Public/unblinded challenge labels remain inaccessible during development and selection.
+
+### Measurement rule
+
+Within a qualified `(isoform, assay task, full Standard InChIKey)` group, exact IC50 measurements are converted to pIC50 and represented by the median derived pIC50.
+
+All contributing source measurements, units, activity IDs and stored ChEMBL pChEMBL values remain provenance. Stored pChEMBL is a witness, not label authority.
+
+### Task provenance and demonstrated duplicate
+
+The routed pre-consolidation population contains 176 candidate assay tasks.
+
+Exactly one pair has affirmative duplicate authority:
+
+- CYP3A4 / CHEMBL2448771
+- CYP3A4 / CHEMBL3137501
+
+Both have `assay_src_id=14` and `assay_src_assay_id=1034082`.
+
+They will form one task using the frozen molecular-identity and measurement rules. No other unresolved relationship is consolidated.
+
+The expected post-consolidation count is 175 task units. Final identity/observation counts and task-size distribution must be materialized before the D012 auxiliary population is frozen. The pre-consolidation count of 4,664 available task-identity instances is not the final D012 auxiliary count.
+
+The remaining task units are not claimed to be independent.
+
+### Materialized D012 auxiliary population
+
+The demonstrated duplicate consolidation was materialized before model implementation.
+
+The 176 source assay tasks produce exactly **175 final task units**. The sole consolidated unit is:
+
+`D012_CONSOLIDATED_CYP3A4_CHEMBL2448771_CHEMBL3137501`.
+
+Its two source assays contain 36 and 27 available identities respectively. Their qualified full-Standard-InChIKey intersection is zero, so the consolidated task contains 63 identities. No shared-identity measurement reconciliation was required by this consolidation.
+
+The frozen D012 auxiliary population contains:
+
+- 175 task units;
+- 4,664 task-identity instances;
+- 4,795 contributing source exact observations;
+- 4,615 external-only task-identity instances;
+- 49 `overlap_openadmet_train` task-identity instances;
+- zero mixed available overlap-class instances;
+- zero zero-identity tasks.
+
+Task units by isoform are:
+
+- CYP1A2: 22;
+- CYP2C9: 33;
+- CYP2D6: 40;
+- CYP3A4: 80.
+
+Overall available identities per task range from 15 to 160. Nearest-rank quartiles are 17 / 21 / 29.
+
+The smallest-task counts are:
+
+- size 15: 1 task;
+- size 16: 18 tasks;
+- size 17: 26 tasks;
+- size 18: 15 tasks;
+- size 19: 11 tasks;
+- size 20: 12 tasks.
+
+No minimum task-size filter was applied. The D010/D011 16-molecule requirement has no D012 authority.
+
+The 175 final task units are not claimed to be mutually independent. All provenance relationships other than the single demonstrated duplicate remain at their previously established status.
+
+The authoritative materialization artifacts are under:
+
+`qualification/cyp_external_task_qualification_20261109/d012_auxiliary_population/`
+
+with frozen hashes recorded in that directory's `SHA256SUMS.txt`.
+
+### Equal-information and exposure contract
+
+Arms B and C receive identical finalized auxiliary task units, molecular structures and labels and the same frozen target-training observations. Neither receives assay descriptions, substrate/probe names, source identifiers or provenance metadata as model inputs.
+
+Fairness is tracked separately as:
+
+- equal input access;
+- equal task sampling;
+- objective-bearing molecule exposure;
+- auxiliary optimization opportunity;
+- target-side tuning opportunity.
+
+Tasks are treated uniformly during auxiliary training.
+
+One auxiliary epoch gives every available auxiliary label exactly one objective-bearing exposure.
+
+For conventional multitask training, each identity contributes once to its assay's supervised objective per auxiliary epoch.
+
+For ANIL, each identity contributes exactly once as query per auxiliary epoch. Support identities may be reused.
+
+Both arms record objective-bearing label exposures, total molecule forward passes, optimizer updates, epochs and GPU/wall time. Identical computational operations are not required.
+
+### ANIL episode construction
+
+For a task with `N` identities:
+
+`Q(N) = max(1, ceil(0.20 * N))`
+
+`S(N) = N - Q(N)`.
+
+Support and query identities are disjoint by full Standard InChIKey and sampled without replacement within an episode.
+
+Within an auxiliary epoch, query sets cycle through a seeded shuffled permutation until every identity has appeared exactly once as query. The final query set may contain fewer than `Q(N)` identities. Support reuse is permitted.
+
+Support loss is the mean over support molecules. Query loss is the mean over query molecules. When multiple tasks form a meta-batch, task query losses are averaged equally so larger assays do not receive greater outer-objective weight merely because of task size.
+
+The D010/D011 13+3 / 16-molecule requirement has no D012 authority.
+
+### Conventional multitask transfer
+
+Arm B uses the same Chemprop encoder family and finalized auxiliary evidence.
+
+Auxiliary learning uses assay-specific scalar regression heads with task-balanced exposure. At target transfer, auxiliary heads are discarded, a fresh target regression head is attached, and all frozen target-training observations are available for fine-tuning.
+
+### ANIL target transfer
+
+Arm C uses the episodically trained encoder and learned scalar-head initialization, then adapts/fine-tunes using all frozen target-training observations.
+
+D012 therefore does not make a few-shot target-prediction claim.
+
+### Target-side tuning
+
+Arms B and C receive matched prospectively bounded validation-only target-side tuning budgets.
+
+Shared parameters use the same candidate set where their meanings are equivalent. Algorithm-specific parameters may receive separately declared bounded searches where no meaningful counterpart exists.
+
+No arm receives additional tuning because an initial result is unfavorable.
+
+### T121 control
+
+T121 is the frozen target-only control and is not automatically retrained or retuned.
+
+Existing T121 results are reused wherever target endpoints, molecular universe, train/validation/test assignments, preprocessing/features, labels, seeds and evaluation protocol match D012.
+
+A new target-only run is authorized only if a concrete incompatibility or missing declared seed/evaluation cell is demonstrated. Any such run uses the frozen T121 configuration only; it does not reopen target-only hyperparameter selection.
+
+No new T121 run is currently authorized. Preserved T121 seed coverage must first be inventoried.
+
+### Repeated-seed evaluation
+
+D012 uses five preregistered seeds. Exact seed integers remain pending inspection of the existing project/T121 seed convention.
+
+For each arm, report every seed-level per-isoform and macro ST-RAE result plus arithmetic mean, sample standard deviation, median, minimum and maximum.
+
+The primary statistic is:
+
+`Delta_C-B = mean(O_ANIL) - mean(O_MT)`.
+
+Lower ST-RAE is better.
+
+ANIL outperforms conventional transfer only if its five-seed mean macro ST-RAE is strictly lower than the conventional-transfer mean.
+
+Also report paired seed differences, median paired difference and ANIL seed-win count. No post-hoc significance threshold is introduced.
+
+B-versus-T121 and C-versus-T121 are secondary comparisons and must use matched seed populations.
+
+### Negative-result interpretation
+
+Negative results are authorized outcomes.
+
+D012 distinguishes:
+
+- neither external method improving T121;
+- conventional transfer improving T121 without ANIL improving conventional transfer;
+- ANIL improving conventional transfer while neither external method improves T121;
+- ANIL improving both conventional transfer and T121;
+- substantial seed variability.
+
+No favorable seed selection or automatic tuning extension is permitted.
+
+### Prerequisites before implementation or training
+
+Before implementation/training authority is granted:
+
+1. materialize the demonstrated duplicate consolidation and freeze the actual 175-task identity/observation population and distribution;
+2. inventory preserved T121 seed/configuration/evaluation coverage and select the five D012 seeds from the established project convention where possible;
+3. determine the exact minimum T121 rerun requirement, if any;
+4. complete the final D012 preregistration fields and obtain human approval.
+
+### Final preregistration amendment
+
+This section supersedes any conflicting provisional D012 language above concerning repeated seeds, target-transfer optimization, auxiliary scheduling, or target-side tuning.
+
+#### Frozen development matrix and T121 reuse
+
+D012 inherits the exact frozen D007 development matrix:
+
+- 5 repetitions;
+- 10 folds per repetition;
+- training seeds `20261101`, `20261102`, `20261103`;
+- 50 split manifests;
+- 150 total development cells.
+
+The three training seeds associated with a split manifest share that manifest's frozen target train/validation membership.
+
+T121 is the frozen target-only control. Its compatible existing 150-cell development evidence is reused without retraining or retuning. Its authoritative development quantity remains:
+
+`O150(T121) = 0.701212576796`.
+
+No new T121 development runs are required by D012.
+
+D012 B and C are evaluated on the identical 150-cell target development matrix. The primary comparison is the cell-paired difference:
+
+`O150(C) - O150(B)`,
+
+with B-versus-T121 and C-versus-T121 secondary.
+
+Report all 150 cell-level paired differences, their arithmetic mean, sample standard deviation, median, range and directional win count. O150 remains the primary aggregate development quantity.
+
+#### Cell-specific auxiliary validation firewall
+
+The finalized global D012 auxiliary population contains 175 task units and 4,664 task-identity instances.
+
+For each frozen D007 split manifest `m`, construct its auxiliary population by removing every D012 task-identity instance whose qualified full Standard InChIKey occurs among that manifest's target-validation identities.
+
+Validation identity is established without accessing validation potency labels:
+
+`validation Molecule_Name -> already-qualified OpenADMET full Standard InChIKey`.
+
+Any missing or ambiguous identity witness fails closed and may not be interpreted as non-overlap.
+
+The same manifest-specific auxiliary mask is used by B and C and by all three training-seed cells associated with that manifest.
+
+The mask is manifest-specific, not global. An identity that is target-validation in one manifest may remain auxiliary-eligible in another manifest where it is target-training, subject to the frozen routing rules.
+
+The characterization found:
+
+- all 5,655 OpenADMET Molecule_Name values mapped uniquely through the qualified identity bridge;
+- zero unmapped validation identities;
+- 49 of 50 manifests contain at least one auxiliary/validation overlap;
+- 33 unique auxiliary molecular identities occur in validation in at least one manifest;
+- 245 manifest-specific affected task-identity instances;
+- 0 to 14 auxiliary task-identity instances removed per manifest, mean 4.9;
+- 4,650 to 4,664 auxiliary task-identity instances retained per manifest;
+- zero task units become empty;
+- all 175 task units remain present in every manifest;
+- minimum post-mask task size across all manifests is 14;
+- at most one task is below 15 identities in any manifest;
+- at most two tasks are below 16 identities in any manifest.
+
+No minimum task-size criterion is introduced. The historical D010/D011 16-molecule requirement has no D012 authority.
+
+Protected internal-test and original blinded-challenge routing remains governed by the already-qualified global firewall and is not reopened by this manifest-specific rule.
+
+#### Arm B — conventional multitask transfer
+
+B performs assay-preserving conventional multitask auxiliary training followed by conventional target fine-tuning.
+
+Auxiliary training:
+
+- uses the manifest-specific masked auxiliary population;
+- uses the common Chemprop encoder architecture;
+- uses assay/task-specific scalar regression heads;
+- runs for exactly 50 auxiliary epochs;
+- has no auxiliary early stopping;
+- has no auxiliary checkpoint selection;
+- does not access OpenADMET validation labels;
+- transfers the final epoch-50 auxiliary state.
+
+One B auxiliary epoch means that every retained task-identity label in that manifest contributes exactly once to the supervised auxiliary objective.
+
+Within each task, identities are deterministically shuffled from the declared run/cell seed and consumed in task-local minibatches of size 16. Loss is mean MSE over the minibatch.
+
+For a manifest with retained task sizes `N_t`, B therefore performs:
+
+`U_B = sum_t ceil(N_t / 16)`
+
+optimizer updates per auxiliary epoch.
+
+Across the 50 frozen manifests, `U_B` is either 387 or 388:
+
+- 387 updates/epoch in 10 manifests;
+- 388 updates/epoch in 40 manifests.
+
+At target transfer:
+
+1. initialize the encoder from B's final auxiliary checkpoint;
+2. discard all auxiliary heads;
+3. attach a fresh target head;
+4. fine-tune the full target network on the cell's complete target-training partition;
+5. use the cell's validation partition for early stopping and macro ST-RAE checkpoint selection.
+
+B inherits the applicable frozen T121 target-training schedule:
+
+- message-passing depth 4;
+- message hidden dimension 600;
+- FFN hidden dimension 2000;
+- one FFN layer;
+- dropout 0.4;
+- batch size 16;
+- maximum 50 target epochs;
+- patience 20 validation checks;
+- warmup 10 epochs;
+- Adam/NoamLR optimization;
+- initial LR `1.4283739994469765e-05`;
+- maximum LR `0.0008245400010426866`;
+- final LR `0.00020141638331344468`;
+- training-partition-only target standardization.
+
+B therefore receives target-validation-driven optimization and checkpoint selection as part of the conventional-transfer method.
+
+#### Arm C — assay-episodic ANIL transfer
+
+C performs assay-episodic ANIL auxiliary training followed by exactly one full-support head-only target adaptation step.
+
+Auxiliary meta-training:
+
+- uses the same manifest-specific masked auxiliary population as B;
+- runs for exactly 50 auxiliary epochs;
+- has no auxiliary early stopping;
+- has no auxiliary checkpoint selection;
+- does not access OpenADMET validation labels;
+- transfers the final epoch-50 encoder and learned scalar-head initialization;
+- uses exact through-adaptation differentiation;
+- adapts only the scalar head weights and bias in the inner loop;
+- uses inner LR `0.01`;
+- uses exactly one inner step, `K=1`.
+
+For a task containing `N` retained identities:
+
+`Q(N) = max(1, ceil(0.20*N))`
+
+and query sets cycle through one deterministic seeded permutation until every retained identity appears exactly once as query during the auxiliary epoch.
+
+Support and query identities are disjoint by qualified full Standard InChIKey within every episode. Support identities may be reused across episodes.
+
+Support loss is mean MSE over support identities. Query loss is mean MSE over query identities.
+
+With one task per meta-step, every episode produces one outer optimizer update.
+
+For task `t`:
+
+`E_t = ceil(N_t / Q(N_t))`.
+
+Therefore:
+
+`U_C = sum_t E_t`
+
+outer optimizer updates per auxiliary epoch.
+
+Across the 50 frozen manifests, `U_C` is:
+
+- 856 updates/epoch in 9 manifests;
+- 857 updates/epoch in 32 manifests;
+- 858 updates/epoch in 9 manifests.
+
+At target transfer for each development cell:
+
+1. load C's final epoch-50 encoder and learned scalar-head initialization;
+2. freeze the encoder;
+3. use the complete target-training partition as support;
+4. perform exactly one head-only gradient update at inner LR `0.01`;
+5. evaluate the resulting adapted state.
+
+C performs no subsequent generic target fine-tuning, no target early stopping and no target checkpoint selection.
+
+The cell validation partition is evaluation evidence for C, not an optimization or selection signal.
+
+#### Auxiliary exposure and optimization fairness
+
+D012 equalizes auxiliary information access and objective-bearing label exposure, not computational operations.
+
+For every manifest and auxiliary epoch:
+
+- B and C receive the same retained auxiliary task-identity population;
+- every retained auxiliary label contributes exactly once to B's supervised objective;
+- every retained auxiliary label contributes exactly once as a C query label.
+
+Support reuse in C is permitted and recorded.
+
+D012 does not require equality of:
+
+- optimizer-step counts;
+- support exposures;
+- total molecular forward passes;
+- gradient computations;
+- wall time.
+
+These are method-dependent quantities and are recorded as audit statistics.
+
+Fifty auxiliary epochs therefore means 50 objective-bearing opportunities for every retained auxiliary label in both B and C.
+
+#### Auxiliary optimizer and scheduler
+
+No new learning-rate search is introduced.
+
+Both auxiliary arms use Adam/NoamLR as the established outer/supervised optimizer family and inherit the T121 LR anchors:
+
+- initial LR `1.4283739994469765e-05`;
+- maximum LR `0.0008245400010426866`;
+- final LR `0.00020141638331344468`.
+
+The scheduler is defined relative to each arm's own declared optimizer-step topology rather than by assuming identical step counts.
+
+For each manifest:
+
+- B total auxiliary optimizer steps = `50 * U_B`;
+- C total auxiliary outer optimizer steps = `50 * U_C`.
+
+The warmup phase occupies the first 10 auxiliary epochs of the respective arm:
+
+- B warmup steps = `10 * U_B`;
+- C warmup steps = `10 * U_C`.
+
+The remaining schedule proceeds to the declared final LR over that arm's remaining auxiliary optimizer steps.
+
+Thus the LR anchors and epoch-relative schedule are shared while optimizer-step counts remain method-specific.
+
+#### Whole-method claim boundary
+
+D012 is a whole-method comparison.
+
+B receives conventional full-network target fine-tuning with validation-driven early stopping and checkpoint selection.
+
+C receives one frozen-encoder, head-only full-support adaptation step and no target-side optimization or checkpoint selection thereafter.
+
+D012 therefore does not claim:
+
+- matched target optimization opportunity;
+- isolation of feature reuse;
+- isolation of the adaptation operator;
+- a few-shot target-learning experiment.
+
+Both methods use all available target-training observations according to their declared target-transfer procedures.
+
+No additional tuning branch, MAML arm, metric-learning arm or post-result rescue rule is authorized.
+
+### First-cell production and operational qualification
+
+The D012 implementation/correctness qualification and first real production cells completed successfully before release of the remaining development matrix.
+
+#### Qualified implementation workload
+
+For `rep_01_fold_01` / training seed `20261101`, the qualified manifest-specific firewall removes all auxiliary instances whose qualified full Standard InChIKey occurs in that manifest's target-validation identities.
+
+The resulting first-cell auxiliary population contains:
+
+- 4,660 task-identity instances;
+- all 175 frozen task units;
+- zero unresolved validation identity witnesses.
+
+Arm B's frozen auxiliary workload is:
+
+- 388 task-local optimizer updates per auxiliary epoch;
+- 50 auxiliary epochs;
+- 19,400 auxiliary optimizer updates total.
+
+Arm C's frozen auxiliary workload is:
+
+- 857 exact-ANIL episodes/outer updates per auxiliary epoch;
+- 50 auxiliary epochs;
+- 42,850 outer updates total.
+
+These counts do not imply equal molecular forward-pass exposure. B gives every retained auxiliary label one supervised objective-bearing exposure per epoch. C gives every retained auxiliary label exactly one query exposure per epoch while support identities may be reused.
+
+#### Preserved complete-model runtime benchmark
+
+Production planning uses the preserved gpu-dev1 complete-model benchmark:
+
+`qualification/cyp_external_task_qualification_20261109/d012_arm_qualification/gpu_dev1/d012_chemprop_dmpnn_complete_model_runtime_benchmark_rep01_fold01_seed20261101.json`
+
+SHA-256:
+
+`e06f593ff5ba0090e655f0402c2bc69919b9fcafb390ef84c4cb5929a9f1d600`
+
+The benchmark ran on `n4pu04` using one NVIDIA L40S, Python 3.12.14, Torch 2.14.1+cu126, Chemprop 2.3.1 and the actual Chemprop D-MPNN molecular-graph path.
+
+It used 10 continuous warmup complete updates followed by 100 measured complete updates without optimizer/scheduler reset.
+
+The benchmark projected representative first-cell measured-region runtimes of approximately:
+
+- Arm B: 35.66 minutes;
+- Arm C: 12.08 minutes.
+
+The requested first-cell planning envelopes were therefore 60 minutes for B and 30 minutes for C.
+
+The benchmark excluded file loading, SMILES preprocessing and dataset-object construction, model construction, artifact serialization and queue time. Its GPU-memory measurement did not establish host-RAM sufficiency.
+
+No separate CoreHPC runtime witness is required for D012 production planning.
+
+#### Arm B first real production cell
+
+Arm B `rep_01_fold_01` / seed `20261101` completed successfully under the frozen D012 procedure.
+
+The cell executed assay-preserving auxiliary multitask training followed by conventional full-network target fine-tuning with validation-driven checkpoint selection and the frozen early-stopping rule.
+
+Observed end-to-end runtime:
+
+`336.19944089394994 s` = approximately `5.60 min`.
+
+Recorded phase timings:
+
+- auxiliary training: `244.65247676102445 s`;
+- model construction: `1.2096986830001697 s`;
+- target preparation: `0.45308310096152127 s`;
+- target training/checkpoint selection: `87.79631654091645 s`.
+
+Observed resource use:
+
+- peak host RSS: `1815.76953125 MB`;
+- peak CUDA allocated: `2628.216796875 MB`;
+- peak CUDA reserved: `2986.0 MB`.
+
+The target procedure stopped after 35 target epochs under the frozen validation/early-stopping procedure rather than changing the scientific stopping rule to fit wall time.
+
+The complete first-cell artifact contract passed SHA-256 verification, including:
+
+- final auxiliary checkpoint;
+- retained best target checkpoint;
+- target metrics;
+- startup configuration;
+- progress log;
+- completion record.
+
+#### Arm C first real production cell
+
+Arm C `rep_01_fold_01` / seed `20261101` completed successfully under the frozen D012 procedure.
+
+The cell executed 50 epochs of exact-ANIL auxiliary training followed by the frozen target procedure: encoder frozen, complete target-training support, exactly one head-only update at inner LR `0.01`, `K=1`, and validation scoring with no target checkpoint selection or generic target fine-tuning.
+
+Observed end-to-end runtime:
+
+`1111.704668656108 s` = approximately `18.53 min`.
+
+Recorded phase timings:
+
+- auxiliary training: `1105.5337280919775 s`;
+- model construction: `0.13799810397904366 s`;
+- target preparation: `0.3711214130744338 s`;
+- one-step target adaptation and validation: `3.1582950410665944 s`.
+
+Observed resource use:
+
+- peak host RSS: `1712.05859375 MB`;
+- peak CUDA allocated: `4812.59814453125 MB`;
+- peak CUDA reserved: `4978.0 MB`.
+
+The complete first-cell artifact contract passed SHA-256 verification, including:
+
+- final auxiliary checkpoint;
+- final transfer state;
+- validation metrics;
+- startup configuration;
+- progress log;
+- completion record.
+
+#### Operational disposition
+
+The first-cell execution gate passes for both arms.
+
+The existing requested production envelopes remain:
+
+- Arm B: one NVIDIA L40S, 4 CPUs, 32 GB host RAM, 60-minute wall time per cell;
+- Arm C: one NVIDIA L40S, 4 CPUs, 32 GB host RAM, 30-minute wall time per cell.
+
+The requests are operational safety envelopes and have no scientific stopping authority.
+
+The first-cell observations establish successful execution and observed resource use for these representative cells. They are not universal upper bounds for all remaining cells. Every production cell must retain runtime/resource measurement, progress/failure preservation and the frozen scientific stopping rules.
+
+The first-cell validation results have no authority to redesign D012, extend tuning, change stopping rules or select a different methodology.
+
+The remaining 149 B cells and 149 C cells are not released by this record. Their array mapping, artifact-storage plan and wrappers require review before separate production authorization.
+
+Large checkpoint payloads remain preserved on server-side storage. The local project preserves lightweight provenance, metrics, logs and hashes rather than duplicating all checkpoint payloads onto the Mac.
+
+### Governing principle
+
+D012 compares two methods for exploiting the same qualified assay-resolved auxiliary evidence while preserving the frozen OpenADMET target and evaluation framework.
+
+Algorithmic computation may differ. Information access, protected-data access and undeclared tuning opportunity may not.
+
+### Revisit when
+
+Revisit D012 methodology only if duplicate materialization exposes an inconsistency in the frozen data rules, the qualified molecular-identity contract fails reproducibility, or a demonstrated incompatibility prevents use of the frozen OpenADMET evaluation framework.
+
+The D012 auxiliary population, frozen 150-cell development matrix, training seeds, T121 reuse contract, cell-specific validation firewall, and B/C transfer procedures are now preregistered. Implementation and qualification findings that do not alter these scientific rules do not reopen D012; any required methodological change returns for explicit human adjudication before production training.

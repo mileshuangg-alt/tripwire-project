@@ -1,0 +1,55 @@
+{
+  "artifact_type": "D012_final_development_aggregation_summary_v1",
+  "cell_count": 150,
+  "difference_sign_convention": {
+    "primary": "delta_c_minus_b = S_c(C) - S_c(B); negative means Arm C is better/lower for that cell",
+    "secondary_b_vs_t121": "delta_b_minus_t121 = S_c(B) - S_c(T121); negative means Arm B is better/lower",
+    "secondary_c_vs_t121": "delta_c_minus_t121 = S_c(C) - S_c(T121); negative means Arm C is better/lower"
+  },
+  "lower_st_rae_is_better": true,
+  "o150": {
+    "B": 0.7947836258127077,
+    "C": 1.036406543421936,
+    "T121": 0.7074933757653158
+  },
+  "paired_differences": {
+    "B_minus_T121": {
+      "first_method_wins_lower_is_better": 2,
+      "max": 0.19503347011867056,
+      "mean": 0.08729025004739187,
+      "median": 0.0870519717896282,
+      "min": -0.014170493235095671,
+      "n": 150,
+      "sample_sd": 0.03381226397789526,
+      "second_method_wins_lower_is_better": 148,
+      "ties": 0
+    },
+    "C_minus_B": {
+      "first_method_wins_lower_is_better": 0,
+      "max": 0.4390518897375777,
+      "mean": 0.24162291760922833,
+      "median": 0.2396189460716584,
+      "min": 0.07784639494304635,
+      "n": 150,
+      "sample_sd": 0.0644112614921573,
+      "second_method_wins_lower_is_better": 150,
+      "ties": 0
+    },
+    "C_minus_T121": {
+      "first_method_wins_lower_is_better": 0,
+      "max": 0.482958852693387,
+      "mean": 0.32891316765662015,
+      "median": 0.3313730891690534,
+      "min": 0.1468649932791638,
+      "n": 150,
+      "sample_sd": 0.059819175330191994,
+      "second_method_wins_lower_is_better": 150,
+      "ties": 0
+    }
+  },
+  "t121_source": {
+    "cell_key_schema": "cell.repetition + cell.fold + cell.training_seed",
+    "path": "artifacts/d009_closure_workspace/p1_d009_o150_result_20261108.json",
+    "sha256": "b277f4ccd9138b688ff20bfaf2378ebfcb66bc118ab5943df48027168adc0e2b"
+  }
+}

@@ -1,0 +1,120 @@
+{
+  "all_150_main": [
+    {
+      "dimension": "all_150_cells",
+      "first_method_wins_lower_is_better": 0,
+      "level": "all",
+      "max": 0.4799507971815351,
+      "mean": 0.24845031313875343,
+      "median": 0.23729652292698106,
+      "metric": "CYP1A2_pIC50_direct_inhibition:C_minus_T121",
+      "min": 0.0177951021159396,
+      "n": 150,
+      "sample_sd": 0.07547888327446475,
+      "second_method_wins_lower_is_better": 150,
+      "ties": 0
+    },
+    {
+      "dimension": "all_150_cells",
+      "first_method_wins_lower_is_better": 0,
+      "level": "all",
+      "max": 0.6848450663701062,
+      "mean": 0.39890963647564076,
+      "median": 0.393951812940129,
+      "metric": "CYP2C9_pIC50_direct_inhibition:C_minus_T121",
+      "min": 0.1329194905915856,
+      "n": 150,
+      "sample_sd": 0.11485402726831878,
+      "second_method_wins_lower_is_better": 150,
+      "ties": 0
+    },
+    {
+      "dimension": "all_150_cells",
+      "first_method_wins_lower_is_better": 2,
+      "level": "all",
+      "max": 0.49957683564054245,
+      "mean": 0.259190260994506,
+      "median": 0.2608614445073343,
+      "metric": "CYP2D6_pIC50_direct_inhibition:C_minus_T121",
+      "min": -0.03190390398047982,
+      "n": 150,
+      "sample_sd": 0.10429182889803011,
+      "second_method_wins_lower_is_better": 148,
+      "ties": 0
+    },
+    {
+      "dimension": "all_150_cells",
+      "first_method_wins_lower_is_better": 0,
+      "level": "all",
+      "max": 0.659434256132685,
+      "mean": 0.43422565589606127,
+      "median": 0.4332050631927574,
+      "metric": "CYP3A4_pIC50_direct_inhibition:C_minus_T121",
+      "min": 0.24585165776842444,
+      "n": 150,
+      "sample_sd": 0.07261467344428224,
+      "second_method_wins_lower_is_better": 150,
+      "ties": 0
+    },
+    {
+      "dimension": "all_150_cells",
+      "first_method_wins_lower_is_better": 0,
+      "level": "all",
+      "max": 0.2064509532736667,
+      "mean": 0.09357104901701205,
+      "median": 0.09176765820049498,
+      "metric": "macro:B_minus_T121",
+      "min": 0.004433145637833258,
+      "n": 150,
+      "sample_sd": 0.03275238454111516,
+      "second_method_wins_lower_is_better": 150,
+      "ties": 0
+    },
+    {
+      "dimension": "all_150_cells",
+      "first_method_wins_lower_is_better": 0,
+      "level": "all",
+      "max": 0.4390518897375777,
+      "mean": 0.24162291760922833,
+      "median": 0.2396189460716584,
+      "metric": "macro:C_minus_B",
+      "min": 0.07784639494304635,
+      "n": 150,
+      "sample_sd": 0.0644112614921573,
+      "second_method_wins_lower_is_better": 150,
+      "ties": 0
+    },
+    {
+      "dimension": "all_150_cells",
+      "first_method_wins_lower_is_better": 0,
+      "level": "all",
+      "max": 0.47753816410565686,
+      "mean": 0.33519396662624035,
+      "median": 0.3344516420792702,
+      "metric": "macro:C_minus_T121",
+      "min": 0.1609550953404777,
+      "n": 150,
+      "sample_sd": 0.0562579865429644,
+      "second_method_wins_lower_is_better": 150,
+      "ties": 0
+    }
+  ],
+  "artifact_type": "D012_posthoc_audit_B_descriptive_decomposition_v1",
+  "available_comparisons": [
+    "macro:B_minus_T121",
+    "macro:C_minus_T121",
+    "macro:C_minus_B",
+    "endpoint:C_minus_T121"
+  ],
+  "cell_count": 150,
+  "difference_sign_convention": "Negative = first method better/lower ST-RAE.",
+  "independence_boundary": "Descriptive only; the 150 cells are not treated as independent replicates and no significance claims are made.",
+  "limitations": {
+    "B_endpoint_values_available": false,
+    "reason": "Arm B staged target metrics preserve best_macro_st_rae and history only; no per-endpoint B values were present, and predictions were not regenerated.",
+    "unavailable_endpoint_comparisons": [
+      "endpoint:B_minus_T121",
+      "endpoint:C_minus_B"
+    ]
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "array_index_range": [
+    1,
+    149
+  ],
+  "artifact_type": "D012_remaining_production_array_manifest_summary_v1",
+  "b_c_mappings_identical": true,
+  "boundaries": {
+    "array_submission_performed": false,
+    "d011_changes": false,
+    "minimum_task_size_filtering": false,
+    "public_challenge_label_access": false,
+    "t121_retraining": false,
+    "tuning": false
+  },
+  "completed_first_cell": {
+    "fold": 1,
+    "manifest_id": "rep_01_fold_01",
+    "repetition": 1,
+    "training_seed": 20261101
+  },
+  "completed_first_cell_count": 1,
+  "frozen_matrix_cell_count": 150,
+  "remaining_cell_count": 149,
+  "remaining_unique_cell_count": 149,
+  "restart_contract": {
+    "automatic_scientific_retry_or_change": false,
+    "completed_valid_completion_and_hashes": "skip",
+    "failed_or_incomplete": "never_count_complete_preserve_partial_artifacts",
+    "rerun": "requires_explicit_array_task_selection"
+  },
+  "union_completed_and_remaining_equals_frozen_matrix": true
+}

@@ -1,0 +1,60 @@
+{
+  "arm_b_preflight": {
+    "command": [
+      "/opt/homebrew/Caskroom/miniforge/base/envs/tripwire_cyp002/bin/python",
+      "d012_first_cell_runner.py",
+      "--arm",
+      "B",
+      "--manifest-id",
+      "rep_01_fold_01",
+      "--training-seed",
+      "20261102",
+      "--device",
+      "cpu",
+      "--allow-cpu",
+      "--preflight-only",
+      "--output-dir",
+      "/var/folders/1g/z0xbpmgs4zz9dwt3zr0t791m0000gn/T/d012_acceptance_wmbota7o/tripwire-project/acceptance_outputs/arm_b_rep01_fold01_seed20261102"
+    ],
+    "cwd": "/var/folders/1g/z0xbpmgs4zz9dwt3zr0t791m0000gn/T/d012_acceptance_wmbota7o/tripwire-project/cyp/scripts",
+    "returncode": 0,
+    "stderr": "",
+    "stdout": ""
+  },
+  "arm_c_preflight": {
+    "command": [
+      "/opt/homebrew/Caskroom/miniforge/base/envs/tripwire_cyp002/bin/python",
+      "d012_first_cell_runner.py",
+      "--arm",
+      "C",
+      "--manifest-id",
+      "rep_01_fold_01",
+      "--training-seed",
+      "20261102",
+      "--device",
+      "cpu",
+      "--allow-cpu",
+      "--preflight-only",
+      "--output-dir",
+      "/var/folders/1g/z0xbpmgs4zz9dwt3zr0t791m0000gn/T/d012_acceptance_wmbota7o/tripwire-project/acceptance_outputs/arm_c_rep01_fold01_seed20261102"
+    ],
+    "cwd": "/var/folders/1g/z0xbpmgs4zz9dwt3zr0t791m0000gn/T/d012_acceptance_wmbota7o/tripwire-project/cyp/scripts",
+    "returncode": 0,
+    "stderr": "",
+    "stdout": ""
+  },
+  "bundle_root": "/var/folders/1g/z0xbpmgs4zz9dwt3zr0t791m0000gn/T/d012_acceptance_wmbota7o/tripwire-project",
+  "import_probe": {
+    "command": [
+      "/opt/homebrew/Caskroom/miniforge/base/envs/tripwire_cyp002/bin/python",
+      "-c",
+      "\nimport importlib\nimport json\nimport sys\n\nmodules = [\n    \"d012_first_cell_runner\",\n    \"d012_arms\",\n    \"d012_complete_model_runtime_benchmark\",\n    \"cyp002_validation\",\n    \"st_rae\",\n]\nloaded = {name: importlib.import_module(name).__file__ for name in modules}\nprint(json.dumps({\"sys_path\": sys.path, \"module_files\": loaded}, indent=2, sort_keys=True))\n"
+    ],
+    "cwd": "/var/folders/1g/z0xbpmgs4zz9dwt3zr0t791m0000gn/T/d012_acceptance_wmbota7o/tripwire-project/cyp/scripts",
+    "returncode": 0,
+    "stderr": "",
+    "stdout": "{\n  \"module_files\": {\n    \"cyp002_validation\": \"/private/var/folders/1g/z0xbpmgs4zz9dwt3zr0t791m0000gn/T/d012_acceptance_wmbota7o/tripwire-project/cyp/scripts/cyp002_validation.py\",\n    \"d012_arms\": \"/private/var/folders/1g/z0xbpmgs4zz9dwt3zr0t791m0000gn/T/d012_acceptance_wmbota7o/tripwire-project/cyp/scripts/d012_arms.py\",\n    \"d012_complete_model_runtime_benchmark\": \"/private/var/folders/1g/z0xbpmgs4zz9dwt3zr0t791m0000gn/T/d012_acceptance_wmbota7o/tripwire-project/cyp/scripts/d012_complete_model_runtime_benchmark.py\",\n    \"d012_first_cell_runner\": \"/private/var/folders/1g/z0xbpmgs4zz9dwt3zr0t791m0000gn/T/d012_acceptance_wmbota7o/tripwire-project/cyp/scripts/d012_first_cell_runner.py\",\n    \"st_rae\": \"/private/var/folders/1g/z0xbpmgs4zz9dwt3zr0t791m0000gn/T/d012_acceptance_wmbota7o/tripwire-project/cyp/scripts/st_rae.py\"\n  },\n  \"sys_path\": [\n    \"/private/var/folders/1g/z0xbpmgs4zz9dwt3zr0t791m0000gn/T/d012_acceptance_wmbota7o/tripwire-project\",\n    \"\",\n    \"/opt/homebrew/Caskroom/miniforge/base/envs/tripwire_cyp002/lib/python312.zip\",\n    \"/opt/homebrew/Caskroom/miniforge/base/envs/tripwire_cyp002/lib/python3.12\",\n    \"/opt/homebrew/Caskroom/miniforge/base/envs/tripwire_cyp002/lib/python3.12/lib-dynload\",\n    \"/opt/homebrew/Caskroom/miniforge/base/envs/tripwire_cyp002/lib/python3.12/site-packages\"\n  ]\n}\n"
+  },
+  "python_executable": "/opt/homebrew/Caskroom/miniforge/base/envs/tripwire_cyp002/bin/python",
+  "pythonpath_cleared": true
+}

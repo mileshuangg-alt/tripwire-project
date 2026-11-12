@@ -1,0 +1,144 @@
+{
+  "artifact_type": "D009_P1_real_workload_validation_cost_benchmark_v1",
+  "benchmark": {
+    "chunk_size": 8192,
+    "directional_g_evaluations": 3135836,
+    "peak_gpu_memory_bytes": 302162432,
+    "stage_a_encode_cache_seconds": 1.532951450033579,
+    "stage_b_pair_head_seconds": 0.5770868110121228,
+    "stage_c_reconstruction_seconds": 0.0007250489434227347,
+    "stage_d_end_to_end_seconds": 2.110943230043631,
+    "timing_excludes": [
+      "warmup executions",
+      "data loading",
+      "checkpoint loading",
+      "model construction",
+      "training or optimizer work",
+      "validation-label scoring or performance metrics",
+      "caller-side preprocessing before function entry"
+    ],
+    "unique_query_reference_pairs": 1567918
+  },
+  "d007_source_split_assignments": {
+    "manifest_declared_path": "cyp/artifacts/cyp_baseline/molecule_split_assignments.csv",
+    "resolved_absolute_path": "/mnt/scratch/user/mhuang8/tripwire-d006/d006_bundle/cyp/artifacts/cyp_baseline/molecule_split_assignments.csv",
+    "sha256": "4cea719334a0836e4b9c0d50dd093872d472142b33337eb98362f95aa10c1902"
+  },
+  "environment": {
+    "cuda_available": true,
+    "cuda_runtime_version": "12.6",
+    "device": "cuda:0",
+    "device_index": 0,
+    "gpu_model": "NVIDIA L40S",
+    "hostname": "ggpu1-09",
+    "platform": "Linux-5.14.0-687.52.1+2.1.el9_8_ciq.x86_64-x86_64-with-glibc2.34",
+    "python_version": "3.12.14 (main, Sep  2 2026, 23:27:36) [GCC 15.3.0]",
+    "torch_version": "2.14.1+cu126",
+    "visible_gpu_count": 1
+  },
+  "input_hashes": {
+    "authoritative_cyp_dataset_sha256": "b8f79addd266fb6f9f4c222c5e4e73d926362328b6a8d2841871a54e46bd2278",
+    "d007_source_split_assignments_sha256": "4cea719334a0836e4b9c0d50dd093872d472142b33337eb98362f95aa10c1902",
+    "d007_split_manifest_sha256": "16aa90c786039b3f6f3ffeb071035742ca1641dbc9232c73eaa780a7f92e18df",
+    "t121_config_artifact_sha256": "71f4cad969981cbe60a0b5eccc904089ffe8b9b029d023cda6678661fe27dbe6"
+  },
+  "input_paths": {
+    "authoritative_cyp_dataset": "/scratch/user/mhuang8/tripwire-d006/d006_bundle/cyp/data/cyp-challenge-TRAIN_inhibition.csv",
+    "authoritative_repository_root": "/mnt/scratch/user/mhuang8/tripwire-d006/d006_bundle",
+    "d007_split_manifest": "/scratch/user/mhuang8/tripwire-d006/d006_bundle/cyp/artifacts/cyp_007/split_manifests/rep_01_fold_01.json",
+    "t121_config_artifact": "/scratch/user/mhuang8/tripwire-d006/d006_bundle/cyp/artifacts/cyp_007/production_run/attempt_001/trials/trial_121/proposal.json"
+  },
+  "no_validation_label_or_performance_access_statement": "No validation labels, confidence intervals, ST-RAE inputs, or performance metrics are accessed by the benchmark path. Validation rows are reduced to molecule identity and SMILES before query featurization.",
+  "p1_parameter_counts": {
+    "pair_head": {
+      "total": 2410004,
+      "trainable": 2410004
+    },
+    "shared_encoder": {
+      "total": 815400,
+      "trainable": 815400
+    }
+  },
+  "projection": {
+    "measured_stage_d_seconds": 2.110943230043631,
+    "projected_max_validation_seconds": 15832.074225327233,
+    "prospective_max_validation_executions": 7500
+  },
+  "split": {
+    "fold": 1,
+    "repetition": 1,
+    "training_seed": 20261101,
+    "training_seeds_declared_by_manifest": [
+      20261101,
+      20261102,
+      20261103
+    ]
+  },
+  "t121_config_provenance": {
+    "path": "/scratch/user/mhuang8/tripwire-d006/d006_bundle/cyp/artifacts/cyp_007/production_run/attempt_001/trials/trial_121/proposal.json",
+    "reconstructed_config": {
+      "activation": "relu",
+      "aggregation": "norm",
+      "aggregation_norm": 100,
+      "batch_norm": false,
+      "batch_size": 16,
+      "dropout": 0.4,
+      "early_stopping_min_delta": 0.0,
+      "early_stopping_patience": 20,
+      "ffn_hidden_dim": 2000,
+      "ffn_num_layers": 1,
+      "final_lr": 0.00020141638331344468,
+      "initial_lr": 1.4283739994469765e-05,
+      "max_epochs": 50,
+      "max_lr": 0.0008245400010426866,
+      "message_hidden_dim": 600,
+      "message_passing_depth": 4,
+      "name": "D007-T121-P1-real-workload-benchmark",
+      "num_tasks": 4,
+      "seed": 20261101,
+      "warmup_epochs": 10
+    },
+    "sampled_config": {
+      "batch_size": 16,
+      "dropout": 0.4,
+      "ffn_hidden_dim": 2000,
+      "ffn_num_layers": 1,
+      "final_lr_ratio": 0.24427727346003839,
+      "init_lr_ratio": 0.017323283256612185,
+      "max_lr": 0.0008245400010426866,
+      "message_hidden_dim": 600,
+      "message_passing_depth": 4,
+      "warmup_epochs": 10
+    },
+    "sampled_config_key": "sampled_config",
+    "sha256": "71f4cad969981cbe60a0b5eccc904089ffe8b9b029d023cda6678661fe27dbe6"
+  },
+  "workload": {
+    "endpoint_order": [
+      "CYP1A2_pIC50_direct_inhibition",
+      "CYP2C9_pIC50_direct_inhibition",
+      "CYP2D6_pIC50_direct_inhibition",
+      "CYP3A4_pIC50_direct_inhibition"
+    ],
+    "endpoint_specific_eligible_training_reference_counts": [
+      1069,
+      980,
+      1141,
+      1799
+    ],
+    "scaler_means": [
+      4.960870442472406,
+      4.599281681445922,
+      4.7723359708413655,
+      4.106174253816562
+    ],
+    "scaler_scales": [
+      1.0174105818343622,
+      0.7684425522065003,
+      0.9319724759918538,
+      1.090708726484572
+    ],
+    "training_molecule_count": 3751,
+    "validation_query_count": 418
+  }
+}

@@ -1,0 +1,486 @@
+{
+  "dataset_path": "cyp/data/cyp-challenge-TRAIN_inhibition.csv",
+  "dataset_sha256": "b8f79addd266fb6f9f4c222c5e4e73d926362328b6a8d2841871a54e46bd2278",
+  "epochs_completed": 29,
+  "original_split_path": "cyp/artifacts/cyp_baseline/molecule_split_assignments.csv",
+  "original_split_sha256": "4cea719334a0836e4b9c0d50dd093872d472142b33337eb98362f95aa10c1902",
+  "result": {
+    "best_validation": {
+      "macro_st_rae": 0.7265131402140281,
+      "per_task": {
+        "CYP1A2_pIC50_direct_inhibition": 0.8150003757643453,
+        "CYP2C9_pIC50_direct_inhibition": 0.6585060276141981,
+        "CYP2D6_pIC50_direct_inhibition": 0.8888964449889704,
+        "CYP3A4_pIC50_direct_inhibition": 0.5436497124885985
+      },
+      "task_order": [
+        "CYP1A2_pIC50_direct_inhibition",
+        "CYP2C9_pIC50_direct_inhibition",
+        "CYP2D6_pIC50_direct_inhibition",
+        "CYP3A4_pIC50_direct_inhibition"
+      ]
+    },
+    "cell_index": 21,
+    "checkpoint_path": "cyp/artifacts/cyp_007/production_run/attempt_001/trials/trial_121/cells/cell_021/fit/best.ckpt",
+    "checkpoint_sha256": "c9e698dea58514c8520ac082d90eec004a6e1892cf81ba0c81cd7bdd6efa17b2",
+    "config_name": "D007-T121",
+    "fold": 8,
+    "macro_st_rae": 0.7265131402140281,
+    "proposal_path": "cyp/artifacts/cyp_007/production_run/attempt_001/trials/trial_121/proposal.json",
+    "repetition": 1,
+    "seed": 20261101,
+    "split_manifest_path": "cyp/artifacts/cyp_007/split_manifests/rep_01_fold_08.json",
+    "split_manifest_sha256": "cf6ddc013d3c4b031521dbbc75bfb65af48c86d46bff8dc28520766f043b1071",
+    "status": "completed",
+    "trial_index": 121
+  },
+  "sampled_config": {
+    "batch_size": 16,
+    "dropout": 0.4,
+    "ffn_hidden_dim": 2000,
+    "ffn_num_layers": 1,
+    "final_lr_ratio": 0.24427727346003839,
+    "init_lr_ratio": 0.017323283256612185,
+    "max_lr": 0.0008245400010426866,
+    "message_hidden_dim": 600,
+    "message_passing_depth": 4,
+    "warmup_epochs": 10
+  },
+  "validation_history": [
+    {
+      "macro_st_rae": 1.0020890306194308,
+      "per_task": {
+        "CYP1A2_pIC50_direct_inhibition": 1.0059901504718918,
+        "CYP2C9_pIC50_direct_inhibition": 1.015912446935072,
+        "CYP2D6_pIC50_direct_inhibition": 1.0287734053525757,
+        "CYP3A4_pIC50_direct_inhibition": 0.9576801197181838
+      },
+      "task_order": [
+        "CYP1A2_pIC50_direct_inhibition",
+        "CYP2C9_pIC50_direct_inhibition",
+        "CYP2D6_pIC50_direct_inhibition",
+        "CYP3A4_pIC50_direct_inhibition"
+      ]
+    },
+    {
+      "macro_st_rae": 0.9827304896181341,
+      "per_task": {
+        "CYP1A2_pIC50_direct_inhibition": 0.9729675549515393,
+        "CYP2C9_pIC50_direct_inhibition": 0.9653209086716958,
+        "CYP2D6_pIC50_direct_inhibition": 1.048363160070147,
+        "CYP3A4_pIC50_direct_inhibition": 0.9442703347791543
+      },
+      "task_order": [
+        "CYP1A2_pIC50_direct_inhibition",
+        "CYP2C9_pIC50_direct_inhibition",
+        "CYP2D6_pIC50_direct_inhibition",
+        "CYP3A4_pIC50_direct_inhibition"
+      ]
+    },
+    {
+      "macro_st_rae": 0.911690792656334,
+      "per_task": {
+        "CYP1A2_pIC50_direct_inhibition": 0.9684894017379658,
+        "CYP2C9_pIC50_direct_inhibition": 0.8782984639958415,
+        "CYP2D6_pIC50_direct_inhibition": 1.0119821097056902,
+        "CYP3A4_pIC50_direct_inhibition": 0.7879931951858382
+      },
+      "task_order": [
+        "CYP1A2_pIC50_direct_inhibition",
+        "CYP2C9_pIC50_direct_inhibition",
+        "CYP2D6_pIC50_direct_inhibition",
+        "CYP3A4_pIC50_direct_inhibition"
+      ]
+    },
+    {
+      "macro_st_rae": 0.8401176191859745,
+      "per_task": {
+        "CYP1A2_pIC50_direct_inhibition": 0.8917443333546632,
+        "CYP2C9_pIC50_direct_inhibition": 0.7689156580454694,
+        "CYP2D6_pIC50_direct_inhibition": 1.0345319537237185,
+        "CYP3A4_pIC50_direct_inhibition": 0.6652785316200471
+      },
+      "task_order": [
+        "CYP1A2_pIC50_direct_inhibition",
+        "CYP2C9_pIC50_direct_inhibition",
+        "CYP2D6_pIC50_direct_inhibition",
+        "CYP3A4_pIC50_direct_inhibition"
+      ]
+    },
+    {
+      "macro_st_rae": 0.840033365723761,
+      "per_task": {
+        "CYP1A2_pIC50_direct_inhibition": 0.8940871340857087,
+        "CYP2C9_pIC50_direct_inhibition": 0.7606437498638781,
+        "CYP2D6_pIC50_direct_inhibition": 1.0202020087161918,
+        "CYP3A4_pIC50_direct_inhibition": 0.6852005702292653
+      },
+      "task_order": [
+        "CYP1A2_pIC50_direct_inhibition",
+        "CYP2C9_pIC50_direct_inhibition",
+        "CYP2D6_pIC50_direct_inhibition",
+        "CYP3A4_pIC50_direct_inhibition"
+      ]
+    },
+    {
+      "macro_st_rae": 0.7715947753197835,
+      "per_task": {
+        "CYP1A2_pIC50_direct_inhibition": 0.8984563716872059,
+        "CYP2C9_pIC50_direct_inhibition": 0.6839169429018662,
+        "CYP2D6_pIC50_direct_inhibition": 0.9069243210243648,
+        "CYP3A4_pIC50_direct_inhibition": 0.5970814656656969
+      },
+      "task_order": [
+        "CYP1A2_pIC50_direct_inhibition",
+        "CYP2C9_pIC50_direct_inhibition",
+        "CYP2D6_pIC50_direct_inhibition",
+        "CYP3A4_pIC50_direct_inhibition"
+      ]
+    },
+    {
+      "macro_st_rae": 0.797708662897066,
+      "per_task": {
+        "CYP1A2_pIC50_direct_inhibition": 0.8468070934400759,
+        "CYP2C9_pIC50_direct_inhibition": 0.7006281852376705,
+        "CYP2D6_pIC50_direct_inhibition": 1.0079573056819204,
+        "CYP3A4_pIC50_direct_inhibition": 0.6354420672285972
+      },
+      "task_order": [
+        "CYP1A2_pIC50_direct_inhibition",
+        "CYP2C9_pIC50_direct_inhibition",
+        "CYP2D6_pIC50_direct_inhibition",
+        "CYP3A4_pIC50_direct_inhibition"
+      ]
+    },
+    {
+      "macro_st_rae": 0.7946945317731258,
+      "per_task": {
+        "CYP1A2_pIC50_direct_inhibition": 0.852098222308265,
+        "CYP2C9_pIC50_direct_inhibition": 0.6933745909141961,
+        "CYP2D6_pIC50_direct_inhibition": 1.0691895361243655,
+        "CYP3A4_pIC50_direct_inhibition": 0.5641157777456767
+      },
+      "task_order": [
+        "CYP1A2_pIC50_direct_inhibition",
+        "CYP2C9_pIC50_direct_inhibition",
+        "CYP2D6_pIC50_direct_inhibition",
+        "CYP3A4_pIC50_direct_inhibition"
+      ]
+    },
+    {
+      "macro_st_rae": 0.7265131402140281,
+      "per_task": {
+        "CYP1A2_pIC50_direct_inhibition": 0.8150003757643453,
+        "CYP2C9_pIC50_direct_inhibition": 0.6585060276141981,
+        "CYP2D6_pIC50_direct_inhibition": 0.8888964449889704,
+        "CYP3A4_pIC50_direct_inhibition": 0.5436497124885985
+      },
+      "task_order": [
+        "CYP1A2_pIC50_direct_inhibition",
+        "CYP2C9_pIC50_direct_inhibition",
+        "CYP2D6_pIC50_direct_inhibition",
+        "CYP3A4_pIC50_direct_inhibition"
+      ]
+    },
+    {
+      "macro_st_rae": 0.7341431803396216,
+      "per_task": {
+        "CYP1A2_pIC50_direct_inhibition": 0.9081661424096216,
+        "CYP2C9_pIC50_direct_inhibition": 0.6229969229948918,
+        "CYP2D6_pIC50_direct_inhibition": 0.8692716041176661,
+        "CYP3A4_pIC50_direct_inhibition": 0.5361380518363067
+      },
+      "task_order": [
+        "CYP1A2_pIC50_direct_inhibition",
+        "CYP2C9_pIC50_direct_inhibition",
+        "CYP2D6_pIC50_direct_inhibition",
+        "CYP3A4_pIC50_direct_inhibition"
+      ]
+    },
+    {
+      "macro_st_rae": 0.7288920387961307,
+      "per_task": {
+        "CYP1A2_pIC50_direct_inhibition": 0.9095330762083919,
+        "CYP2C9_pIC50_direct_inhibition": 0.61401073248969,
+        "CYP2D6_pIC50_direct_inhibition": 0.886168130987097,
+        "CYP3A4_pIC50_direct_inhibition": 0.5058562154993439
+      },
+      "task_order": [
+        "CYP1A2_pIC50_direct_inhibition",
+        "CYP2C9_pIC50_direct_inhibition",
+        "CYP2D6_pIC50_direct_inhibition",
+        "CYP3A4_pIC50_direct_inhibition"
+      ]
+    },
+    {
+      "macro_st_rae": 0.7410773220655357,
+      "per_task": {
+        "CYP1A2_pIC50_direct_inhibition": 0.798567163722395,
+        "CYP2C9_pIC50_direct_inhibition": 0.6692410755562554,
+        "CYP2D6_pIC50_direct_inhibition": 0.9352453778775434,
+        "CYP3A4_pIC50_direct_inhibition": 0.5612556711059491
+      },
+      "task_order": [
+        "CYP1A2_pIC50_direct_inhibition",
+        "CYP2C9_pIC50_direct_inhibition",
+        "CYP2D6_pIC50_direct_inhibition",
+        "CYP3A4_pIC50_direct_inhibition"
+      ]
+    },
+    {
+      "macro_st_rae": 0.8013186329826794,
+      "per_task": {
+        "CYP1A2_pIC50_direct_inhibition": 0.922824712484618,
+        "CYP2C9_pIC50_direct_inhibition": 0.7262038266765736,
+        "CYP2D6_pIC50_direct_inhibition": 0.9793134741105433,
+        "CYP3A4_pIC50_direct_inhibition": 0.5769325186589827
+      },
+      "task_order": [
+        "CYP1A2_pIC50_direct_inhibition",
+        "CYP2C9_pIC50_direct_inhibition",
+        "CYP2D6_pIC50_direct_inhibition",
+        "CYP3A4_pIC50_direct_inhibition"
+      ]
+    },
+    {
+      "macro_st_rae": 0.7656384374430245,
+      "per_task": {
+        "CYP1A2_pIC50_direct_inhibition": 0.9211937946252339,
+        "CYP2C9_pIC50_direct_inhibition": 0.7224968209848711,
+        "CYP2D6_pIC50_direct_inhibition": 0.8890384217577524,
+        "CYP3A4_pIC50_direct_inhibition": 0.5298247124042406
+      },
+      "task_order": [
+        "CYP1A2_pIC50_direct_inhibition",
+        "CYP2C9_pIC50_direct_inhibition",
+        "CYP2D6_pIC50_direct_inhibition",
+        "CYP3A4_pIC50_direct_inhibition"
+      ]
+    },
+    {
+      "macro_st_rae": 0.7500255328897815,
+      "per_task": {
+        "CYP1A2_pIC50_direct_inhibition": 0.827945767677305,
+        "CYP2C9_pIC50_direct_inhibition": 0.6184075400620666,
+        "CYP2D6_pIC50_direct_inhibition": 1.003009884232992,
+        "CYP3A4_pIC50_direct_inhibition": 0.5507389395867626
+      },
+      "task_order": [
+        "CYP1A2_pIC50_direct_inhibition",
+        "CYP2C9_pIC50_direct_inhibition",
+        "CYP2D6_pIC50_direct_inhibition",
+        "CYP3A4_pIC50_direct_inhibition"
+      ]
+    },
+    {
+      "macro_st_rae": 0.7447950926285364,
+      "per_task": {
+        "CYP1A2_pIC50_direct_inhibition": 0.9004075892056804,
+        "CYP2C9_pIC50_direct_inhibition": 0.5947576971201586,
+        "CYP2D6_pIC50_direct_inhibition": 0.9441986984654891,
+        "CYP3A4_pIC50_direct_inhibition": 0.5398163857228174
+      },
+      "task_order": [
+        "CYP1A2_pIC50_direct_inhibition",
+        "CYP2C9_pIC50_direct_inhibition",
+        "CYP2D6_pIC50_direct_inhibition",
+        "CYP3A4_pIC50_direct_inhibition"
+      ]
+    },
+    {
+      "macro_st_rae": 0.8032835087280582,
+      "per_task": {
+        "CYP1A2_pIC50_direct_inhibition": 1.0335027984242473,
+        "CYP2C9_pIC50_direct_inhibition": 0.7085948165445437,
+        "CYP2D6_pIC50_direct_inhibition": 0.9439500824972817,
+        "CYP3A4_pIC50_direct_inhibition": 0.5270863374461602
+      },
+      "task_order": [
+        "CYP1A2_pIC50_direct_inhibition",
+        "CYP2C9_pIC50_direct_inhibition",
+        "CYP2D6_pIC50_direct_inhibition",
+        "CYP3A4_pIC50_direct_inhibition"
+      ]
+    },
+    {
+      "macro_st_rae": 0.7404147529313612,
+      "per_task": {
+        "CYP1A2_pIC50_direct_inhibition": 0.8243546630073717,
+        "CYP2C9_pIC50_direct_inhibition": 0.6092525110456788,
+        "CYP2D6_pIC50_direct_inhibition": 1.0394467038355555,
+        "CYP3A4_pIC50_direct_inhibition": 0.4886051338368385
+      },
+      "task_order": [
+        "CYP1A2_pIC50_direct_inhibition",
+        "CYP2C9_pIC50_direct_inhibition",
+        "CYP2D6_pIC50_direct_inhibition",
+        "CYP3A4_pIC50_direct_inhibition"
+      ]
+    },
+    {
+      "macro_st_rae": 0.8149752577678355,
+      "per_task": {
+        "CYP1A2_pIC50_direct_inhibition": 0.9775230096027893,
+        "CYP2C9_pIC50_direct_inhibition": 0.66528612549881,
+        "CYP2D6_pIC50_direct_inhibition": 0.9792830838631285,
+        "CYP3A4_pIC50_direct_inhibition": 0.637808812106614
+      },
+      "task_order": [
+        "CYP1A2_pIC50_direct_inhibition",
+        "CYP2C9_pIC50_direct_inhibition",
+        "CYP2D6_pIC50_direct_inhibition",
+        "CYP3A4_pIC50_direct_inhibition"
+      ]
+    },
+    {
+      "macro_st_rae": 0.7641524421150578,
+      "per_task": {
+        "CYP1A2_pIC50_direct_inhibition": 0.8767985560015059,
+        "CYP2C9_pIC50_direct_inhibition": 0.6589616596569196,
+        "CYP2D6_pIC50_direct_inhibition": 0.9720259663934641,
+        "CYP3A4_pIC50_direct_inhibition": 0.548823586408342
+      },
+      "task_order": [
+        "CYP1A2_pIC50_direct_inhibition",
+        "CYP2C9_pIC50_direct_inhibition",
+        "CYP2D6_pIC50_direct_inhibition",
+        "CYP3A4_pIC50_direct_inhibition"
+      ]
+    },
+    {
+      "macro_st_rae": 0.7611428948614865,
+      "per_task": {
+        "CYP1A2_pIC50_direct_inhibition": 0.8260801999038033,
+        "CYP2C9_pIC50_direct_inhibition": 0.6674049210350252,
+        "CYP2D6_pIC50_direct_inhibition": 1.0371835086834675,
+        "CYP3A4_pIC50_direct_inhibition": 0.5139029498236497
+      },
+      "task_order": [
+        "CYP1A2_pIC50_direct_inhibition",
+        "CYP2C9_pIC50_direct_inhibition",
+        "CYP2D6_pIC50_direct_inhibition",
+        "CYP3A4_pIC50_direct_inhibition"
+      ]
+    },
+    {
+      "macro_st_rae": 0.7935513618208978,
+      "per_task": {
+        "CYP1A2_pIC50_direct_inhibition": 1.0402556169621267,
+        "CYP2C9_pIC50_direct_inhibition": 0.6320313046792098,
+        "CYP2D6_pIC50_direct_inhibition": 0.9485044637011377,
+        "CYP3A4_pIC50_direct_inhibition": 0.5534140619411171
+      },
+      "task_order": [
+        "CYP1A2_pIC50_direct_inhibition",
+        "CYP2C9_pIC50_direct_inhibition",
+        "CYP2D6_pIC50_direct_inhibition",
+        "CYP3A4_pIC50_direct_inhibition"
+      ]
+    },
+    {
+      "macro_st_rae": 0.761762171585704,
+      "per_task": {
+        "CYP1A2_pIC50_direct_inhibition": 0.9529769899170911,
+        "CYP2C9_pIC50_direct_inhibition": 0.5754452006995531,
+        "CYP2D6_pIC50_direct_inhibition": 1.047488287215052,
+        "CYP3A4_pIC50_direct_inhibition": 0.4711382085111196
+      },
+      "task_order": [
+        "CYP1A2_pIC50_direct_inhibition",
+        "CYP2C9_pIC50_direct_inhibition",
+        "CYP2D6_pIC50_direct_inhibition",
+        "CYP3A4_pIC50_direct_inhibition"
+      ]
+    },
+    {
+      "macro_st_rae": 0.7305973895486986,
+      "per_task": {
+        "CYP1A2_pIC50_direct_inhibition": 0.820970453392926,
+        "CYP2C9_pIC50_direct_inhibition": 0.5883210373376875,
+        "CYP2D6_pIC50_direct_inhibition": 1.0491489132627598,
+        "CYP3A4_pIC50_direct_inhibition": 0.46394915420142074
+      },
+      "task_order": [
+        "CYP1A2_pIC50_direct_inhibition",
+        "CYP2C9_pIC50_direct_inhibition",
+        "CYP2D6_pIC50_direct_inhibition",
+        "CYP3A4_pIC50_direct_inhibition"
+      ]
+    },
+    {
+      "macro_st_rae": 0.755317957098814,
+      "per_task": {
+        "CYP1A2_pIC50_direct_inhibition": 0.9122304541984415,
+        "CYP2C9_pIC50_direct_inhibition": 0.6451832830383237,
+        "CYP2D6_pIC50_direct_inhibition": 0.9725825922781981,
+        "CYP3A4_pIC50_direct_inhibition": 0.49127549888029265
+      },
+      "task_order": [
+        "CYP1A2_pIC50_direct_inhibition",
+        "CYP2C9_pIC50_direct_inhibition",
+        "CYP2D6_pIC50_direct_inhibition",
+        "CYP3A4_pIC50_direct_inhibition"
+      ]
+    },
+    {
+      "macro_st_rae": 0.766447222517876,
+      "per_task": {
+        "CYP1A2_pIC50_direct_inhibition": 0.9600209982688775,
+        "CYP2C9_pIC50_direct_inhibition": 0.6225525945892576,
+        "CYP2D6_pIC50_direct_inhibition": 1.008453257457782,
+        "CYP3A4_pIC50_direct_inhibition": 0.4747620397555869
+      },
+      "task_order": [
+        "CYP1A2_pIC50_direct_inhibition",
+        "CYP2C9_pIC50_direct_inhibition",
+        "CYP2D6_pIC50_direct_inhibition",
+        "CYP3A4_pIC50_direct_inhibition"
+      ]
+    },
+    {
+      "macro_st_rae": 0.7650760599885174,
+      "per_task": {
+        "CYP1A2_pIC50_direct_inhibition": 0.8658966158961566,
+        "CYP2C9_pIC50_direct_inhibition": 0.6964781480703457,
+        "CYP2D6_pIC50_direct_inhibition": 0.9553843966565305,
+        "CYP3A4_pIC50_direct_inhibition": 0.5425450793310362
+      },
+      "task_order": [
+        "CYP1A2_pIC50_direct_inhibition",
+        "CYP2C9_pIC50_direct_inhibition",
+        "CYP2D6_pIC50_direct_inhibition",
+        "CYP3A4_pIC50_direct_inhibition"
+      ]
+    },
+    {
+      "macro_st_rae": 0.7506075268086153,
+      "per_task": {
+        "CYP1A2_pIC50_direct_inhibition": 0.8733604284721913,
+        "CYP2C9_pIC50_direct_inhibition": 0.5882190935519543,
+        "CYP2D6_pIC50_direct_inhibition": 1.0416136998256964,
+        "CYP3A4_pIC50_direct_inhibition": 0.49923688538461913
+      },
+      "task_order": [
+        "CYP1A2_pIC50_direct_inhibition",
+        "CYP2C9_pIC50_direct_inhibition",
+        "CYP2D6_pIC50_direct_inhibition",
+        "CYP3A4_pIC50_direct_inhibition"
+      ]
+    },
+    {
+      "macro_st_rae": 0.7742501855449743,
+      "per_task": {
+        "CYP1A2_pIC50_direct_inhibition": 0.941419188189206,
+        "CYP2C9_pIC50_direct_inhibition": 0.6259583351017339,
+        "CYP2D6_pIC50_direct_inhibition": 1.0300736275059406,
+        "CYP3A4_pIC50_direct_inhibition": 0.4995495913830168
+      },
+      "task_order": [
+        "CYP1A2_pIC50_direct_inhibition",
+        "CYP2C9_pIC50_direct_inhibition",
+        "CYP2D6_pIC50_direct_inhibition",
+        "CYP3A4_pIC50_direct_inhibition"
+      ]
+    }
+  ]
+}

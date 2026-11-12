@@ -1,0 +1,30 @@
+{
+  "best_validation": {
+    "macro_st_rae": 0.7859482527938484,
+    "per_task": {
+      "CYP1A2_pIC50_direct_inhibition": 0.9297176300256881,
+      "CYP2C9_pIC50_direct_inhibition": 0.6859196138631218,
+      "CYP2D6_pIC50_direct_inhibition": 0.9530844650506767,
+      "CYP3A4_pIC50_direct_inhibition": 0.575071302235907
+    },
+    "task_order": [
+      "CYP1A2_pIC50_direct_inhibition",
+      "CYP2C9_pIC50_direct_inhibition",
+      "CYP2D6_pIC50_direct_inhibition",
+      "CYP3A4_pIC50_direct_inhibition"
+    ]
+  },
+  "cell_index": 93,
+  "checkpoint_path": "cyp/artifacts/cyp_007/production_run/attempt_001/trials/trial_121/cells/cell_093/fit/best.ckpt",
+  "checkpoint_sha256": "c90ead948dd3684a0f0cff59f96f92cdd875abfa4bb3757a0ab564ecd36fc10f",
+  "config_name": "D007-T121",
+  "fold": 2,
+  "macro_st_rae": 0.7859482527938484,
+  "proposal_path": "cyp/artifacts/cyp_007/production_run/attempt_001/trials/trial_121/proposal.json",
+  "repetition": 4,
+  "seed": 20261101,
+  "split_manifest_path": "cyp/artifacts/cyp_007/split_manifests/rep_04_fold_02.json",
+  "split_manifest_sha256": "fbc902f66579aa4d9b22308122b53a9429c5e306e391ebcb9f89715117ba4933",
+  "status": "completed",
+  "trial_index": 121
+}

@@ -1,0 +1,74 @@
+{
+  "artifact_type": "D012_posthoc_audit_A_comparator_provenance_v1",
+  "cell_population": {
+    "all_key_sets_equal": true,
+    "d012_labeled_t121_cells": 150,
+    "key_schema": "repetition + fold + training_seed",
+    "p1_cells": 150,
+    "saved_t121_cells": 150
+  },
+  "defect_exists": true,
+  "metric_definition": {
+    "held_out_validation_macro_st_rae": "Arithmetic mean of four endpoint ST-RAE values in saved best_validation/per_task or per_endpoint_st_rae fields.",
+    "macro_checks_passed": true,
+    "o150": "Arithmetic mean of macro ST-RAE over exact 150 frozen cells; no weighting or filtering."
+  },
+  "prediction_recompute_limitation": {
+    "action": "Used preserved T121 validation metrics only; did not regenerate predictions.",
+    "saved_t121_validation_metric_results_found": true,
+    "saved_t121_validation_predictions_found": false
+  },
+  "provenance": {
+    "d009_characterization": {
+      "path": "artifacts/d009_closure_workspace/d009_p1_closure_characterization_20261109.json",
+      "sha256": "611ec29969b675fa46de710ca14ec206c6ca3fff8006f5b199efced1e79a50cd"
+    },
+    "d012_joined_rows": {
+      "path": "qualification/cyp_external_task_qualification_20261109/d012_final_aggregation/d012_cell_level_joined_results.tsv",
+      "sha256": "930ceb880620779328e0c461ac4f900b2849c27795edb541218acf717c033c47"
+    },
+    "d012_labeled_t121_source": {
+      "cell_key_schema": "cell.repetition + cell.fold + cell.training_seed",
+      "path": "artifacts/d009_closure_workspace/p1_d009_o150_result_20261108.json",
+      "sha256": "b277f4ccd9138b688ff20bfaf2378ebfcb66bc118ab5943df48027168adc0e2b"
+    },
+    "d012_summary": {
+      "path": "qualification/cyp_external_task_qualification_20261109/d012_final_aggregation/d012_final_aggregate_summary.json",
+      "sha256": "8e732b1534b954e92163422e8b56b819298c67f7b2f936bd96d6f01dd079d60f"
+    },
+    "p1_o150_file": {
+      "inventory_entries": [
+        {
+          "bytes": 66802,
+          "category": "closure_workspace_file",
+          "path": "artifacts/d009_closure_workspace/p1_d009_o150_result_20261108.json",
+          "sha256": "b277f4ccd9138b688ff20bfaf2378ebfcb66bc118ab5943df48027168adc0e2b"
+        }
+      ],
+      "path": "artifacts/d009_closure_workspace/p1_d009_o150_result_20261108.json",
+      "sha256": "b277f4ccd9138b688ff20bfaf2378ebfcb66bc118ab5943df48027168adc0e2b"
+    },
+    "t121_cells_dir": {
+      "path": "artifacts/d009_closure_workspace/d009_t121_comparator_20261109/cells",
+      "result_file_count": 150
+    },
+    "t121_proposal": {
+      "path": "artifacts/d009_closure_workspace/d009_t121_comparator_20261109/proposal.json",
+      "sha256": "71f4cad969981cbe60a0b5eccc904089ffe8b9b029d023cda6678661fe27dbe6"
+    }
+  },
+  "semantic_identity": {
+    "authoritative_t121_o150_in_d009_final_verdict": 0.701212576796,
+    "authoritative_t121_o150_in_p1_file_summary_field": 0.701212576796,
+    "corrected_t121_o150_from_saved_cells": 0.7012125767956957,
+    "d012_labeled_t121_o150": 0.7074933757653158,
+    "d012_labeled_t121_semantics": "P1 cells[] from p1_d009_o150_result_20261108.json, not D007-T121 comparator cells",
+    "ensemble_evidence_found": false,
+    "ensemble_note": "No D012 comparator source field or D009 T121 result artifact used ensemble predictions; T121 saved cell results identify config_name D007-T121/trial_index 121.",
+    "labeled_t121_equals_p1_cells_exactly": true,
+    "labeled_t121_equals_saved_t121_cells_exactly": false,
+    "p1_advances": false,
+    "p1_o150_from_cells": 0.7074933757653158,
+    "p1_o150_summary_field": 0.7074933757653159
+  }
+}

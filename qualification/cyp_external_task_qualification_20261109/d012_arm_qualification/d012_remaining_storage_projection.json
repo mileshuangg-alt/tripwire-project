@@ -1,0 +1,26 @@
+{
+  "actual_size_basis_available": {
+    "B": false,
+    "C": false
+  },
+  "artifact_type": "D012_remaining_arrays_storage_projection_v1",
+  "basis": "actual local first-cell artifact directories if present; otherwise unresolved input",
+  "canonical_storage_statement": {
+    "canonical_persistent_filesystem_path_established": false,
+    "canonical_persistent_path": null,
+    "scratch_is_execution_and_staging_storage": true,
+    "unresolved_input": "No completed first-cell artifact directories are present in the local repository checkout; exact checkpoint/file size basis must be collected from gpu-dev1/CoreHPC preserved artifacts before storage can be projected authoritatively."
+  },
+  "checkpoint_type_separation": {
+    "B": "requires actual Arm B first-cell directory to separate auxiliary final checkpoint, best target checkpoint, and lightweight artifacts",
+    "C": "requires actual Arm C first-cell directory to separate auxiliary final checkpoint, final transfer state, and lightweight artifacts"
+  },
+  "local_first_cell_paths_checked": {
+    "B": "qualification/cyp_external_task_qualification_20261109/d012_arm_qualification/d012_first_cell_arm_b_rep01_fold01_seed20261101",
+    "C": "qualification/cyp_external_task_qualification_20261109/d012_arm_qualification/d012_first_cell_arm_c_rep01_fold01_seed20261101"
+  },
+  "projections": {
+    "B": null,
+    "C": null
+  }
+}

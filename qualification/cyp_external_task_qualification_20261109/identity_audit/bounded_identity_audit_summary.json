@@ -1,0 +1,77 @@
+{
+  "artifact_type": "CYP_bounded_cross_source_identity_representation_audit_v1",
+  "authority": "audit_only_no_routing_or_eligibility_authority",
+  "bounded_extra_match_inspection_count": 25,
+  "bounded_inspection_rule": "inspect all extra full-key cross-source match groups if <=25; otherwise sort by full Standard InChIKey and inspect 25 evenly spaced groups including first and last",
+  "cross_source_full_key_match_groups": 55,
+  "cross_source_match_groups_by_openadmet_partition": {
+    "challenge_blinded_test": 0,
+    "internal_test": 14,
+    "train": 33,
+    "validation": 8
+  },
+  "extra_full_key_match_groups_beyond_literal_smiles": 53,
+  "important_claim_boundaries": [
+    "training overlap is reported separately from validation/test overlap",
+    "no overlap causes routing or exclusion in this audit",
+    "representation failures remain explicit and unresolved",
+    "same-key groups are checked against retained full Standard InChI",
+    "inspection examples inform the identity decision but do not prove all Standard InChI equivalences appropriate",
+    "no replicate grouping or measurement aggregation is performed",
+    "no task or partition is modified"
+  ],
+  "input_hashes": {
+    "cyp/artifacts/cyp_baseline/molecule_split_assignments.csv": "4cea719334a0836e4b9c0d50dd093872d472142b33337eb98362f95aa10c1902",
+    "cyp/data/cyp-challenge-TEST-BLINDED.csv": "a342f8444a8dcb531ca12f3685293f0bd6c36ae9073f491e44a9bc1cc4b741f9",
+    "cyp/data/cyp-challenge-TRAIN_inhibition.csv": "b8f79addd266fb6f9f4c222c5e4e73d926362328b6a8d2841871a54e46bd2278",
+    "qualification/cyp_external_task_qualification_20261109/derived/p2_compatible_ic50_task_provenance.tsv": "f3f8592b05559ebe4d00574879b52c536efd79e3acf4c2c3e6d9921373cd654b",
+    "qualification/cyp_external_task_qualification_20261109/derived/record_eligibility.tsv": "809487f10e0b2761a1a16992edc7aa8d928214f8dadbfbee5f349ad805a7a6ce",
+    "qualification/cyp_external_task_qualification_20261109/raw_bulk/chembl37_CYP1A2_activities.jsonl": "7e17c608d9660310a60911a8c80cdea2ad530a873518a1a7b63c59a71ad0f233",
+    "qualification/cyp_external_task_qualification_20261109/raw_bulk/chembl37_CYP2C9_activities.jsonl": "a7e21d4ea07ece5e5f7ce1b3ffd6e758ba3b6332399033d18b530f3e022d2b71",
+    "qualification/cyp_external_task_qualification_20261109/raw_bulk/chembl37_CYP2D6_activities.jsonl": "afab460300bd9cb889296486cdeec9fcb1e0c79de4852d22679f46c9b80e83b6",
+    "qualification/cyp_external_task_qualification_20261109/raw_bulk/chembl37_CYP3A4_activities.jsonl": "b20542e7bfcc3081e313a73223bc4c790b06e9fc55e536979d2526eb6d9d8d6f"
+  },
+  "input_universe": {
+    "all_original_source_spellings_retained": true,
+    "blinded_test_structures_only": true,
+    "candidate_task_counts_by_isoform": {
+      "CYP1A2": 22,
+      "CYP2C9": 33,
+      "CYP2D6": 40,
+      "CYP3A4": 81
+    },
+    "candidate_tasks_pre_consolidation": 176,
+    "chembl_source_records": 4822,
+    "openadmet_source_records": 5655
+  },
+  "literal_smiles_cross_source_match_groups": 2,
+  "protected_openadmet_representation_failures": 0,
+  "representation_contract_under_audit": {
+    "canonical_isomeric_smiles_is_witness_only": true,
+    "contract_frozen": false,
+    "project_added_standardization": false,
+    "proposed_authority": "full_27_character_standard_inchikey",
+    "source_smiles_preserved_verbatim": true,
+    "standard_inchi_intrinsic_normalization_still_applies": true,
+    "standard_inchi_is_retained_witness": true
+  },
+  "representation_state_counts": {
+    "chembl|external|represented": 4821,
+    "chembl|external|source_structure_unavailable": 1,
+    "openadmet|challenge_blinded_test|represented": 750,
+    "openadmet|internal_test|represented": 736,
+    "openadmet|train|represented": 3433,
+    "openadmet|validation|represented": 736
+  },
+  "runtime": {
+    "inchi": {
+      "inchi_available": true,
+      "inchi_version": "1.07.3"
+    },
+    "platform": "macOS-26.5.2-arm64-arm-64bit",
+    "python": "3.12.14 (main, Sep  3 2026, 03:46:19) [Clang 21.1.8 ]",
+    "rdkit_version": "2026.03.6"
+  },
+  "same_key_different_standard_inchi": {},
+  "same_key_different_standard_inchi_count": 0
+}

@@ -1,0 +1,55 @@
+{
+  "arm_b": {
+    "auxiliary_loss": 25.53824234008789,
+    "target_loss": 2.1024527549743652,
+    "target_update_encoder_changed": true,
+    "validation_score": 0.4321027100086212,
+    "validation_used_for_checkpoint_selection": true
+  },
+  "arm_c": {
+    "encoder_grad_l1": 2747.739116668701,
+    "query_loss": 20.962915420532227,
+    "support_loss": 26.249120712280273,
+    "target_adaptation": {
+      "encoder_unchanged": true,
+      "head_changed": true,
+      "support_loss": 2.0813188552856445,
+      "validation_score": 0.4315340220928192
+    },
+    "validation_used_for_checkpoint_selection": false
+  },
+  "manifest_id": "rep_01_fold_01",
+  "qualified_plan_consumed": {
+    "b_plan_task": "CYP1A2|CHEMBL1100427",
+    "b_updates_per_epoch": 388,
+    "c_plan_task": "CYP1A2|CHEMBL1100427",
+    "c_updates_per_epoch": 857
+  },
+  "scheduler_budget": {
+    "arm_b_minibatch_rows": "388",
+    "arm_c_episode_rows": "857",
+    "auxiliary_epochs": "50",
+    "b_total_steps": "19400",
+    "b_updates_per_epoch": "388",
+    "b_warmup_steps": "3880",
+    "c_total_steps": "42850",
+    "c_updates_per_epoch": "857",
+    "c_warmup_steps": "8570",
+    "lr_final": "0.00020141638331344468",
+    "lr_initial": "1.4283739994469765e-05",
+    "lr_max": "0.0008245400010426866",
+    "manifest_id": "rep_01_fold_01",
+    "retained_instance_count": "4660",
+    "training_seed": "20261101",
+    "warmup_epochs": "10"
+  },
+  "target_scaling": {
+    "fit_on_training_names_only": true,
+    "mean": 4.960870442472404,
+    "scale": 1.0174105818343622,
+    "task": "CYP1A2_pIC50_direct_inhibition",
+    "train_examples_used": 16,
+    "validation_examples_scored": 16
+  },
+  "training_seed": 20261101
+}

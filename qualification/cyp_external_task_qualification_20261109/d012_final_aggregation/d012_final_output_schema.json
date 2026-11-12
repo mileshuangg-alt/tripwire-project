@@ -1,0 +1,43 @@
+{
+  "artifact_type": "D012_final_aggregation_output_schema_v1",
+  "cell_level_joined_results_tsv": {
+    "path": "d012_cell_level_joined_results.tsv",
+    "required_columns": [
+      "cell_key",
+      "repetition",
+      "fold",
+      "manifest_id",
+      "training_seed",
+      "b_macro_st_rae",
+      "c_macro_st_rae",
+      "t121_macro_st_rae",
+      "delta_c_minus_b",
+      "delta_b_minus_t121",
+      "delta_c_minus_t121",
+      "b_metric_path",
+      "c_metric_path"
+    ]
+  },
+  "aggregate_summary_json": {
+    "path": "d012_final_aggregate_summary.json",
+    "required_sections": [
+      "o150",
+      "paired_differences",
+      "difference_sign_convention",
+      "t121_source"
+    ]
+  },
+  "difference_sign_convention": {
+    "primary": "delta_c_minus_b = S_c(C) - S_c(B); negative means Arm C is lower/better for that cell",
+    "secondary_b_vs_t121": "delta_b_minus_t121 = S_c(B) - S_c(T121); negative means Arm B is lower/better",
+    "secondary_c_vs_t121": "delta_c_minus_t121 = S_c(C) - S_c(T121); negative means Arm C is lower/better"
+  },
+  "integrity_policy": {
+    "expected_cells": 150,
+    "missing_extra_duplicate_cells": "stop",
+    "failed_or_incomplete_cells": "stop",
+    "macro_per_endpoint_mismatch_where_available": "stop",
+    "nonfinite_metric": "stop",
+    "aggregation": "arithmetic mean over exact 150 frozen cells only; no weighting or filtering"
+  }
+}

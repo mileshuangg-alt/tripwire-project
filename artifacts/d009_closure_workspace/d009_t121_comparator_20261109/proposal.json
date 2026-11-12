@@ -1,0 +1,24 @@
+{
+  "config_name": "D007-T121",
+  "controller_rng_seed": 20261107,
+  "imported_observations": 0,
+  "metric": "mean_validation_macro_st_rae_10_folds_x_3_seeds",
+  "mode": "min",
+  "sampled_config": {
+    "batch_size": 16,
+    "dropout": 0.4,
+    "ffn_hidden_dim": 2000,
+    "ffn_num_layers": 1,
+    "final_lr_ratio": 0.24427727346003839,
+    "init_lr_ratio": 0.017323283256612185,
+    "max_lr": 0.0008245400010426866,
+    "message_hidden_dim": 600,
+    "message_passing_depth": 4,
+    "warmup_epochs": 10
+  },
+  "search_cell_count": 30,
+  "search_fidelity": "reduced",
+  "strategy": "tpe",
+  "trial_id": "trial_121",
+  "trial_index": 121
+}

@@ -1,0 +1,429 @@
+{
+  "A": {
+    "artifact_type": "D012_posthoc_audit_A_comparator_provenance_v1",
+    "cell_population": {
+      "all_key_sets_equal": true,
+      "d012_labeled_t121_cells": 150,
+      "key_schema": "repetition + fold + training_seed",
+      "p1_cells": 150,
+      "saved_t121_cells": 150
+    },
+    "defect_exists": true,
+    "metric_definition": {
+      "held_out_validation_macro_st_rae": "Arithmetic mean of four endpoint ST-RAE values in saved best_validation/per_task or per_endpoint_st_rae fields.",
+      "macro_checks_passed": true,
+      "o150": "Arithmetic mean of macro ST-RAE over exact 150 frozen cells; no weighting or filtering."
+    },
+    "prediction_recompute_limitation": {
+      "action": "Used preserved T121 validation metrics only; did not regenerate predictions.",
+      "saved_t121_validation_metric_results_found": true,
+      "saved_t121_validation_predictions_found": false
+    },
+    "provenance": {
+      "d009_characterization": {
+        "path": "artifacts/d009_closure_workspace/d009_p1_closure_characterization_20261109.json",
+        "sha256": "611ec29969b675fa46de710ca14ec206c6ca3fff8006f5b199efced1e79a50cd"
+      },
+      "d012_joined_rows": {
+        "path": "qualification/cyp_external_task_qualification_20261109/d012_final_aggregation/d012_cell_level_joined_results.tsv",
+        "sha256": "930ceb880620779328e0c461ac4f900b2849c27795edb541218acf717c033c47"
+      },
+      "d012_labeled_t121_source": {
+        "cell_key_schema": "cell.repetition + cell.fold + cell.training_seed",
+        "path": "artifacts/d009_closure_workspace/p1_d009_o150_result_20261108.json",
+        "sha256": "b277f4ccd9138b688ff20bfaf2378ebfcb66bc118ab5943df48027168adc0e2b"
+      },
+      "d012_summary": {
+        "path": "qualification/cyp_external_task_qualification_20261109/d012_final_aggregation/d012_final_aggregate_summary.json",
+        "sha256": "8e732b1534b954e92163422e8b56b819298c67f7b2f936bd96d6f01dd079d60f"
+      },
+      "p1_o150_file": {
+        "inventory_entries": [
+          {
+            "bytes": 66802,
+            "category": "closure_workspace_file",
+            "path": "artifacts/d009_closure_workspace/p1_d009_o150_result_20261108.json",
+            "sha256": "b277f4ccd9138b688ff20bfaf2378ebfcb66bc118ab5943df48027168adc0e2b"
+          }
+        ],
+        "path": "artifacts/d009_closure_workspace/p1_d009_o150_result_20261108.json",
+        "sha256": "b277f4ccd9138b688ff20bfaf2378ebfcb66bc118ab5943df48027168adc0e2b"
+      },
+      "t121_cells_dir": {
+        "path": "artifacts/d009_closure_workspace/d009_t121_comparator_20261109/cells",
+        "result_file_count": 150
+      },
+      "t121_proposal": {
+        "path": "artifacts/d009_closure_workspace/d009_t121_comparator_20261109/proposal.json",
+        "sha256": "71f4cad969981cbe60a0b5eccc904089ffe8b9b029d023cda6678661fe27dbe6"
+      }
+    },
+    "semantic_identity": {
+      "authoritative_t121_o150_in_d009_final_verdict": 0.701212576796,
+      "authoritative_t121_o150_in_p1_file_summary_field": 0.701212576796,
+      "corrected_t121_o150_from_saved_cells": 0.7012125767956957,
+      "d012_labeled_t121_o150": 0.7074933757653158,
+      "d012_labeled_t121_semantics": "P1 cells[] from p1_d009_o150_result_20261108.json, not D007-T121 comparator cells",
+      "ensemble_evidence_found": false,
+      "ensemble_note": "No D012 comparator source field or D009 T121 result artifact used ensemble predictions; T121 saved cell results identify config_name D007-T121/trial_index 121.",
+      "labeled_t121_equals_p1_cells_exactly": true,
+      "labeled_t121_equals_saved_t121_cells_exactly": false,
+      "p1_advances": false,
+      "p1_o150_from_cells": 0.7074933757653158,
+      "p1_o150_summary_field": 0.7074933757653159
+    }
+  },
+  "A_correction": {
+    "artifact_type": "D012_posthoc_audit_A_comparator_correction_v1",
+    "corrected_o150": {
+      "B": 0.7947836258127077,
+      "C": 1.036406543421936,
+      "T121": 0.7012125767956957
+    },
+    "corrected_paired_differences": {
+      "B_minus_T121": {
+        "first_method_wins_lower_is_better": 0,
+        "max": 0.2064509532736667,
+        "mean": 0.09357104901701205,
+        "median": 0.09176765820049498,
+        "min": 0.004433145637833258,
+        "n": 150,
+        "sample_sd": 0.03275238454111516,
+        "second_method_wins_lower_is_better": 150,
+        "ties": 0
+      },
+      "C_minus_B": {
+        "first_method_wins_lower_is_better": 0,
+        "max": 0.4390518897375777,
+        "mean": 0.24162291760922833,
+        "median": 0.2396189460716584,
+        "min": 0.07784639494304635,
+        "n": 150,
+        "sample_sd": 0.0644112614921573,
+        "second_method_wins_lower_is_better": 150,
+        "ties": 0
+      },
+      "C_minus_T121": {
+        "first_method_wins_lower_is_better": 0,
+        "max": 0.47753816410565686,
+        "mean": 0.33519396662624035,
+        "median": 0.3344516420792702,
+        "min": 0.1609550953404777,
+        "n": 150,
+        "sample_sd": 0.0562579865429644,
+        "second_method_wins_lower_is_better": 150,
+        "ties": 0
+      }
+    },
+    "defect_corrected_in_this_artifact_only": true,
+    "original_d012_outputs_preserved": true,
+    "unchanged_quantities": [
+      "B",
+      "C",
+      "C_minus_B"
+    ]
+  },
+  "B": {
+    "all_150_main": [
+      {
+        "dimension": "all_150_cells",
+        "first_method_wins_lower_is_better": 0,
+        "level": "all",
+        "max": 0.4799507971815351,
+        "mean": 0.24845031313875343,
+        "median": 0.23729652292698106,
+        "metric": "CYP1A2_pIC50_direct_inhibition:C_minus_T121",
+        "min": 0.0177951021159396,
+        "n": 150,
+        "sample_sd": 0.07547888327446475,
+        "second_method_wins_lower_is_better": 150,
+        "ties": 0
+      },
+      {
+        "dimension": "all_150_cells",
+        "first_method_wins_lower_is_better": 0,
+        "level": "all",
+        "max": 0.6848450663701062,
+        "mean": 0.39890963647564076,
+        "median": 0.393951812940129,
+        "metric": "CYP2C9_pIC50_direct_inhibition:C_minus_T121",
+        "min": 0.1329194905915856,
+        "n": 150,
+        "sample_sd": 0.11485402726831878,
+        "second_method_wins_lower_is_better": 150,
+        "ties": 0
+      },
+      {
+        "dimension": "all_150_cells",
+        "first_method_wins_lower_is_better": 2,
+        "level": "all",
+        "max": 0.49957683564054245,
+        "mean": 0.259190260994506,
+        "median": 0.2608614445073343,
+        "metric": "CYP2D6_pIC50_direct_inhibition:C_minus_T121",
+        "min": -0.03190390398047982,
+        "n": 150,
+        "sample_sd": 0.10429182889803011,
+        "second_method_wins_lower_is_better": 148,
+        "ties": 0
+      },
+      {
+        "dimension": "all_150_cells",
+        "first_method_wins_lower_is_better": 0,
+        "level": "all",
+        "max": 0.659434256132685,
+        "mean": 0.43422565589606127,
+        "median": 0.4332050631927574,
+        "metric": "CYP3A4_pIC50_direct_inhibition:C_minus_T121",
+        "min": 0.24585165776842444,
+        "n": 150,
+        "sample_sd": 0.07261467344428224,
+        "second_method_wins_lower_is_better": 150,
+        "ties": 0
+      },
+      {
+        "dimension": "all_150_cells",
+        "first_method_wins_lower_is_better": 0,
+        "level": "all",
+        "max": 0.2064509532736667,
+        "mean": 0.09357104901701205,
+        "median": 0.09176765820049498,
+        "metric": "macro:B_minus_T121",
+        "min": 0.004433145637833258,
+        "n": 150,
+        "sample_sd": 0.03275238454111516,
+        "second_method_wins_lower_is_better": 150,
+        "ties": 0
+      },
+      {
+        "dimension": "all_150_cells",
+        "first_method_wins_lower_is_better": 0,
+        "level": "all",
+        "max": 0.4390518897375777,
+        "mean": 0.24162291760922833,
+        "median": 0.2396189460716584,
+        "metric": "macro:C_minus_B",
+        "min": 0.07784639494304635,
+        "n": 150,
+        "sample_sd": 0.0644112614921573,
+        "second_method_wins_lower_is_better": 150,
+        "ties": 0
+      },
+      {
+        "dimension": "all_150_cells",
+        "first_method_wins_lower_is_better": 0,
+        "level": "all",
+        "max": 0.47753816410565686,
+        "mean": 0.33519396662624035,
+        "median": 0.3344516420792702,
+        "metric": "macro:C_minus_T121",
+        "min": 0.1609550953404777,
+        "n": 150,
+        "sample_sd": 0.0562579865429644,
+        "second_method_wins_lower_is_better": 150,
+        "ties": 0
+      }
+    ],
+    "artifact_type": "D012_posthoc_audit_B_descriptive_decomposition_v1",
+    "available_comparisons": [
+      "macro:B_minus_T121",
+      "macro:C_minus_T121",
+      "macro:C_minus_B",
+      "endpoint:C_minus_T121"
+    ],
+    "cell_count": 150,
+    "difference_sign_convention": "Negative = first method better/lower ST-RAE.",
+    "independence_boundary": "Descriptive only; the 150 cells are not treated as independent replicates and no significance claims are made.",
+    "limitations": {
+      "B_endpoint_values_available": false,
+      "reason": "Arm B staged target metrics preserve best_macro_st_rae and history only; no per-endpoint B values were present, and predictions were not regenerated.",
+      "unavailable_endpoint_comparisons": [
+        "endpoint:B_minus_T121",
+        "endpoint:C_minus_B"
+      ]
+    }
+  },
+  "C": {
+    "artifact_type": "D012_posthoc_audit_C_auxiliary_train_identity_concordance_v1",
+    "assay_observation_concordance_by_cyp": [
+      {
+        "isoform": "CYP1A2",
+        "level": "assay_observation",
+        "mae": 0.42611182302499995,
+        "max": 1.0578989890100008,
+        "mean": 0.2621267055575002,
+        "median": 0.22943978017499989,
+        "min": -0.3850749363299997,
+        "n": 8,
+        "pearson_r": 0.8106951830698993,
+        "rmse": 0.5236416739517227,
+        "sample_sd": 0.48460905354732975,
+        "spearman_rho": 0.5952380952380952
+      },
+      {
+        "isoform": "CYP2C9",
+        "level": "assay_observation",
+        "mae": 0.653083780223333,
+        "max": 0.9950579993399993,
+        "mean": 0.4279836593366664,
+        "median": 0.6265431599999998,
+        "min": -0.3376501813299999,
+        "n": 3,
+        "pearson_r": 0.3094106589110939,
+        "rmse": 0.7063295732978784,
+        "sample_sd": 0.6881839726293683,
+        "spearman_rho": 0.5
+      },
+      {
+        "isoform": "CYP2D6",
+        "level": "assay_observation",
+        "mae": 0.6554438545127775,
+        "max": 1.9823403600000002,
+        "mean": 0.4592581077805554,
+        "median": 0.4091625260449998,
+        "min": -0.9353510333799999,
+        "n": 18,
+        "pearson_r": 0.4313499657797612,
+        "rmse": 0.8306938122543526,
+        "sample_sd": 0.7122629885586659,
+        "spearman_rho": 0.33505687693898656
+      },
+      {
+        "isoform": "CYP3A4",
+        "level": "assay_observation",
+        "mae": 0.8040922454200004,
+        "max": 1.09514978101,
+        "mean": 0.8040922454200004,
+        "median": 0.9079898026550004,
+        "min": 0.30523959536000067,
+        "n": 4,
+        "pearson_r": 0.8557183637315148,
+        "rmse": 0.8666382927972086,
+        "sample_sd": 0.37326950299193074,
+        "spearman_rho": 0.9486832980505138
+      }
+    ],
+    "interpretation_boundary": "Poor agreement supports measurement/task mismatch as a hypothesis, not causation; strong agreement in this selected overlap does not clear other assays or chemical space.",
+    "molecule_level_concordance_by_cyp": [
+      {
+        "isoform": "CYP1A2",
+        "level": "molecule_endpoint_median",
+        "mae": 0.42611182302499995,
+        "max": 1.0578989890100008,
+        "mean": 0.2621267055575002,
+        "median": 0.22943978017499989,
+        "min": -0.3850749363299997,
+        "n": 8,
+        "pearson_r": 0.8106951830698993,
+        "rmse": 0.5236416739517227,
+        "sample_sd": 0.48460905354732975,
+        "spearman_rho": 0.5952380952380952
+      },
+      {
+        "isoform": "CYP2C9",
+        "level": "molecule_endpoint_median",
+        "mae": 0.653083780223333,
+        "max": 0.9950579993399993,
+        "mean": 0.4279836593366664,
+        "median": 0.6265431599999998,
+        "min": -0.3376501813299999,
+        "n": 3,
+        "pearson_r": 0.3094106589110939,
+        "rmse": 0.7063295732978784,
+        "sample_sd": 0.6881839726293683,
+        "spearman_rho": 0.5
+      },
+      {
+        "isoform": "CYP2D6",
+        "level": "molecule_endpoint_median",
+        "mae": 0.6402024437887499,
+        "max": 1.9823403600000002,
+        "mean": 0.4502035845793749,
+        "median": 0.4091625260449998,
+        "min": -0.9353510333799999,
+        "n": 16,
+        "pearson_r": 0.450543630119208,
+        "rmse": 0.8329652317913191,
+        "sample_sd": 0.7238031480488214,
+        "spearman_rho": 0.36764705882352944
+      },
+      {
+        "isoform": "CYP3A4",
+        "level": "molecule_endpoint_median",
+        "mae": 0.8387247644983337,
+        "max": 1.0852361076900001,
+        "mean": 0.8387247644983337,
+        "median": 0.7307434976200007,
+        "min": 0.7001946881850003,
+        "n": 3,
+        "pearson_r": 0.9938248554962741,
+        "rmse": 0.8567372351175405,
+        "sample_sd": 0.21403081362526669,
+        "spearman_rho": 1.0
+      }
+    ],
+    "population_counts": {
+      "assay_identity_observations": 49,
+      "assay_observation_multiplicity_per_molecule_endpoint": {
+        "max": 4,
+        "mean": 1.1395348837209303,
+        "median": 1,
+        "min": 1,
+        "n": 43,
+        "sample_sd": 0.5155392622264671
+      },
+      "counts_by_cyp": {
+        "CYP1A2": 8,
+        "CYP2C9": 10,
+        "CYP2D6": 18,
+        "CYP3A4": 13
+      },
+      "matched_nonmissing_observations": 33,
+      "matched_nonmissing_observations_by_cyp": {
+        "CYP1A2": 8,
+        "CYP2C9": 3,
+        "CYP2D6": 18,
+        "CYP3A4": 4
+      },
+      "matched_unique_molecules": 25,
+      "missing_train_endpoint_observations_counted_not_paired": 16,
+      "overlap_openadmet_train_auxiliary_task_identity_instances": 49,
+      "train_molecules_represented_by_identity_bridge": 33,
+      "unique_auxiliary_full_standard_inchikeys": 33
+    },
+    "provenance": {
+      "auxiliary_instances": {
+        "path": "qualification/cyp_external_task_qualification_20261109/d012_auxiliary_population/d012_task_identity_instances.tsv",
+        "sha256": "b1b75ca32594183d5efce45dbefd25b2f4a22313dabe78d221ea70dc92e43ee1"
+      },
+      "cross_source_matches": {
+        "path": "qualification/cyp_external_task_qualification_20261109/identity_audit/cross_source_matches.tsv",
+        "sha256": "6613d182fb4492b4e79f71dcd29d15c7c73f689fe15087d7b1a66aeb7967a8c5"
+      },
+      "train_labels": {
+        "path": "cyp/data/cyp-challenge-TRAIN_inhibition.csv",
+        "sha256": "b8f79addd266fb6f9f4c222c5e4e73d926362328b6a8d2841871a54e46bd2278"
+      }
+    },
+    "rules": {
+      "aggregation": "existing median within assay x identity replicate aggregation; established duplicate-assay consolidation preserved",
+      "auxiliary_records": "already-eligible exact uncensored IC50 records",
+      "conversion": "existing IC50 to pIC50 conversion from D012 auxiliary population",
+      "endpoint_pairing": "corresponding CYP endpoint only; missing TRAIN endpoint counted but not paired",
+      "identity": "full Standard InChIKey identity",
+      "train_labels_only": true
+    }
+  },
+  "artifact_type": "D012_posthoc_audit_A_C_summary_v1",
+  "output_hashes": {
+    "d012_posthoc_audit_A_comparator_correction.json": "0209448c1949654869fc0b656b232dfcab8af0a780eec76e7f49335a8dbb6901",
+    "d012_posthoc_audit_A_comparator_provenance.json": "7484353d00c23f003c66d4ea5f95db4cc80516b0be2cb23e061c41d8050b29ad",
+    "d012_posthoc_audit_B_decomposition.tsv": "01ad5995707c5238d0d4cd2285b3829c0c60b1411c6592dca0522099c7ccdf61",
+    "d012_posthoc_audit_B_decomposition_summary.json": "c2b32d7f5eed0b25c809c44dfb2b783d7a6eb35ceb94593ae120638a5b8b0ded",
+    "d012_posthoc_audit_C_concordance_summary.json": "924fb7d80de32410e2c0b5ec6e96560ff2dbcf957ed78af456c9147c7ae10a1a",
+    "d012_posthoc_audit_C_molecule_view.tsv": "1b0de4978fcd5149cc346eab6f23b9f39a2a1b9918f89a96733d220fb10c5f0e",
+    "d012_posthoc_audit_C_observation_pairs.tsv": "bc6766001ff928909c4c1389bf51a9dceef3a4000987b6276f219c3e360c3d2b"
+  },
+  "scope": "Descriptive post-hoc audit A-C only; no training, prediction regeneration, filtering, tuning, D/E, or D013.",
+  "summary_hash_note": "d012_posthoc_audit_ac_summary.json is hashed in SHA256SUMS.txt after this embedded map is written to avoid self-referential hashing."
+}

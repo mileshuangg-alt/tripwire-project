@@ -1,0 +1,19 @@
+{
+  "score": {
+    "macro_st_rae": 1.0238926423691548,
+    "per_task": {
+      "CYP1A2_pIC50_direct_inhibition": 1.0534793259957975,
+      "CYP2C9_pIC50_direct_inhibition": 1.004867930760957,
+      "CYP2D6_pIC50_direct_inhibition": 1.1194362748121371,
+      "CYP3A4_pIC50_direct_inhibition": 0.917787037907727
+    },
+    "task_order": [
+      "CYP1A2_pIC50_direct_inhibition",
+      "CYP2C9_pIC50_direct_inhibition",
+      "CYP2D6_pIC50_direct_inhibition",
+      "CYP3A4_pIC50_direct_inhibition"
+    ]
+  },
+  "target_update": "one_head_only_step_lr_0.01_k1_encoder_frozen",
+  "validation_checkpoint_selection": false
+}
