@@ -6297,3 +6297,46 @@ The rebuilt graph-qualified corpus has the identical molecule set to the authors
 
 Everything else in D013 is unchanged, including the full Standard InChIKey identity rule.
 
+## D013 Amendment 2 — Scope of the reproduction-gate comparison (2026-11-15)
+
+**Status:** Approved (2026-11-15). Recorded on Miles's approval: "Approve it".
+
+This amendment does not authorize the corpus build, the benchmark or training. It changes only how the Amendment 1 qualification gate decides agreement, and it is made after the gate ran and stopped for review, on the evidence that run produced.
+
+### Reason
+
+The route-C reproduction run (Slurm job 3073155) failed the Amendment 1 gate with 1,525,375 in-split differing rows. A field-level diagnosis of all 1,959,398 compared rows established that the rebuilt corpus agrees with the authors' released file in every field that defines the training data, and that the differences fall into exactly three characterised classes:
+
+1. **`record_id_unused`** — differs on 100% of mismatching rows (1,525,375 in-split, 424,141 outside). The project's own `cyp/scripts/actfound_chembl32_projection.py` header states: "Column 2 is not consumed by pinned preprocessing/runtime code. We preserve ChEMBL record_id there as provenance." The project therefore stores a different value there by design.
+2. **`standard_value`** — 600 in-split rows (203 outside). Of these, 164 in-split differ only in text; the other 436 have an authors/rebuilt ratio inside 0.9999–1.0001, i.e. about one unit in the last place. The authors' file carries 15 significant digits and the rebuilt file carries Python 3's shortest round-trip repr. The join key is `activity_id`, so each pair is the same ChEMBL activity.
+3. **`graph_pair_count`** — 9,814 in-split rows, from 69 assays. For 68 of those the molecule set, row count and `count_scratch` are identical on both sides; only the recorded edge count differs, by 1–47 pairs, almost always upward. `graph_pair_count` is parsed, stored and carried by `cyp/scripts/actfound_model_side.py` but reaches no feature, sampling, loss or training path. `count_scratch` differs on 825 rows, all outside the split, from the single remaining assay.
+
+No row, in or out of split, differs in `canonical_smiles`, `molregno`, `activity_id`, `assay_id`, `assay_chembl_id`, `standard_units`, `standard_type`, `standard_relation`, `bao_endpoint`, `bao_format` or `assay_type`.
+
+The cause of class 3 was investigated. The upstream pair rule excludes a pair when `affinity_a - affinity_b == 0` and similarity ≤ 0.7, an exact float equality on `-log10(standard_value)`. That mechanism was tested and refuted as the general cause: of the 69 affected assays, 68 have identical equal-affinity pair counts on both sides, and 5 have byte-identical `standard_value` text yet still differ in pair count. With molecules, SMILES, values and relations identical in those 5, the only remaining input is the Morgan-fingerprint Tanimoto similarity and its 0.3 candidate gate and 0.7 exclusion threshold. The difference therefore arises inside the fingerprint/similarity computation, consistent with the authors' released file having been produced by a different RDKit build from the pinned RDKit 2023.03.1. This attribution is by elimination; similarity values were not measured directly.
+
+Byte-level identity with the authors' file is therefore not achievable from the pinned environment, and this amendment does not pursue it.
+
+### Change
+
+Amendment 1's **Qualification gate** keeps its structure — exact comparison, no tolerance, no normalization, a missing or mismatched split input fails closed, in-split differences fail the gate, outside-split differences are reported and do not block, and firewall mode still refuses to run without a PASS reproduction manifest — with the comparison scope stated as follows.
+
+1. **Compared exactly, no tolerance:** `activity_id`, `assay_id`, `assay_chembl_id`, `molregno`, `bao_endpoint`, `bao_format`, `assay_type`, `standard_relation`, `standard_units`, `standard_type`, `canonical_smiles`, the assay key, assay membership, and per assay the retained molecule set and the retained count `count_scratch`. Any in-split difference in any of these fails the gate.
+
+2. **`standard_value` is compared at 15 significant figures**, the precision the authors' released file carries. A reference cannot be required to agree beyond the precision it records; this is a declared comparison rule, not a tolerance applied to a disagreement. Any in-split difference remaining at that precision fails the gate.
+
+3. **`record_id_unused` is declared non-comparable**, on the grounds in Reason 1: the project deliberately stores ChEMBL `record_id` in a column upstream does not consume. Its differences are counted and reported in the manifest, and never block.
+
+4. **`graph_pair_count` is declared non-comparable** as recorded metadata, on the grounds in Reason 3. Its differences are counted and reported per assay in the manifest, and never block. This exemption covers the recorded count only: if the retained molecule set or `count_scratch` of any in-split assay differs, the gate still fails under item 1.
+
+5. The manifest records, for every run, the counts under items 3 and 4 and the list of assays affected, so that an exempted difference is always visible in the artifact rather than silently absent.
+
+### Accepted consequences, recorded
+
+- The firewalled corpus built under this gate is **not** byte-identical to the authors' released file, and is not claimed to be.
+- 436 in-split rows carry `standard_value` differing by about one unit in the last place. These propagate into `pIC50 = -log10(value)` at roughly 1e-16 relative. This is nonzero, not nil.
+- 69 assays carry a different `graph_pair_count`. For 68 the retained data is identical; the 69th is `CHEMBL4651403_nM_IC50`, which differs in membership (authors 825 molecules, rebuilt 826) and `count_scratch`, and is in no upstream split, so it is reported and does not block.
+- The corpus is defined as the output of the pinned route-C pipeline, agreeing with the authors' released file on every training-defining field under the comparison above.
+
+Everything else in D013 and D013 Amendment 1 is unchanged, including the full Standard InChIKey identity rule and the conservative largest-fragment pretraining exclusion.
+

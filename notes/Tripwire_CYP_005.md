@@ -2074,7 +2074,7 @@ Miles, 2026-11-15:
 - This settles the scope question left open in §39.
 - "The 180" are the largest_fragment_full near-matches from the §39 B impact count: development 140, internal_test 40, blinded 0, none already on the 337-molregno full-key firewall.
 - Identity rule: full Standard InChIKey stays the identity rule. The 180 are added as a conservative pretraining exclusion, not as identity matches. The §38 instruction "Don't widen the identity rule yet" is not contradicted: the identity rule is unchanged; the exclusion is widened.
-- Before this decision, the assistant compared the options. It noted that ActFound featurizes the whole SMILES with a Morgan count fingerprint and does no salt stripping (`external/ActFound/dataset/data_base.py:93`), so a salt form gives a near-duplicate input. It recommended exclusion on the training side only. Miles's decision goes further: the exclusion also applies to the pretraining validation data (the 3 validation-kept rows from §39 B).
+- Before this decision, the assistant compared the options. It noted that ActFound featurizes the whole SMILES with a Morgan count fingerprint and does no salt stripping (`external/ActFound/dataset/data_base.py:93`), so a salt form gives a near-duplicate input. It reported the validation-kept rows in the §39 B impact count, and recommended the exclusion on the training side. Miles's decision goes further: the exclusion also applies to the pretraining validation data (the 3 validation-kept rows from §39 B).
 
 ### C. Still open
 
@@ -2094,6 +2094,23 @@ Miles, 2026-11-15:
 - D013 and its gates: unchanged.
 
 Work stopped at: Miles decided the exclusion scope. Next, pending Miles: implementation of the firewall list v2, corpus manifest and acceptance check; Amendment 1 wording; the reproduction-manifest requirement; and authorization of the CoreHPC upload, tests and reproduction run.
+
+### Correction (2026-11-15)
+
+One sentence in B was corrected on 2026-11-15 on Miles's explicit approval. Question asked: "Correct the §40 sentence about my earlier recommendation?" Miles, 2026-11-15: "Yes, correct it".
+
+- Old sentence: "It recommended exclusion on the training side only."
+- New sentence: "It reported the validation-kept rows in the §39 B impact count, and recommended the exclusion on the training side."
+
+Reason: the original wording implied the assistant had overlooked the pretraining validation rows. §39 B shows it had counted and reported them: for development, "validation kept 3, validation relation_not_eq 1" rows and "In validation-kept rows: development 3" molecules. internal_test has no validation rows among the 180 largest-fragment matches; §39 B records train rows only for it ("train kept 98, train relation_not_eq 3").
+
+Second correction (2026-11-15, Miles's explicit approval, verbatim: "just fix it"): the figure originally written in this subsection also claimed "internal_test validation-kept 3 molecules / 3 rows". That figure is real but belongs to §31, the 337-molregno full-key firewall set, not to §39 B's 180 largest-fragment set; the main conversation conflated the two sets when briefing the bookkeeper. The bookkeeper flagged the discrepancy rather than accepting it, and the figure has now been corrected above; the conflict paragraph previously recorded here is removed because the conflict no longer exists.
+
+Recoverability: the fork session's original message is not recoverable. The assistant recommended deleting the fork and Miles deleted it, so the corrected wording was inferred from the current records rather than quoted from the original exchange. This is recorded explicitly as an inference.
+
+Basis for the inference: Miles's own verbatim decision in A ("Apply the exclusion to the pretraining validation data too... Don't leave the three validation rows just because they don't update weights") shows the recommendation he was extending covered the training side; §39 B shows the validation rows had been reported.
+
+Nothing else in §40 was changed by this correction.
 
 ---
 
@@ -2413,3 +2430,318 @@ Miles ran the assistant-provided `sbatch` command himself. Slurm job **3073155**
 - Still open: the proposed §40 sentence correction, which Miles has not answered. It is not applied; §40 is unchanged.
 
 Work stopped at: reproduction job 3073155 submitted on CoreHPC, with no result yet. Pending: the `sacct` state, exit code, runtime and outputs of 3073155; and from Miles, the proposed §40 sentence correction.
+
+---
+
+## 46. Miles's Working-Practice Instruction: No Retrospective Amending or Logging of Decisions and Session Progress (2026-11-15)
+
+Sources: Miles's reply in the main conversation [Miles 2026-11-15]. Thread and session (Tripwire CYP, Session 005) as identified by the main conversation ("Yes, log to 005").
+
+This entry records a working-practice instruction. It is not a D-entry, carries no D-number, and does not change D013 or D013 Amendment 1. `notes/Decisions.md` is unchanged by this entry. This is not a session advance.
+
+### A. Instruction (verbatim)
+
+Miles, 2026-11-15, in full as given, after the assistant reported it could not find the fork's original wording:
+
+> "You told me to delete the fork earlier which is why you and I cannot find the exact wording. infer wording from the current work, for future reference we cannot be amending/logging decisions or session progress retrospectively like this"
+
+The operative instruction within it:
+
+> "for future reference we cannot be amending/logging decisions or session progress retrospectively like this"
+
+### B. What it requires (the assistant's reading, not Miles's words)
+
+- Decisions and session progress are to be recorded at the time they happen, from the actual exchange.
+- Records are not to be reconstructed, inferred or amended after the fact.
+- The §40 Correction (2026-11-15) above was the last such retrospective edit, and was made under Miles's explicit approval ("Yes, correct it").
+
+### C. Scope
+
+- Not a D-entry. D013 and D013 Amendment 1 are unchanged by this instruction.
+
+### D. Contributing cause
+
+The fork session `local_a2da1db5-40ca-4e93-9733-19876e392d12` was deleted on the assistant's recommendation. That destroyed the primary evidence for §40's characterization of the assistant's earlier recommendation, which is why the corrected wording in §40 had to be inferred rather than quoted.
+
+### Status (as of 2026-11-15)
+
+- Working practice: record decisions and session progress at the time they happen; no retrospective amendment or logging.
+- §40 Correction: applied under Miles's explicit approval; recorded as the last retrospective edit.
+- D013, D013 Amendment 1 and their gates: unchanged.
+- Reproduction job 3073155: result still UNKNOWN (§45 F).
+
+Work stopped at: the instruction recorded. Pending: the `sacct` state, exit code, runtime and outputs of 3073155.
+
+---
+
+## 47. D013 Reproduction Job 3073155: Gate FAILED (Exit 3, In-Split Differences) (2026-11-15)
+
+Sources: `sacct`, directory listing and `.out` tail reported by Miles in the main conversation [Miles 2026-11-15]. Miles submitted and monitored the job himself; the full pre-submission record is in §45. Thread and session (Tripwire CYP, Session 005) as identified by the main conversation ("Yes, log to 005").
+
+This is a routine factual results entry. It is not a decision, carries no D-number, and is not a session advance. `notes/Decisions.md` is unchanged by this entry.
+
+All evidence is on CoreHPC (`chpc-ucsf-login-vm1`), not in this local checkout. The reproduction gate **FAILED**. This is the gate's designed behaviour under D013 Amendment 1, not a crash.
+
+### A. Slurm accounting
+
+As reported by Miles from `sacct` at 2026-11-15 11:20:01 on `chpc-ucsf-login-vm1`:
+
+```text
+           JobID      State ExitCode    Elapsed     MaxRSS     NodeList
+         3073155     FAILED      3:0   00:13:19                gcpu2-07
+   3073155.batch     FAILED      3:0   00:13:19   3594516K     gcpu2-07
+  3073155.extern  COMPLETED      0:0   00:13:19                gcpu2-07
+```
+
+- Exit code `3` = in-split differences found; outputs kept; stop for review (D013 Amendment 1; §45 E).
+- Elapsed 13 min 19 s. `MaxRSS` 3,594,516K (about 3.4 GiB) against the 64 GB requested; the request was an assistant estimate, and about 8 GB would have sufficed.
+- Earlier progress observed at 11:14: RUNNING, 8 min 27 s, graph stage at 30,000 of about 47,324 assays, roughly 74 assays/s.
+
+### B. Outputs (CoreHPC)
+
+`/scratch/user/mhuang8/actfound/chembl32/d013_reproduction_20261115`, sizes in bytes as listed 11:18:
+
+| File | Size (bytes) |
+|---|---:|
+| `corpus_manifest.json` | 2,494 |
+| `graph_stage_summary.json` | 779 |
+| `graph_stage_summary.json.SHA256SUMS.txt` | 181 |
+| `pregraph_authors_assays_filtered.tsv` | 312,999,960 (written 11:06) |
+| `reproduction_corpus.tsv` | 344,268,346 |
+| `reproduction_differences.tsv` | 143,250,904 |
+| `SHA256SUMS.txt` | 363 |
+
+Their SHA-256 values have **not** been reported and are NOT recorded here.
+
+### C. Comparison counters
+
+From the tail of `/scratch/user/mhuang8/d013_repro_3073155.out`, verbatim as far as reported:
+
+```text
+      "field_mismatch": 1525375
+    },
+    "outside_split": {
+      "extra_in_rebuilt": 1,
+      "field_mismatch": 434023
+    },
+    "split_ids_absent_from_authors_file": 0,
+    "split_ids_absent_from_rebuilt_corpus": 0
+```
+
+- The `1,525,375` figure is the **in_split** `field_mismatch` count; the enclosing `"in_split"` key was above the visible tail.
+- The rest of the in_split counter, including `identical_rows` and any `missing_in_rebuilt` / `extra_in_rebuilt` / `assay_key_mismatch` entries, was NOT visible and is **UNKNOWN**.
+- The manifest's own gate / `blocking_differences` fields were not reported.
+
+### D. Assistant interpretation (assistant analysis, not a finding or decision)
+
+- No split IDs are absent from either the authors' file or the rebuilt corpus, and no in-split missing or extra rows appear in the visible tail, so the assay and row **structure** appears to reproduce; what differs is field **values**.
+- 1,525,375 in-split field mismatches is of the same order as the total number of in-split rows (the authors' file has 1,959,398 rows across 47,324 assays, of which 33,296 assays are the train split and 500 the valid split), so the difference looks systematic and per-row rather than confined to a few assays.
+- This refutes, as run, route C's premise that the rebuilt pre-graph population plus the unchanged graph-stage code reproduces the authors' released file field for field. §36 D had established agreement of the **molecule sets** in 47,323 of 47,324 assays only, and explicitly did not establish field-level agreement; that is what this gate tested.
+- Which field or fields differ is NOT established: `reproduction_differences.tsv` records only a difference "kind" per row (from a whole-row digest), not the differing column.
+- Candidate causes have NOT been tested and are not asserted here.
+
+### Status (as of 2026-11-15)
+
+- Reproduction gate: **FAILED** (exit 3). Under D013 Amendment 1 the matter returns to Miles.
+- No firewalled corpus may be built from this run: firewall mode refuses to run without a PASS reproduction manifest.
+- Nothing has been fixed, normalized, rerun or deleted; no tolerance has been introduced.
+- Corpus build, benchmark and training: still unauthorized.
+- D013 and D013 Amendment 1: unchanged.
+
+Work stopped at: reproduction job 3073155 complete with exit 3 and its outputs kept on CoreHPC, returned to Miles for review. Pending: the full in_split counter block and the manifest gate fields; identification of which field(s) differ; Miles's decision on how to proceed.
+
+---
+
+## 48. Field-Level Diagnostic of the 3073155 Differences: `record_id_unused` Dominates, With an In-Split Residue (2026-11-15)
+
+Sources: two read-only probes run by the assistant in the main conversation on Miles's instruction "run the diagnostic with /diagnosing-bugs" [Miles 2026-11-15]. Thread and session (Tripwire CYP, Session 005) as identified by the main conversation ("Yes, log to 005"). This entry follows §47 and diagnoses the differences that the gate reported there.
+
+This is a routine factual results entry. It is not a decision, carries no D-number, and is not a session advance. `notes/Decisions.md` is unchanged by this entry.
+
+**Evidence location and read-only character.** The probes read the job 3073155 outputs and the authors' CSV on CoreHPC. Both probe scripts live only in the assistant's scratchpad — **not** in this local checkout and **not** on CoreHPC — and were piped over the existing shared SSH connection into the pinned environment's python via stdin. **Nothing was written, created or modified on CoreHPC**, and no file in the 3073155 output directory was altered. Files in this checkout are not evidence of what the probes read on CoreHPC.
+
+### A. Probe 1 — sample of in-split `field_mismatch` rows
+
+5,000 in-split `field_mismatch` `activity_id`s, taken in file order from `reproduction_differences.tsv`, compared field by field against the authors' CSV.
+
+- All 5,000 found in both files; all rows have 15 fields on both sides.
+- `record_id_unused` differed in **5,000 of 5,000** rows.
+- `standard_value` differed in **1** row.
+
+Examples as reported:
+
+```text
+activity_id 1000821   record_id_unused   authors '11964'    vs rebuilt '171410'
+activity_id 790736    standard_value     authors '5.0e-06'  vs rebuilt '5e-06'
+```
+
+### B. Probe 2 — whole-file classification
+
+Every row of `reproduction_corpus.tsv` compared with the authors' CSV row of the same `activity_id`, classified by the set of differing fields and by whether the row's descriptor is in the pinned upstream train+valid split (33,796 descriptors).
+
+- Authors rows indexed: **1,959,398**. Rows compared: **1,959,398**.
+
+| rows | scope | fields differing |
+|---:|---|---|
+| 1,514,961 | in_split | `record_id_unused` |
+| 424,141 | outside | `record_id_unused` |
+| 9,814 | in_split | `record_id_unused` + `graph_pair_count` |
+| 8,854 | outside | `record_id_unused` + `graph_pair_count` |
+| 825 | outside | `record_id_unused` + `count_scratch` + `graph_pair_count` |
+| 600 | in_split | `record_id_unused` + `standard_value` |
+| 203 | outside | `record_id_unused` + `standard_value` |
+| 1 | outside | no authors row for this rebuilt row |
+
+- These reconcile **exactly** with the gate's own counters recorded in §47 C: in_split 1,514,961 + 9,814 + 600 = **1,525,375**; outside 424,141 + 8,854 + 825 + 203 = **434,023**, plus the **1** `extra_in_rebuilt`.
+- **No** row differs in `canonical_smiles`, `molregno`, `assay_id`, `assay_chembl_id`, `standard_units`, `standard_type`, `standard_relation`, `bao_endpoint`, `bao_format`, `assay_type` or `activity_id`, in or out of split.
+- `standard_value` differences under float comparison: in_split **164 float-equal** (formatting only) and **436 numerically different**; outside **86 float-equal** and **117 numerically different**.
+
+Example rows as reported:
+
+```text
+in_split  activity_id 1239433   record_id_unused   authors '6592'   vs rebuilt '315840'
+outside   activity_id 646184    record_id_unused   authors '3455'   vs rebuilt '212191'
+```
+
+### C. Assistant analysis (assistant analysis, not a finding or decision; untested hypotheses)
+
+1. `record_id_unused` accounts for 100% of mismatching rows. `cyp/scripts/actfound_chembl32_projection.py` documents this column in its header comment as "Column 2 is not consumed by pinned preprocessing/runtime code. We preserve ChEMBL `record_id` there as provenance." So the project deliberately stores a different value there from the authors' released file. Whether upstream's column 2 holds a different ChEMBL identifier has **NOT** been checked against the upstream SQL.
+2. `graph_pair_count` differs on 9,814 in-split rows (about 0.64% of in-split rows). This is **not** an inert column: it is the pair count from graph construction, so it reflects a genuine difference in the graph stage for those assays. Cause not established.
+3. `standard_value` differs numerically (not merely in formatting) on 436 in-split rows. This is a scientifically meaningful difference in the activity value. Cause not established.
+4. `count_scratch` differs on 825 rows, all outside the split; `count_scratch` is the retained assay size, consistent with the `graph_pair_count` differences in those assays.
+5. Overall: the dominant cause is a provenance column the project's own code documents as unused by upstream, but there is a real residue of 9,814 + 600 in-split rows (436 of them numerically different activity values) that is **not** explained by that column.
+
+### Status (as of 2026-11-15)
+
+- Reproduction gate: still **FAILED**. Nothing has been fixed, normalized, rerun or deleted, and no tolerance has been introduced.
+- Under D013 Amendment 1 the matter stays with Miles.
+- Corpus build, benchmark and training: still unauthorized.
+- D013 and D013 Amendment 1: unchanged.
+
+Work stopped at: the differing fields are now identified and reconciled against the gate's counters. Pending: whether upstream's column 2 holds a different identifier (not checked against the upstream SQL); the cause of the 9,814 in-split `graph_pair_count` differences and the 436 numerically different in-split `standard_value` rows; Miles's decision on how to proceed.
+
+---
+
+## 49. Residue Diagnosis: `standard_value` Resolved as Float Formatting, `graph_pair_count` Per-Assay Comparison, and Its Use in Training (2026-11-15)
+
+Sources: two read-only probes run by the assistant in the main conversation after Miles approved starting with the `standard_value` residue ("Yes, start there") [Miles 2026-11-15], plus one local grep of this checkout. Thread and session (Tripwire CYP, Session 005) as identified by the main conversation ("Yes, log to 005"). This entry follows §48 and diagnoses the in-split residue recorded there.
+
+This is a routine factual results entry. It is not a decision, carries no D-number, and is not a session advance. `notes/Decisions.md` is unchanged by this entry.
+
+**Evidence location and read-only character.** Both probe scripts live only in the assistant's scratchpad — **not** in this local checkout and **not** on CoreHPC — and were piped over the existing shared SSH connection into the pinned environment's python via stdin. **Nothing was written, created or modified on CoreHPC**, and no file in the 3073155 output directory was altered. The third check (C) was a local grep of this checkout only; files in this checkout are not evidence of what the CoreHPC job loaded or produced.
+
+### A. `standard_value` residue — RESOLVED as a float formatting difference
+
+- 803 rows differ in `standard_value` in total: **in_split** 164 float-equal plus 436 numerically different; **outside** 86 float-equal plus 117 numerically different.
+- Every one of the 436 in-split and 117 outside "numerically different" rows has an authors/rebuilt ratio in the band **0.9999–1.0001**, i.e. all **553** fall in the "~1x (precision)" bucket. None falls in a 10x, 0.1x, 1000x or 0.001x bucket, and none is unparsable.
+
+Verbatim examples (in_split, assay `CHEMBL641405`, nM Ki):
+
+```text
+authors 2.08929613085404e+15   vs rebuilt 2089296130854040.8
+authors 50118723362727.1       vs rebuilt 50118723362727.15
+authors 776247116628693.0      vs rebuilt 776247116628692.8
+authors 91201083935591.2       vs rebuilt 91201083935591.16
+```
+
+- Concentration: **26 distinct assays** affected. Top: in_split `CHEMBL760054` 58 rows, `CHEMBL641405` 56, `CHEMBL858015` 35, `CHEMBL857182` 32, `CHEMBL831654` 31, `CHEMBL950071` 30; outside `CHEMBL853236` 55, `CHEMBL3885882` 54.
+- Units/types: in_split nM Ki 296, nM IC50 139; outside nM Ki 55 plus small `ug.mL-1` groups.
+- **Assistant analysis (assistant analysis, not a finding or decision; untested):** the authors' values carry 15 significant digits and the rebuilt values carry Python 3's shortest round-trip `repr` (up to 17), so the two texts denote the same measurement to within about one unit in the last place; the join key is `activity_id`, so each pair is the same ChEMBL activity. The assistant's earlier hypothesis that these came from duplicate-row/dedup selection is **REFUTED**.
+
+### B. `graph_pair_count` residue — per-assay comparison
+
+- Assays: authors **47,324**; rebuilt **47,324**.
+- **69 assays** have a differing `graph_pair_count`. Of these, **68** have an **identical** molecule set, identical row count and identical `count_scratch`; exactly **1** differs in all three.
+
+Verbatim examples:
+
+```text
+1797040_nM_EC50   authors 156 vs rebuilt 158   (20 rows, count_scratch 20, same molecules)
+1912210_nM_IC50   authors 182 vs rebuilt 184   (20/20)
+614434_nM_IC50    authors 117 vs rebuilt 116   (20/20)
+1506251_nM_EC50   authors 228 vs rebuilt 229   (22 rows)
+```
+
+- Differences run in **both directions** and are **1–2 pairs** in magnitude.
+- The single assay with a differing molecule set is consistent with the previously recorded `CHEMBL4651403_nM_IC50` (authors 825 molecules, rebuilt 826, in no upstream split), which also accounts for the 825 `count_scratch` differences recorded outside the split (§48 B).
+- **Assistant analysis (assistant analysis, not a finding or decision; untested):** for the 68 assays the retained molecule set and retained count are identical on both sides, so assay eligibility and the retained rows agree; only the recorded edge/pair count differs, which means graph construction produced a slightly different edge set on identical input. A candidate cause is borderline similarity values at the upstream pair-eligibility threshold differing between RDKit builds. This has **NOT** been tested.
+
+**Annotation (2026-11-15, added on Miles's explicit approval, verbatim: "Annotate it").** The characterisation above that the differences "run in **both directions** and are **1–2 pairs** in magnitude" is **inaccurate** and is corrected by §50 A. It was written by the assistant from only the four examples visible before the probe output was truncated. The deltas actually range from **1 to 47 pairs** and are **almost entirely upward** (the rebuilt corpus retaining **more** pairs) — for example `1637324_nM_IC50` authors 194327 vs rebuilt 194372 (+45) and `1622851_nM_IC50` authors 4449 vs rebuilt 4471 (+22). `614434_nM_IC50` (117 vs 116) is the only downward case recorded. The original sentence is left as written; this annotation supersedes it.
+
+### C. Use of `graph_pair_count` in training — local grep of this checkout
+
+Files grepped in this local checkout: `cyp/scripts/actfound_model_side.py`, `cyp/scripts/actfound_production_train.py`, `cyp/scripts/actfound_production_train_v2.py`.
+
+- `graph_pair_count` appears only as a column name, a dataclass field, in copy/store operations and in parsing (`actfound_model_side.py` lines 41, 51, 61, 90, 108, 129, 228, 237, 242). It does **not** reach feature construction, episode sampling, the loss or any training path.
+- On this evidence it is **carried metadata**.
+
+### D. Reconciled account of all 1,959,398 compared rows (assistant analysis, not a finding or decision)
+
+- `record_id_unused` differs on **100%** of mismatching rows (1,525,375 in-split): a provenance column whose own projection-script comment states it is not consumed by pinned preprocessing/runtime code.
+- `standard_value`: **600** in-split rows, all representational (A).
+- `graph_pair_count`: **9,814** in-split rows from the 69 assays in B; metadata only per C.
+- `count_scratch`: **825** rows, all outside the split, from the single differing-membership assay.
+- No row, in or out of split, differs in `canonical_smiles`, `molregno`, `assay_id`, `assay_chembl_id`, `standard_units`, `standard_type`, `standard_relation`, `bao_endpoint`, `bao_format`, `assay_type` or `activity_id`.
+- Therefore, on this evidence, **no in-split difference was found in any field ActFound trains on**, beyond `standard_value` differences of about one unit in the last place, which propagate into `pIC50 = -log10(value)` at roughly `1e-16` relative. That is **nonzero, not nil**.
+
+### Status (as of 2026-11-15)
+
+- Reproduction gate: still **FAILED**. D013 Amendment 1 unchanged.
+- Nothing has been fixed, normalized, rerun or deleted; no tolerance has been introduced; the differences stand as recorded.
+- Any decision to accept this reproduction, or to change the gate, is Miles's and would require amending a recorded decision.
+- Corpus build, benchmark and training: still unauthorized.
+
+Work stopped at: the `standard_value` residue resolved as float formatting; the `graph_pair_count` residue characterized per assay and shown not to reach any training path in this checkout. Pending: the cause of the 68-assay `graph_pair_count` edge-set difference (RDKit-build hypothesis untested); Miles's decision on how to proceed.
+
+---
+
+## 50. `graph_pair_count` Cause Investigation (Option C): Exact-Equality Mechanism REFUTED, and Miles's Approval of D013 Amendment 2 (2026-11-15)
+
+Sources: read-only probes run by the assistant in the main conversation on Miles's decision "lets go ahead with C, then A" [Miles 2026-11-15], authorising first the cause investigation (option C) and then the gate-scope amendment (option A); then Miles's approval "Approve it" [Miles 2026-11-15] answering the question "Approve the Amendment 2 wording for recording?". Thread and session (Tripwire CYP, Session 005) as identified by the main conversation ("Yes, log to 005"). This entry follows §49.
+
+This is a routine factual results entry plus the record of an approval Miles gave. The approved amendment itself is recorded in `notes/Decisions.md` (see B).
+
+**Evidence location and read-only character.** The probe scripts live only in the assistant's scratchpad — **not** in this local checkout and **not** on CoreHPC — and were piped over the existing shared SSH connection into the pinned environment's python via stdin. **Nothing was written, created or modified on CoreHPC.** Code facts cited below are from this local checkout; files in this checkout are not evidence of what the CoreHPC job loaded or produced.
+
+### A. Cause investigation of the `graph_pair_count` residue (option C)
+
+**The upstream pair rule (local code fact).** `cyp/scripts/actfound_chembl32_projection.py`, `actfound_pair_allowed`, lines 419–442: a pair is excluded when `affinity_a - affinity_b == 0` and similarity ≤ 0.7 — an exact float equality on `-log10(standard_value)`. `construct_graph_exact_actfound` in the same file uses Morgan fingerprints at radius 2, 1024 bits, with chirality, and a Tanimoto candidate gate of ≥ 0.3.
+
+**Hypothesis tested (assistant's).** That a one-unit-in-the-last-place difference in `standard_value` flips that exact equality and so changes the retained pair count.
+
+**Result: REFUTED as the general cause.**
+
+- Of the **69** assays whose `graph_pair_count` differs, **68** have an **identical** equal-affinity pair count on both sides; only **1** differs.
+- Decisive additional evidence: **5 of the 69** assays have **byte-identical `standard_value` text** on both sides and still differ in `graph_pair_count`.
+
+**Direction of the deltas.** Almost entirely positive — the rebuilt corpus retains **more** pairs. Verbatim examples:
+
+```text
+1622851_nM_IC50   authors 4449   vs rebuilt 4471
+1637324_nM_IC50   authors 194327 vs rebuilt 194372
+1797040_nM_EC50   authors 156    vs rebuilt 158
+1327501_nM_IC50   authors 275    vs rebuilt 276   (identical standard_value text)
+614434_nM_IC50    authors 117    vs rebuilt 116   (the one previously recorded downward case)
+```
+
+**Unresolved conflict with §49 B.** §49 B recorded, from the earlier probe, that the differences "run in **both directions** and are **1–2 pairs** in magnitude". This probe reports deltas that are almost entirely positive and as large as 45 (1637324_nM_IC50: 194327 vs 194372; the Amendment 2 text states 1–47). Both claims are preserved as reported, with their sources and times; the discrepancy is **not resolved here**. §49 is unchanged. *Later (2026-11-15):* the conflict was **resolved** by annotating §49 B on Miles's explicit approval ("Annotate it"); §50 A's figures are the correct ones.
+
+**Assistant conclusion — reached BY ELIMINATION, not by direct measurement (assistant analysis, not a finding or decision).** In those 5 assays the molecules, canonical SMILES, `standard_value` text and `standard_relation` are identical, so the only remaining input to the pair decision is the Morgan-fingerprint Tanimoto similarity with its 0.3 candidate gate and 0.7 exclusion threshold. The difference therefore arises inside the fingerprint/similarity computation, consistent with the authors' released file having been generated by a different RDKit build from the pinned RDKit 2023.03.1 (their file is dated 2023-03-10). **Similarity values were NOT measured directly**; a probe recomputing fingerprints and counting pairs near the thresholds was offered and **not run**.
+
+**Consequence recorded.** Byte-level identity with the authors' released file is not achievable from the pinned environment. The previously discussed option of changing the projection to emit upstream's column 2 and 15-significant-figure floats and rebuilding (option B) was therefore ruled out **on this evidence**, not merely on cost.
+
+### B. Miles's approval of D013 Amendment 2, and the record written
+
+- Approval (verbatim): **"Approve it"**, answering the question "Approve the Amendment 2 wording for recording?" [Miles 2026-11-15]. Preceded by his decision "lets go ahead with C, then A" [Miles 2026-11-15].
+- D013 Amendment 2 was written to `notes/Decisions.md` as a subsection of D013, heading **`## D013 Amendment 2 — Scope of the reproduction-gate comparison (2026-11-15)`**, lines **6300–6341**, appended after D013 Amendment 1. Its status line reads: `**Status:** Approved (2026-11-15). Recorded on Miles's approval: "Approve it".`
+- The amendment changes **only the gate's comparison scope**. It states: "This amendment does not authorize the corpus build, the benchmark or training."
+- The gate for job **3073155 itself remains FAILED as recorded** in §47 and §49. **No manifest has been regenerated and nothing has been rerun.**
+
+### Status (as of 2026-11-15)
+
+- D013 Amendment 2: **recorded and Approved**.
+- Still to do: regenerate a reproduction manifest under the amended comparison scope (**not yet run**), then the firewalled corpus build.
+- Corpus build, benchmark and training: still **unauthorized**.
+- D013 and D013 Amendment 1: otherwise **unchanged**.
+
+Work stopped at: Amendment 2 recorded in `notes/Decisions.md`; no manifest regenerated, nothing rerun on CoreHPC. Pending: the manifest regeneration under the amended scope. The §49 B / §50 A magnitude-and-direction conflict is no longer pending: it was **resolved on 2026-11-15** by annotating §49 B on Miles's explicit approval ("Annotate it" for the annotation; "Close it" for closing this pending item).
