@@ -1,0 +1,28 @@
+{
+  "artifact_type": "D013_ActFound_firewall_molregno_list_v1",
+  "authority": "D013 firewall: full Standard InChIKey match to any protected OpenADMET structure",
+  "firewall_molregnos": 337,
+  "firewall_molregnos_by_tier": {
+    "blinded": 13,
+    "development": 263,
+    "internal_test": 61
+  },
+  "identity_environment": {
+    "inchi": "1.07.3",
+    "python": "3.12.14",
+    "rdkit": "2026.03.6"
+  },
+  "inputs": {
+    "audit_sha256": "c0881d8f5e2e193b9e87479045934ca41c133d92f92ff3d453b5c28c8e2e9d3b",
+    "export_molecules_sha256": "e7f756f7f4396e0286affdc156965e8afbef8e4003155cd62448d6ded4ff2904",
+    "full_run_sha256sums": "4e67993f84b4530c41b40df4ec0bde4c5e2a5820d2b9c62120bd90a15199c9c6  molecule_identities.tsv\ne5a307fb37db676564b111fd8b2ffa7102ccd734186ab59b3fe376a88ed55245  failures.tsv\naeb3983015b53bb183324a9c0d738c27077a7c5226bd76711d05a9ea95d8a340  summary.json\n",
+    "script_sha256": "b1280e093632877309403aeb3403b090c5825a0cc0d5a20ea50dce6b5954f401"
+  },
+  "molregnos_considered": 1076934,
+  "near_matches_not_removed_by_kind": {
+    "first_block": 219,
+    "largest_fragment_first_block": 461,
+    "largest_fragment_full": 180
+  },
+  "protected_openadmet_structures": 5655
+}

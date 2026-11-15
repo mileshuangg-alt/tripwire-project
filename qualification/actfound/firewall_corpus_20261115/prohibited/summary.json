@@ -1,0 +1,43 @@
+{
+  "artifact_type": "D013_firewall_prohibited_molregnos_v1",
+  "authority": "D013 firewall list (full Standard InChIKey); near-match census is report-only",
+  "identity_environment": {
+    "inchi": "1.07.3",
+    "python": "3.12.14",
+    "rdkit": "2026.03.6"
+  },
+  "inputs": {
+    "audit": "qualification/cyp_external_task_qualification_20261109/identity_audit/bounded_representation_audit.tsv",
+    "audit_sha256": "c0881d8f5e2e193b9e87479045934ca41c133d92f92ff3d453b5c28c8e2e9d3b",
+    "export_sha256sums": {
+      "export_summary.json": "69022d6b83ffd9cde889037d2225d3345af80bfd7eb42d9ffc2839939904540b",
+      "membership.tsv.gz": "1ccfbc0ac9ceeba9b5260efb2a294b3791ff2f9a37c6f741d1c76c270cef8949",
+      "molecules.tsv.gz": "e7f756f7f4396e0286affdc156965e8afbef8e4003155cd62448d6ded4ff2904"
+    },
+    "overlap_run_sha256sums": {
+      "failures.tsv": "e5a307fb37db676564b111fd8b2ffa7102ccd734186ab59b3fe376a88ed55245",
+      "molecule_identities.tsv": "4e67993f84b4530c41b40df4ec0bde4c5e2a5820d2b9c62120bd90a15199c9c6",
+      "summary.json": "aeb3983015b53bb183324a9c0d738c27077a7c5226bd76711d05a9ea95d8a340"
+    },
+    "script_sha256": "9939d1ce8392a59316675694da2ccd6e38553e5880a9c6836ca8c729a0651e6e"
+  },
+  "near_match_census_report_only": {
+    "first_block|blinded|train_kept": 4,
+    "first_block|development|other": 76,
+    "first_block|development|train_kept": 106,
+    "first_block|internal_test|other": 15,
+    "first_block|internal_test|train_kept": 18,
+    "largest_frag|development|other": 64,
+    "largest_frag|development|train_kept": 79,
+    "largest_frag|internal_test|other": 13,
+    "largest_frag|internal_test|train_kept": 28
+  },
+  "openadmet_full_keys": 5655,
+  "prohibited_molregnos": 337,
+  "prohibited_molregnos_by_tier": {
+    "blinded": 13,
+    "development": 263,
+    "internal_test": 61
+  },
+  "runtime_seconds": 95.3
+}

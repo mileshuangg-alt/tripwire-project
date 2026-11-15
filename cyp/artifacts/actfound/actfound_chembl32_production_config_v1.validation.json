@@ -1,0 +1,26 @@
+{
+  "absent_counts": null,
+  "absent_train_assays": null,
+  "absent_validation_assays": null,
+  "artifact_type": "ActFoundProductionConfigValidationV1",
+  "config_path": "cyp/artifacts/actfound/actfound_chembl32_production_config_v1.json",
+  "config_sha256": "9bc3e04d0f0aac90e708877af74551ad4335fe6914eebb19467672dbb967fc05",
+  "explicit_membership_present": true,
+  "fail_closed": true,
+  "frozen_dataset_expected_sha256": "24d9fd297b735843284d82e7d31b85ccd46038f279931db8d5997fb9a096149e",
+  "frozen_dataset_path": "/scratch/user/mhuang8/actfound/chembl32/graph_production_20261113/actfound_chembl32_graph_qualified.tsv",
+  "frozen_dataset_present": false,
+  "overlap_count": 0,
+  "population_counts": null,
+  "present_counts": null,
+  "status": "failed_frozen_dataset_missing",
+  "upstream_split_counts": {
+    "test_not_used": 500,
+    "train": 33296,
+    "validation": 500
+  },
+  "upstream_split_path": "external/ActFound/datas/chembl/chembl_split.json",
+  "upstream_split_sha256": "7f3cd5988bfd3d608a8f6c120b54e19d932e0b3c026ec5e43b9798e0d2a6e3e1",
+  "validated_at_unix": 1794564944.726312,
+  "validated_on_host": "Miless-MacBook-Pro-10.local"
+}

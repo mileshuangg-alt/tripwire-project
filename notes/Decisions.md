@@ -5959,3 +5959,341 @@ Algorithmic computation may differ. Information access, protected-data access an
 Revisit D012 methodology only if duplicate materialization exposes an inconsistency in the frozen data rules, the qualified molecular-identity contract fails reproducibility, or a demonstrated incompatibility prevents use of the frozen OpenADMET evaluation framework.
 
 The D012 auxiliary population, frozen 150-cell development matrix, training seeds, T121 reuse contract, cell-specific validation firewall, and B/C transfer procedures are now preregistered. Implementation and qualification findings that do not alter these scientific rules do not reopen D012; any required methodological change returns for explicit human adjudication before production training.
+
+
+### Post-result forensic addendum — 2026-11-12
+
+#### Status and authority
+
+This addendum records post-result forensic findings discovered only after the corrected D012 production matrix had completed and the authoritative corrected aggregation had been written.
+
+These findings do not retroactively alter the preregistered D012 methodology, do not authorize post-hoc hyperparameter selection or rescue tuning, and do not convert diagnostic measurements into authoritative D012 results.
+
+The authoritative corrected D012 aggregation remains preserved separately from all post-result forensic artifacts.
+
+#### Corrected D012 production result
+
+The completed corrected D012 aggregation reported:
+
+- Arm B O150 = `0.7965659341568319`;
+- Arm C O150 = `1.0292234351463552`;
+- frozen D007 T121 O150 = `0.7012125767956957`.
+
+Across the 150 paired development cells:
+
+- `B - T121` mean = `+0.09535335736113623`;
+- `C - B` mean = `+0.23265750098952334`;
+- `C - T121` mean = `+0.3280108583506596`.
+
+Lower ST-RAE is better.
+
+T121 beat B in 150/150 cells.
+B beat C in 150/150 cells.
+T121 beat C in 150/150 cells.
+
+Authoritative corrected aggregation artifacts are under:
+
+`artifacts/d012_corrected_final_aggregation/`
+
+including:
+
+- `d012_cell_level_joined_results.tsv`
+  - SHA256 `1585acc9ac4202a192274c8418d200c000b188c6fe40215e4af162fe119fdcbb`;
+- `d012_final_aggregate_summary.json`
+  - SHA256 `3f2479f47ac794f6c357335fbc3b497a537caec6988b2973fab9a7948db03175`;
+- `d012_final_aggregation_provenance.json`
+  - SHA256 `f534471380d746a36198ad9d0fd9182e6da6383a4eb365f0a4b8b14ca5111815`;
+- `SHA256SUMS.txt`
+  - SHA256 `c136dbc03876359e54d81e23de176f7a55f287394cb40856a14149835a38ae57`.
+
+#### Newly discovered Arm C target-head dropout defect
+
+Post-result source review identified an additional Arm C implementation defect in the corrected production runner.
+
+`D012ScalarHead` contains `Dropout(0.4)`.
+
+During corrected Arm C target transfer, the implementation:
+
+1. sets `model.encoder.eval()`;
+2. creates a new `D012ScalarHead`;
+3. loads the learned `scalar_head_initialization`;
+4. performs the one-step target support adaptation;
+5. predicts the validation set.
+
+However, the target scalar head is never switched to evaluation mode with `head.eval()`.
+
+Because a newly constructed PyTorch module defaults to training mode, dropout therefore remains active during both:
+
+- the single K=1 support-side target adaptation; and
+- subsequent target-validation prediction.
+
+This defect is distinct from the previously corrected Arm C defect in which all scalar-head parameters rather than only the selected output weight and bias were inner-adapted.
+
+The newly discovered dropout defect affects only the target-transfer operation downstream of the preserved `arm_c_auxiliary_final.pt` checkpoint. It does not invalidate or require repetition of the completed 50-epoch auxiliary meta-training.
+
+#### Deterministic K0/K1 forensic diagnostic
+
+A post-result diagnostic was performed on corrected Arm C cell:
+
+`rep_01_fold_01 / seed 20261102`.
+
+The diagnostic loaded the preserved auxiliary-final checkpoint and reproduced the frozen target split, training-only scaler, frozen encoder, learned scalar-head initialization, selected-output-only adaptation semantics, inner LR `0.01`, K=1, and ST-RAE evaluation.
+
+For this diagnostic only, target scalar heads were explicitly placed in evaluation mode before target inference/adaptation so dropout was disabled.
+
+Results:
+
+| Endpoint | K0 | deterministic K1 | K1 - K0 |
+| --- | ---: | ---: | ---: |
+| CYP1A2 | 11.347081 | 1.058554 | -10.288527 |
+| CYP2C9 | 12.780207 | 1.058281 | -11.721927 |
+| CYP2D6 | 13.117417 | 1.135048 | -11.982369 |
+| CYP3A4 | 10.310272 | 0.925368 | -9.384904 |
+| Macro | 11.888744 | 1.044312 | -10.844432 |
+
+This establishes for this diagnostic cell that the frozen K=1 adaptation operator produces a very large improvement over the unadapted meta-initialization.
+
+It therefore does not support the explanation that Arm C failed simply because its single adaptation step was ineffective.
+
+The deterministic K1 result nevertheless remained substantially worse than the matched target-only T121 result and the matched conventional-transfer B result.
+
+K0 is a forensic counterfactual and has no D012 selection or performance authority.
+
+#### Partial dropout-disabled matrix diagnostic
+
+A broader post-result diagnostic began applying the same dropout-disabled deterministic K=1 target-transfer operation to the 150 preserved corrected Arm C auxiliary-final checkpoints.
+
+The diagnostic was intentionally stopped after 59 cells because the observed pattern had already answered the forensic question and continuation was not required for D012 authority.
+
+Among the first 59 cells:
+
+- 58/59 had lower deterministic K1 ST-RAE after dropout was disabled than in corrected production;
+- 1/59 was worse;
+- observed improvements were generally modest relative to the authoritative C-versus-B and C-versus-T121 deficits;
+- deterministic C scores in the observed subset remained approximately in the same poor performance regime as corrected production.
+
+Examples include:
+
+- `rep_01_fold_01 / seed 20261102`: production `1.060972`, deterministic `1.044312`, delta `-0.016660`;
+- `rep_01_fold_04 / seed 20261102`: production `1.063418`, deterministic `1.018014`, delta `-0.045404`;
+- `rep_02_fold_06 / seed 20261101`: production `0.984902`, deterministic `0.936706`, delta `-0.048196`;
+- `rep_02_fold_09 / seed 20261103`: production `1.063429`, deterministic `1.068793`, delta `+0.005364`.
+
+Because this matrix diagnostic was stopped before completion, it is descriptive forensic evidence only. No O150, 150-cell win count, or replacement D012 result is inferred from it.
+
+The diagnostic working location is:
+
+`artifacts/d012_postresult_dropout_diagnostic/`
+
+Any artifacts present there must remain explicitly labeled post-result forensic diagnostics and must not overwrite the authoritative corrected D012 aggregation.
+
+#### Forensic interpretation
+
+The evidence supports the following bounded interpretation.
+
+1. Corrected Arm C contains a genuine target-transfer implementation defect: dropout remained active in the target scalar head during the one-step adaptation and validation prediction.
+
+2. The available post-result diagnostic evidence indicates that disabling dropout generally improves Arm C, so the defect was directionally harmful.
+
+3. The observed magnitude of that improvement in the partial diagnostic is far smaller than the authoritative corrected Arm C deficit relative to B and T121. The dropout defect therefore does not presently explain the large D012 Arm C negative-transfer result.
+
+4. In the representative deterministic K0/K1 diagnostic, the K=1 target update improved macro ST-RAE from `11.888744` to `1.044312`. The evidence therefore does not support characterizing the one-step adaptation operator as simply nonfunctional.
+
+5. The remaining evidence is consistent with poor transfer of the assay-episodically trained representation to the frozen OpenADMET molecular validation problem. This is a mechanistic hypothesis, not an isolated causal conclusion, because D012 is a whole-method comparison and did not independently vary representation learning, episode construction, adaptation depth, or target fine-tuning opportunity.
+
+6. Conventional Arm B also performed worse than target-only T121, establishing negative transfer from the qualified auxiliary evidence under the tested conventional-transfer procedure as well. Arm C showed substantially larger negative transfer under its tested procedure.
+
+No claim is made that meta-learning in general fails, that ANIL in general fails, or that one-step adaptation in general is inadequate.
+
+#### Disposition
+
+Do not delete or overwrite:
+
+- authoritative corrected D012 production artifacts;
+- preserved Arm C `arm_c_auxiliary_final.pt` checkpoints;
+- post-result forensic diagnostic artifacts;
+- terminal/session evidence associated with the partial 59-cell diagnostic.
+
+Do not resume the remaining dropout diagnostic cells merely to create a replacement D012 O150 unless a separately approved decision identifies a scientific question whose answer requires the complete matrix.
+
+Do not tune K, inner LR, architecture, episode construction, dropout probability, or target fine-tuning post hoc under D012.
+
+Any follow-up meta-learning experiment is a new prospective study and requires its own literature-backed alternatives pass and preregistration.
+
+### Governing principle
+
+D012 remains a preregistered whole-method comparison. Post-result forensic analysis may identify defects, characterize failure modes and constrain future hypotheses, but it may not silently transform the completed study into a post-hoc optimization exercise.
+
+### Revisit when
+
+Revisit this addendum only if:
+
+- a preserved artifact contradicts the recorded dropout-state behavior;
+- a separately approved complete deterministic target-transfer reconstruction is required for a defined scientific purpose;
+- or a new prospective transfer/meta-learning study is proposed and needs D012 forensic evidence as its starting rationale.
+
+# D013 — ActFound-CYP Whole-Package Study on a Firewalled ChEMBL32 Foundation Corpus
+
+**Decision date:** 2026-11-15
+
+**Status:** Approved design; foundation corpus, retraining and evaluation not yet executed
+
+## Decision and scope
+
+Approve a prospective ActFound-CYP whole-package study:
+
+ActFound architecture + firewalled ActFound ChEMBL32 corpus → frozen foundation checkpoint → upstream ActFound target adaptation on each frozen D007 cell → identical D007 150-cell development evaluation → frozen T121 comparator.
+
+Because both the architecture and the pretraining corpus differ from T121, any result is a whole-package result. No claim is made that pairwise learning, corpus size, meta-learning or any other component individually caused it.
+
+This decision covers the study design, the foundation-corpus firewall, and the disposition of ActFound job 3066823. It does **not** by itself authorize production training or the 150-cell evaluation; each still requires the qualification, interactive benchmark and runtime extrapolation below, and Miles's go-ahead.
+
+## Provenance and authority
+
+The study design originates in a Nov 12, 2026 exchange (source: `Downloads/actfound_nov12_contract_source-1.md`):
+
+- 3:18 PM: a GPT-authored detailed proposal, pasted by Miles.
+- 3:19 PM: an assistant-written five-point summary.
+- 3:21 PM: Miles: "Makes sense. Going to proceed with pinning the act found source candidate." That reply approved source pinning only.
+
+The proposal was not recorded as a decision at the time. On 2026-11-15 Miles restated it as the intended study and, after the overlap audit (Session 005 §31), chose to retrain on a firewalled corpus ("A") and approved the firewall choices below ("Approve, draft D013"). This record is the first governing statement of the study; its authority is that 2026-11-15 approval.
+
+D012 remains background only. It is not this study's arm definition. D012's post-result addendum requires a follow-up meta-learning study to be prospective and preregistered; this record is that preregistration. The architecture selection ("ActFound is selected") is not reopened here. A record of the literature-backed alternatives pass behind that selection is not in the accessible records.
+
+## Scientific question
+
+On the identical frozen D007 molecule-level development matrix, does the ActFound-CYP package achieve lower held-out absolute-pIC50 validation macro ST-RAE than D007-T121?
+
+## Comparator and authoritative quantity
+
+As defined in D009: the single-model D007-T121 development procedure, with
+
+O150(T121) = 0.701212576796.
+
+T121 is untouched: no retraining, rescoring, recalibration or new selection. D009, D010 and D012 results remain historical characterization only.
+
+## Foundation corpus and firewall
+
+1. **Base corpus:** the authors' released `chembl_processed_chembl32.csv` (SHA-256 `a5b562d4cd237f94f80b1d6a85031825bc1b0b1157e734f76bc3315f256c5e20`), from `chembl_processed_chembl32.zip` (`29389247…`) inside the pinned upstream `datas.zip` (`74b1b30c…`), with the pinned upstream split `chembl_split.json` (`7f3cd598…`).
+2. **Prohibited identities:** all 5,655 OpenADMET CYP structures in the frozen bounded representation audit (`c0881d8f…`): the D007 development universe (OpenADMET train 3,433 + validation 736 = 4,169) plus internal test (736) and blinded challenge (750).
+3. **Identity rule:** full Standard InChIKey under the frozen D012 identity environment (Python 3.12.14, RDKit 2026.03.6, InChI 1.07.3; no project-added standardization), computed from the ChEMBL32 source structure for each molregno, with source SMILES and identity witnesses retained. The ActFound runtime is not used for identity.
+4. **Removal:** every corpus row whose molecule matches a prohibited identity is removed before foundation training. Assays then left below ActFound's ≥20-usable-molecule requirement become ineligible and are logged, in every split.
+5. **Format:** a converter to the loader's graph-qualified format applies the same graph-qualification checks as the existing pipeline, and is tested before use.
+6. **Freeze:** the firewalled corpus is materialized once, hashed, and logged with full attrition counts. It is the only foundation-training corpus.
+
+## Foundation training
+
+- Upstream ActFound at pinned commit `c96f0559ea7a2504e797b9d65b9f1af1aa899ddd` and the pinned environment `actfound_c96f055`, using the existing qualified project runner.
+- Hyperparameters, training budget (60 meta-training epochs, cosine schedule) and seeds inherited from the authors' ChEMBL configuration exactly as frozen in `actfound_chembl32_production_config_v1.json`. No tuning.
+- The pinned upstream train/valid split, after firewall attrition.
+- Before production: unit tests, an interactive hardware benchmark on the intended GPU and runtime extrapolation, per Miles's standing rules. No Slurm benchmark.
+
+## Checkpoint freeze rule
+
+The foundation checkpoint is the best-validation checkpoint (`model_best.pt`) by the runner's upstream validation score on the firewalled upstream `valid` split. It is fixed by that rule alone, before any CYP target data is touched. No epoch reselection through extra validation draws and no use of CYP results.
+
+## Target adaptation and evaluation
+
+For each of the 150 frozen D007 cells and each of the four CYP endpoints:
+
+- the cell's frozen training molecules and labels are the complete support set;
+- its validation molecules are evaluation-only;
+- target labels enter only through the support set, and no validation label participates in adaptation;
+- adaptation uses the native upstream ActFound meta-adaptation pathway, not actfound_transfer, KNN-MAML fusion or full-parameter fine-tuning;
+- absolute pIC50 predictions are scored by the existing frozen ST-RAE scorer, unchanged.
+
+The protected internal test, the blinded challenge and D008 enter no procedure.
+
+## Prospective comparison rule
+
+ActFound-CYP O150 is computed exactly as O150(T121). A strictly lower O150 than 0.701212576796 favors the ActFound-CYP package; there is no minimum effect size. All per-cell and per-endpoint results are reported as characterization.
+
+As in D009, this is a development-selection comparison, not unbiased validation: the 150 cells are correlated, and T121 was selected on this matrix.
+
+## Open items requiring separate approval before evaluation
+
+These are not settled by this record and must be fixed before any CYP number exists:
+
+1. What the three training seeds per D007 partition mean for a single frozen foundation checkpoint; this determines whether the matrix is 150 or 50 distinct cells.
+2. Whether any label-scale conversion is needed: pretraining labels are −log10(nM value), while CYP targets are pIC50 = −log10(M).
+3. How support sets far larger than ActFound's usual few-shot supports are handled, if pair-matrix memory forces a limit.
+4. The thin target adapter itself and its scientific unit tests.
+
+## Disposition of ActFound job 3066823
+
+Job 3066823 (best-validation checkpoint epoch 58) was trained on a corpus with no OpenADMET firewall. It contained 203 D007 development molecules, 44 internal-test and 7 blinded-challenge molecules in loader-kept training rows (Session 005 §31). It is **not** usable as this study's foundation checkpoint.
+
+Its artifacts, the overlap audit outputs and the rebuilt ChEMBL32 corpus are preserved unchanged. Any leaky-versus-clean comparison would be a new question requiring its own approval.
+
+## Not authorized
+
+- use of the stock ActFound checkpoint or job 3066823's checkpoint for the comparison;
+- hyperparameter, architecture or adaptation-path changes;
+- any published-fidelity pass/fail gate;
+- post-result tuning, reselection or rescue;
+- BindingDB or other ChEMBL releases.
+
+## Governing principle
+
+One firewalled corpus, one frozen foundation checkpoint chosen by a pre-stated rule, then a single prospective 150-cell comparison against untouched T121, with whole-package claims only.
+
+## Revisit when
+
+- firewall attrition or the converter reveals that the authors' corpus cannot satisfy this record's provenance contract;
+- qualification shows upstream adaptation cannot run on D007-sized supports without a scientific change;
+- or an open item above cannot be resolved without changing this design.
+
+## D013 Amendment 1 — Graph re-qualification route and conservative pretraining exclusion for the firewalled corpus (2026-11-15)
+
+**Status:** Approved (2026-11-15). Recorded on Miles's approval: "Approve for recording".
+
+This amendment does not authorize the corpus build, the reproduction run, the benchmark or training.
+
+### Reason
+
+1. Upstream ActFound graph eligibility (chembl_preprocess.py lines 160–174) requires at least 20 molecules with degree ≥ √√N × 2, where N is the assay's size **before** graph filtering, including molecules later dropped for having no edges. The authors' released chembl_processed_chembl32.csv contains only post-graph rows, so N cannot be recovered from it and the graph step cannot be rerun exactly on that file after firewall removal.
+2. ActFound featurizes the whole SMILES with a Morgan count fingerprint and does no salt stripping (`external/ActFound/dataset/data_base.py:93`), so a salt or mixture form of a protected structure is a near-duplicate input that the full-key firewall does not remove.
+
+### Change 1 — graph re-qualification (route C)
+
+Item 5 of "Foundation corpus and firewall" ("Format: a converter … applies the same graph-qualification checks …") is replaced by:
+
+5. **Graph re-qualification (route C).** The assay universe is the set of assays in the authors' released file (assay key `assay_id_units_type`). For those assays, the input rows are the project's rebuilt pre-graph population (`chembl32_actfound_pregraph.tsv`, SHA-256 `43dfd672…`). Excluded molecules (Change 2) are removed from those rows, and the unchanged graph-stage code that built the rebuilt corpus (`actfound_graph_stage.py` `1783c5fe…`, `actfound_chembl32_projection.py` `22fca408…`) is rerun on the remainder.
+
+   **Qualification gate.** The same pipeline run without any exclusion is compared exactly with the authors' released file, row by row (keyed by activity_id), against the hash-pinned upstream split (`chembl_split.json`, SHA-256 `7f3cd598…`):
+   - The comparison is exact. There is no tolerance and no normalization; a formatting-only difference is a difference.
+   - A missing or mismatched split input stops the run before any output is written.
+   - Any difference (field, missing or extra row, missing or extra assay, assay-key mismatch) in an assay whose upstream ID is in train or valid fails the gate. The outputs are kept for review, the run exits nonzero, and the matter returns to Miles.
+   - Differences outside train and valid are reported and do not block.
+   - The excluded build refuses to run without a PASS reproduction manifest made by the same builder on the same pre-graph, authors' file and graph code.
+
+The authors' file remains the authority for which assays form the corpus and for what a correct unexcluded result is.
+
+### Change 2 — conservative pretraining exclusion
+
+**Pretraining exclusion (conservative).** The identity rule remains the full Standard InChIKey. In addition, the pretraining corpus excludes every ChEMBL32 molregno whose largest-fragment full Standard InChIKey equals that of a protected OpenADMET structure (largest fragment = most heavy atoms, ties broken by canonical SMILES, computed in the frozen identity environment). The exclusion applies to all pretraining rows, train and validation alike, because validation selects the checkpoint. These are largest-fragment matches, not proven identical active compounds or activities; the exclusion is protective, not an identity claim. First-block-only and largest-fragment first-block-only matches remain report-only and are not deemed safe.
+
+**Acceptance.** The built corpus must contain no row, in train or validation, with a full-key or largest-fragment full-key match to a protected structure, verified by recomputing identities from the built file. The final graph-stage and loader impact is measured after the build and reported. The training runner's corpus-manifest check (matching file hash, firewall recorded as applied) is defense-in-depth, not proof of zero overlap.
+
+### Scope of the exclusion (existing artifacts; categories overlap and are not summed)
+
+Protected structures: 5,655 OpenADMET CYP structures (development universe 4,169 + internal test 736 + blinded challenge 750; audit `c0881d8f…`). Molregnos considered: 1,076,934 (job 3066823 membership export, `molecules.tsv.gz` `e7f756f7…`).
+
+| Category | Count | Scope and source |
+|---|---|---|
+| Full Standard InChIKey matches (excluded) | 337 molregnos: development 263, internal test 61, blinded 13 | `d013_firewall_20261115/firewall_list/summary.json`. Includes the blinded-challenge identities. |
+| Largest-fragment full-key matches (excluded by Change 2) | 180 molregnos: development 140, internal test 40, blinded 0; 0 overlap with the 337 | `firewall_list/summary.json` (`largest_fragment_full`), heavy-atom rule above; per-split impact in Session 005 §39 B. |
+| Exclusion list v2 | 517 molregnos = 337 + 180 (disjoint) | `firewall_list_v2/summary.json`, by basis and tier. |
+| Of the 180: in loader-kept training rows | development 77, internal test 27 molecules; 358 + 98 rows; 2 more training assays fall below 20 kept rows (33,184 → 33,182) | Session 005 §39 B (row-level membership; std gate and graph-stage effects not established without a rebuild). |
+| Of the 180: in loader-kept validation rows | development 3 molecules, 3 rows; 0 validation assays below 20 | Session 005 §39 B. |
+| First-block (connectivity) matches, report-only | 219 molregnos (molecule-tier rows: development 182, internal test 33, blinded 4) | Same 219-molregno set in both `firewall_list/near_matches_not_removed.tsv` and the earlier census `firewall_corpus_20261115/prohibited/near_matches_report_only.tsv`. Disjoint from the 180. |
+| Largest-fragment first-block matches, report-only | 461 before Change 2; 281 after removing the 180 | `firewall_list/summary.json` and `firewall_list_v2/summary.json`. Contains all 219 first-block and all 180 largest-fragment matches. |
+
+**Reconciliation with the earlier census.** The earlier report-only census in this conversation (`firewall_corpus_20261115/prohibited/`, superseded) counted 184 largest-fragment matches (development 143, internal test 41; loader-kept training molecules development 79, internal test 28). It is the same 180 plus 4 molregnos (674418, 834692, 996164, 1248748), because it used RDKit's default `LargestFragmentChooser`, which counts all atoms including hydrogens, instead of the heavy-atom rule above. All three differences in the training-kept counts (79 − 77 = 2 development, 28 − 27 = 1 internal test) are those 4 molregnos. Under this amendment's heavy-atom rule they are not excluded: each is a multi-component salt or mixture in which the selected fragment is the counterion or an equal-size co-component (for example a pamoate salt), not the protected structure.
+
+### Evidence
+
+The rebuilt graph-qualified corpus has the identical molecule set to the authors' file in 47,323 of 47,324 assays. The exception, `CHEMBL4651403_nM_IC50`, has one extra molecule and is in no upstream split (Session 005 log, §36 D), so under the gate it is report-only. Molecule-set agreement does not establish field-level agreement; that is what the gate tests.
+
+Everything else in D013 is unchanged, including the full Standard InChIKey identity rule.
+

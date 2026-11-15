@@ -1,0 +1,103 @@
+{
+  "artifact_type": "ActFound_3066823_training_corpus_identity_overlap_v1",
+  "authority": "report_only_no_eligibility_or_checkpoint_authority",
+  "d007_development_names_seen_in_loader_kept_training_rows": 203,
+  "identity_environment": {
+    "inchi": "1.07.3",
+    "python": "3.12.14",
+    "rdkit": "2026.03.6"
+  },
+  "identity_status_counts": {
+    "source_ok": 1076933,
+    "source_parse_failure": 1,
+    "witness_ok": 1076933,
+    "witness_parse_failure": 1
+  },
+  "inputs": {
+    "audit": "qualification/cyp_external_task_qualification_20261109/identity_audit/bounded_representation_audit.tsv",
+    "audit_sha256": "c0881d8f5e2e193b9e87479045934ca41c133d92f92ff3d453b5c28c8e2e9d3b",
+    "d007_manifest_dir": "cyp/artifacts/cyp_007/split_manifests",
+    "d007_universe_names": 4169,
+    "export_sha256sums": {
+      "export_summary.json": "69022d6b83ffd9cde889037d2225d3345af80bfd7eb42d9ffc2839939904540b",
+      "membership.tsv.gz": "1ccfbc0ac9ceeba9b5260efb2a294b3791ff2f9a37c6f741d1c76c270cef8949",
+      "molecules.tsv.gz": "e7f756f7f4396e0286affdc156965e8afbef8e4003155cd62448d6ded4ff2904"
+    },
+    "openadmet_records_by_partition": {
+      "challenge_blinded_test": 750,
+      "internal_test": 736,
+      "train": 3433,
+      "validation": 736
+    },
+    "script_sha256": "12b0d68b578eb9438d4be8b94afaa68e8941535807df3035255ad68e231534a7"
+  },
+  "matched_assays_by_tier_split_loader": {
+    "blinded|none|dropped": 19,
+    "blinded|none|kept": 15,
+    "blinded|train|dropped": 7,
+    "blinded|train|kept": 23,
+    "blinded|validation|dropped": 1,
+    "development|none|dropped": 713,
+    "development|none|kept": 441,
+    "development|train|dropped": 94,
+    "development|train|kept": 1515,
+    "development|validation|kept": 18,
+    "internal_test|none|dropped": 215,
+    "internal_test|none|kept": 163,
+    "internal_test|train|dropped": 28,
+    "internal_test|train|kept": 332,
+    "internal_test|validation|kept": 3
+  },
+  "matched_molecules_by_tier_and_membership": {
+    "blinded": {
+      "none_dropped": 6,
+      "none_kept": 7,
+      "train_dropped": 3,
+      "train_kept": 7,
+      "validation_dropped": 3,
+      "validation_kept": 0
+    },
+    "development": {
+      "none_dropped": 240,
+      "none_kept": 166,
+      "train_dropped": 37,
+      "train_kept": 203,
+      "validation_dropped": 0,
+      "validation_kept": 14
+    },
+    "internal_test": {
+      "none_dropped": 57,
+      "none_kept": 44,
+      "train_dropped": 10,
+      "train_kept": 44,
+      "validation_dropped": 0,
+      "validation_kept": 3
+    }
+  },
+  "matched_rows_by_tier_split_loader": {
+    "blinded|none|dropped": 19,
+    "blinded|none|kept": 16,
+    "blinded|train|dropped": 7,
+    "blinded|train|kept": 25,
+    "blinded|validation|dropped": 3,
+    "development|none|dropped": 3469,
+    "development|none|kept": 1219,
+    "development|train|dropped": 98,
+    "development|train|kept": 2139,
+    "development|validation|kept": 22,
+    "internal_test|none|dropped": 956,
+    "internal_test|none|kept": 392,
+    "internal_test|train|dropped": 28,
+    "internal_test|train|kept": 444,
+    "internal_test|validation|kept": 3
+  },
+  "molecules_processed": 1076934,
+  "runtime": {
+    "identity_seconds": 115.6,
+    "total_seconds": 123.3,
+    "workers": 8
+  },
+  "sample_size": null,
+  "scope": "full",
+  "source_vs_witness_key_disagreements": 0
+}
