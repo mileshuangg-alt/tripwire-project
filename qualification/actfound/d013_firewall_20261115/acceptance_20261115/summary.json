@@ -1,0 +1,51 @@
+{
+  "artifact_type": "D013_firewalled_corpus_acceptance_v1",
+  "blocking_rows": 1,
+  "distinct_smiles": 846299,
+  "exclusion_list_molregno_rows_by_scope_report_only": {},
+  "gate": "FAIL",
+  "identity_environment": {
+    "inchi": "1.07.3",
+    "python": "3.12.14",
+    "rdkit": "2026.03.6"
+  },
+  "identity_failures_by_scope_and_status": {
+    "train|parse_failure": 1
+  },
+  "inputs": {
+    "audit_sha256": "c0881d8f5e2e193b9e87479045934ca41c133d92f92ff3d453b5c28c8e2e9d3b",
+    "corpus": "/Users/mileshuang/Downloads/d013_firewalled_20261115/actfound_chembl32_d013_firewalled.tsv",
+    "corpus_sha256": "8b00f349726e7cc0d84d25195c3bdf09f76089159a93eed58401932ad0cbdecd",
+    "firewall_list_sha256": "b3f70e56d2960dcd54a318635a250cd509ce84063d786b009b51528896f41223",
+    "identity_code_sha256": {
+      "build_firewall_list_v2.py": "625fb1404fa1482502619bdc9a94d4f2f423e94254a635db3bc9363f5734450b",
+      "identity_overlap.py": "12b0d68b578eb9438d4be8b94afaa68e8941535807df3035255ad68e231534a7"
+    },
+    "script_sha256": "597b7aa464587e61385555859e6137f4832fe733696f9124d0110f78be7b688e",
+    "upstream_split_sha256": "7f3cd5988bfd3d608a8f6c120b54e19d932e0b3c026ec5e43b9798e0d2a6e3e1"
+  },
+  "matched_molregnos_by_scope": {},
+  "matches_rows_by_scope_and_basis": {},
+  "near_matches_rows_by_scope_and_kind_report_only": {
+    "none|first_block": 121,
+    "none|largest_fragment_first_block": 9,
+    "test_external|first_block": 20,
+    "test|first_block": 1,
+    "train|first_block": 427,
+    "train|largest_fragment_first_block": 74,
+    "valid|first_block": 6,
+    "valid|largest_fragment_first_block": 1
+  },
+  "protected_openadmet_structures": 5655,
+  "rows": 1946000,
+  "rows_by_scope": {
+    "none": 357467,
+    "test": 20503,
+    "test_external": 48897,
+    "train": 1497406,
+    "valid": 21727
+  },
+  "rule": "D013 Amendment 1 Change 2 acceptance: no train or valid row with a full-key or largest-fragment full-key match to a protected structure, identities recomputed from the built file; identity failures in train or valid fail closed",
+  "runtime_seconds": 50.2,
+  "workers": 8
+}
