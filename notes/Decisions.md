@@ -6654,3 +6654,20 @@ By a separate script that recomputed scaffolds and connectivity blocks from the 
 
 The 30 ringless molecules distributed 19 train / 3 validation / 8 holdout, which is not proportional to 70/15/15. With 30 indivisible singleton groups spread across potency strata, small-count deviation of this size is expected; it is not a constraint violation.
 
+### Commit (factual follow-up)
+
+The PXR-001 split work is committed as `fabec38` on `main`, "Freeze the PXR-001 predeclared scaffold holdout". This qualifies the "uncommitted as of this entry" note above, which was true only when that note was written.
+
+Six files, parent `fdd5573` ("Add the PXR-001 read-only data audit and its artifact"), whose own parent is `d1ccb7a`, a CYP D013 commit of Miles's that landed between the two PXR commits:
+
+- `notes/Decisions.md` (D014, Amendments 1-4 and this artifact record; 268 lines added, nothing deleted);
+- `pxr/scripts/pxr001_split.py`;
+- `pxr/tests/test_pxr001_split.py`;
+- `pxr/artifacts/pxr001_split/pxr001_split_assignments.csv`;
+- `pxr/artifacts/pxr001_split/PROVENANCE.txt`;
+- `pxr/artifacts/pxr001_split/SHA256SUMS`.
+
+The commit is **local only**. Nothing has been pushed; Miles handles pushes himself, so this is not recorded as present on any remote.
+
+Only `notes/Decisions.md` and the four `pxr/` paths were staged. The concurrent CYP/ActFound working-tree changes — the modification to `notes/Tripwire_CYP_005.md` and the untracked `qualification/actfound/d013_benchmark_20261115/` — were deliberately left out and remain uncommitted.
+
