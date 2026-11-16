@@ -1,0 +1,47 @@
+OpenADMET PXR Induction Blind Challenge release - development-eligible files
+Preserved: 2026-11-15
+Source: Hugging Face dataset repository openadmet/pxr-challenge-train-test
+Source URL: https://huggingface.co/datasets/openadmet/pxr-challenge-train-test
+Pinned revision: 063e723841063c2dfa86231f58fb59a6a738d113
+Revision lastModified upstream: 2026-09-28T22:25:50Z
+Challenge documentation: https://openadmet.ghost.io/announcing-the-next-openadmet-blind-challenge-predicting-pxr-induction/
+License: CC-BY-4.0   DOI: 10.57967/hf/9731
+
+Acquisition: retrieved by Claude Code on 2026-11-15 at Miles Huang's direction, by HTTPS
+GET from https://huggingface.co/datasets/openadmet/pxr-challenge-train-test/resolve/
+063e723841063c2dfa86231f58fb59a6a738d113/<filename> (one request per file; all HTTP 200).
+Retrieved first to a session scratchpad directory, then copied here verbatim.
+
+Preservation rule: files copied verbatim; no parsing, transformation, merge, filtering,
+or scoring performed before preservation. Byte sizes of every file match the sizes
+reported by the Hugging Face tree API at the pinned revision.
+
+Upstream hash verification: only the parquet files are LFS-tracked upstream and therefore
+carry a published SHA-256. Both in-scope parquet files reproduce their upstream LFS oid
+exactly:
+  pxr-challenge_DRC_plot_data_TRAIN.parquet
+    efdf089a058198740ed093d6ef637be1ead9f33365785ea71b2feca2fc37e1c4
+The CSV files are plain git blobs with no upstream SHA-256 published. For those files the
+provenance chain is the pinned revision plus the locally computed hashes in SHA256SUMS;
+no independent upstream hash comparison was possible.
+
+Endpoint separation (per the upstream dataset card preserved here as DATASET_CARD.md):
+  pxr-challenge_TRAIN.csv                              primary assay training set (pEC50, Emax)
+  pxr-challenge_TEST_BLINDED.csv                       513-compound blinded test set (no labels)
+  pxr-challenge_counter-assay_TRAIN.csv                PXR-null counter-assay
+  pxr-challenge_single_concentration_TRAIN.csv         single-concentration screen (log2 fold change)
+  pxr-challenge_htchem-libraries_TRAIN.csv             direct-to-biology assays of crudes
+  pxr-challenge_96-compound-uscale-semi-pure_TRAIN.csv semi-pure HT-chem material
+  pxr-challenge_DRC_plot_data_TRAIN.parquet            per-well dose-response curves the train
+                                                       pEC50/Emax were fit from
+These are distinct observation types and distinct assay stages. They are preserved as
+separate files and are not to be collapsed into a single target.
+
+Firewall: the unblinded test labels for this challenge are preserved separately under
+pxr/data/openadmet_pxr_heldout_labels_2026-11-15/ and are excluded from model selection
+and from the primary internal evaluation. See that directory's PROVENANCE.txt.
+
+Not retrieved at this revision: the `structure` config
+(pxr-challenge_structure_TEST_BLINDED.csv, pxr-challenge_structure_TEST_identifiers.parquet,
+and the 184 files under structure_ground_truth/). That is the crystallography sub-challenge
+and is outside the PXR potency scope; it can be preserved later if needed.

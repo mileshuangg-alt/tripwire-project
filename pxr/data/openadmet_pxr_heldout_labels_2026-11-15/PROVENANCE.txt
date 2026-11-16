@@ -1,0 +1,46 @@
+OpenADMET PXR Induction Blind Challenge release - HELD-OUT LABEL FILES
+Preserved: 2026-11-15
+Source: Hugging Face dataset repository openadmet/pxr-challenge-train-test
+Source URL: https://huggingface.co/datasets/openadmet/pxr-challenge-train-test
+Pinned revision: 063e723841063c2dfa86231f58fb59a6a738d113
+License: CC-BY-4.0   DOI: 10.57967/hf/9731
+
+*** HELD OUT ***
+These files carry released label information for the 513-compound blinded PXR test set.
+They must not influence model selection, hyperparameter choice, feature choice, exclusion
+decisions, or the primary internal evaluation. Any comparison that uses them may only be
+performed against a frozen setup and must be labeled retrospective.
+
+Acquisition: retrieved by Claude Code on 2026-11-15 at Miles Huang's direction, by HTTPS
+GET from https://huggingface.co/datasets/openadmet/pxr-challenge-train-test/resolve/
+063e723841063c2dfa86231f58fb59a6a738d113/<filename> (all HTTP 200). Retrieved first to a
+session scratchpad directory, then copied here verbatim.
+
+Preservation rule: files copied verbatim; no parsing, transformation, merge, filtering,
+or scoring performed before preservation. Byte sizes match the Hugging Face tree API at
+the pinned revision.
+
+Contents, per the upstream dataset card:
+  pxr-challenge_TEST_PHASE_1_UNBLINDED.csv          Phase 1 unblinded SUBSET of the primary
+                                                    blinded test set, with assay labels
+                                                    (upstream commit 19db5fd3, 2026-05-27)
+  pxr-challenge_TEST_PHASE_2_UNBLINDED.csv          Phase 2 unblinded SUBSET of the primary
+                                                    blinded test set, with assay labels
+                                                    (upstream commit 6c41d434, 2026-07-03)
+  pxr-challenge_DRC_plot_data_TEST_UNBLINDED.parquet  per-well dose-response curves for the
+                                                    test set, i.e. the raw data the test
+                                                    pEC50/Emax were fit from. This file
+                                                    carries test label information despite
+                                                    its filename resembling the TRAIN parquet.
+
+Upstream hash verification: the parquet file is LFS-tracked upstream and reproduces its
+published LFS oid exactly:
+  pxr-challenge_DRC_plot_data_TEST_UNBLINDED.parquet
+    115dd15d4b2c82b83b8f9801989505fa3904c7aa67974051ff1a3aae92e7fdfb
+The two CSV files are plain git blobs with no upstream SHA-256 published; for those the
+provenance chain is the pinned revision plus the locally computed hashes in SHA256SUMS.
+
+UNRESOLVED as of preservation: the upstream card describes Phase 1 and Phase 2 each as a
+subset of the 513-compound blinded test set. It does not state the per-phase row counts,
+whether the phases overlap, or whether their union covers all 513. That must be determined
+by reading the files during the data audit, not assumed.
