@@ -115,18 +115,27 @@ def _reformat_first(chembl):
 
 
 def test_standard_value_formatting_inside_split_does_not_block(tmp_path: Path):
-    """D013 Amendment 2: standard_value is compared at 15 significant figures."""
+    """D013 Amendment 3: standard_value is compared numerically; the row is counted
+    as agreeing within tolerance but not as text."""
     rc, m, out, _, _ = _repro(tmp_path, edit=_reformat_first("CHEMBL101"))
     g = m["reproduction_vs_authors"]
     assert rc == 0 and g["gate"] == "PASS" and g["blocking_differences"] == 0
     assert "field_mismatch" not in g["in_split"]
     assert _diffs(out) == []
+    t = g["standard_value_tolerance"]
+    assert t["relative_tolerance"] == 1e-14
+    assert t["rows_agreeing_within_tolerance_not_as_text"] == {"in_split": 1, "outside_split": 0}
+    assert t["max_relative_difference"]["in_split"] == 0.0
+
+
+def _scale_first_value(factor):
+    def edit(rows):
+        r = next(x for x in rows if x[11] == "CHEMBL101")
+        r[6] = repr(float(r[6]) * factor)
+    return edit
 
 
 def test_one_ulp_standard_value_difference_does_not_block(tmp_path: Path):
-    """Upper bound on the precision: a 1-ULP neighbour is equal at 15 significant
-    figures, as in the real 776247116628693.0 vs 776247116628692.8 case. A stricter
-    constant (e.g. 17) would make this block."""
     def edit(rows):
         r = next(x for x in rows if x[11] == "CHEMBL101")
         r[6] = repr(math.nextafter(float(r[6]), math.inf))
@@ -134,18 +143,55 @@ def test_one_ulp_standard_value_difference_does_not_block(tmp_path: Path):
     g = m["reproduction_vs_authors"]
     assert rc == 0 and g["gate"] == "PASS" and g["blocking_differences"] == 0
     assert _diffs(out) == []
+    assert 0.0 < g["standard_value_tolerance"]["max_relative_difference"]["in_split"] < 1e-15
 
 
-def test_standard_value_difference_within_15_significant_figures_blocks(tmp_path: Path):
-    """Lower bound on the precision: a 0.1% change is visible at 15 significant
-    figures and must block. A looser constant (e.g. 2) would hide it."""
-    def edit(rows):
-        r = next(x for x in rows if x[11] == "CHEMBL101")
-        r[6] = repr(float(r[6]) * 1.001)
-    rc, m, out, _, _ = _repro(tmp_path, edit=edit)
+def test_standard_value_difference_of_5e_15_does_not_block(tmp_path: Path):
+    """Upper side of the tolerance: 5e-15 relative (above the 4.35e-15 measured in
+    job 3075157) agrees. A tighter constant (e.g. 1e-15) would make this block."""
+    rc, m, out, _, _ = _repro(tmp_path, edit=_scale_first_value(1 + 5e-15))
+    g = m["reproduction_vs_authors"]
+    assert rc == 0 and g["gate"] == "PASS" and g["blocking_differences"] == 0
+    assert 4e-15 < g["standard_value_tolerance"]["max_relative_difference"]["in_split"] <= 1e-14
+
+
+def test_standard_value_difference_of_2e_14_blocks(tmp_path: Path):
+    """Lower side of the tolerance: 2e-14 relative must block. A looser constant
+    (e.g. 1e-13) would hide it."""
+    rc, m, out, _, _ = _repro(tmp_path, edit=_scale_first_value(1 + 2e-14))
     g = m["reproduction_vs_authors"]
     assert rc == bc.EXIT_GATE_FAIL and g["gate"] == "FAIL" and g["in_split"]["field_mismatch"] == 1
     assert (out / "SHA256SUMS.txt").exists()  # outputs kept for review
+
+
+def test_unparsable_standard_value_inside_split_blocks(tmp_path: Path):
+    def edit(rows):
+        next(x for x in rows if x[11] == "CHEMBL101")[6] = "n/a"
+    rc, m, _, _, _ = _repro(tmp_path, edit=edit)
+    assert rc == bc.EXIT_GATE_FAIL and m["reproduction_vs_authors"]["in_split"]["field_mismatch"] == 1
+
+
+@pytest.mark.parametrize("rebuilt,authors", [
+    ("446683592150963.5", "446683592150963.0"),   # job 3075157, activity 489397
+    ("27542287033381.75", "27542287033381.7"),    # activities 509845, 481132
+    ("9003570138859.375", "9003570138859.371"),   # activity 1706502
+    ("11220184543019.65", "11220184543019.7"),    # largest measured, 4.35e-15 (activity 2091754)
+])
+def test_job_3075157_boundary_values_agree(rebuilt, authors):
+    assert bc.values_agree(rebuilt, authors)
+
+
+@pytest.mark.parametrize("a,b,agree", [
+    ("n/a", "n/a", True), ("n/a", "n/b", False), ("n/a", "1", False),
+    ("nan", "nan", True), ("nan", "NaN", False), ("inf", "1e308", False), ("inf", "Infinity", False),
+    ("0", "0.0", True), ("0", "1e-300", False),
+])
+def test_values_agree_text_rule_for_unparsable_or_non_finite(a, b, agree):
+    assert bc.values_agree(a, b) is agree
+
+
+def test_comparison_scope_differs_from_amendment_2_scope():
+    assert bc.COMPARISON_SCOPE_ID != "a358c320693929d9"
 
 
 @pytest.mark.parametrize("field,name", [(2, "record_id_unused"), (14, "graph_pair_count")])

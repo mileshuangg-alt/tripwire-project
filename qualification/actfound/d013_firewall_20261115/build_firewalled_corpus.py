@@ -18,8 +18,10 @@ Route C:
 Reproduction mode (no firewall list): the same pipeline must reproduce the
 authors' file. Every output row is compared field by field with the authors'
 row for the same activity_id; all differences are counted and listed, never
-resolved silently. The comparison is exact: there is no tolerance and no
-normalization, so a formatting-only difference is a difference.
+resolved silently. The comparison scope is D013 Amendment 2 with item 2 replaced
+by D013 Amendment 3: compared fields exact, no normalization; standard_value
+within a declared relative tolerance; record_id_unused and graph_pair_count
+exempt, counted and listed, never blocking.
 
 Stop rule (D013 Amendment 1, proposed): reproduction mode requires the
 hash-pinned upstream split. A difference of any kind (field, missing or extra
@@ -35,6 +37,7 @@ import argparse
 import csv
 import hashlib
 import json
+import math
 import platform
 import sys
 import time
@@ -64,16 +67,19 @@ FIELD_NAMES = ("activity_id", "assay_id", "record_id_unused", "molregno", "bao_e
                "assay_type", "bao_format", "assay_chembl_id", "count_scratch",
                "canonical_smiles", "graph_pair_count")
 
-# D013 Amendment 2 — scope of the reproduction-gate comparison.
+# D013 Amendment 2 — scope of the reproduction-gate comparison; item 2 as replaced
+# by D013 Amendment 3 (standard_value by relative tolerance).
 VALUE_FIELD = 6
-VALUE_SIGNIFICANT_FIGURES = 15        # the precision the authors' released file carries
+VALUE_RELATIVE_TOLERANCE = 1e-14      # D013 Amendment 3
 EXEMPT_FIELDS = {2: "record_id_unused", 14: "graph_pair_count"}
 COMPARED_FIELDS = tuple(i for i in range(len(FIELD_NAMES)) if i not in EXEMPT_FIELDS)
 
 COMPARISON_SCOPE = {
-    "amendment": "D013 Amendment 2",
+    "amendment": "D013 Amendment 2, item 2 replaced by D013 Amendment 3",
     "compared_exactly": [FIELD_NAMES[i] for i in COMPARED_FIELDS if i != VALUE_FIELD],
-    "standard_value": "compared at %d significant figures" % VALUE_SIGNIFICANT_FIGURES,
+    "standard_value": ("relative tolerance %r: agree when |a - b| <= %r * max(|a|, |b|); "
+                       "a value that does not parse as a finite float is compared exactly as text"
+                       % (VALUE_RELATIVE_TOLERANCE, VALUE_RELATIVE_TOLERANCE)),
     "exempt_reported_never_blocking": [EXEMPT_FIELDS[i] for i in sorted(EXEMPT_FIELDS)],
     "blocking": ("any in-split difference in a compared field, a missing or extra in-split row, "
                  "or an assay-key mismatch"),
@@ -82,17 +88,35 @@ COMPARISON_SCOPE_ID = hashlib.sha256(
     json.dumps(COMPARISON_SCOPE, sort_keys=True).encode()).hexdigest()[:16]
 
 
-def canonical_value(v: str) -> str:
-    """standard_value at the reference's precision; an unparsable value compares exactly."""
+def _finite(v: str):
     try:
-        return "%.*g" % (VALUE_SIGNIFICANT_FIGURES, float(v))
+        x = float(v)
     except ValueError:
-        return v
+        return None
+    return x if math.isfinite(x) else None
+
+
+def value_relative_difference(a: str, b: str):
+    """|a - b| / max(|a|, |b|) for two finite floats; None if either is not one."""
+    x, y = _finite(a), _finite(b)
+    if x is None or y is None:
+        return None
+    m = max(abs(x), abs(y))
+    return 0.0 if m == 0 else abs(x - y) / m
+
+
+def values_agree(a: str, b: str) -> bool:
+    """D013 Amendment 3: equal text, or both finite floats within the relative tolerance.
+    A value that does not parse as a finite float is compared exactly as text."""
+    if a == b:
+        return True
+    rel = value_relative_difference(a, b)
+    return rel is not None and rel <= VALUE_RELATIVE_TOLERANCE
 
 
 def comparable_digest(fields) -> bytes:
-    """Digest over the fields D013 Amendment 2 compares, standard_value canonicalised."""
-    parts = [canonical_value(fields[i]) if i == VALUE_FIELD else fields[i] for i in COMPARED_FIELDS]
+    """Digest over the exactly-compared fields (standard_value is compared separately)."""
+    parts = [fields[i] for i in COMPARED_FIELDS if i != VALUE_FIELD]
     return hashlib.blake2b("\t".join(parts).encode(), digest_size=16).digest()
 
 
@@ -121,7 +145,8 @@ def load_split(path: Path) -> set:
 
 
 def authors_index(path: Path):
-    """assay_key set and activity_id -> (assay_key, split descriptor, digest of the 15 fields)."""
+    """assay_key set and activity_id -> (assay_key, split descriptor, digest of the exactly
+    compared fields, exempt values, standard_value text)."""
     keys, rows = set(), {}
     with path.open(newline="") as f:
         for r in csv.reader(f):
@@ -131,7 +156,7 @@ def authors_index(path: Path):
             keys.add(k)
             if r[0] in rows:
                 raise SystemExit(f"duplicate authors activity_id {r[0]}")
-            rows[r[0]] = (k, split_descriptor(r), comparable_digest(r), exempt_values(r))
+            rows[r[0]] = (k, split_descriptor(r), comparable_digest(r), exempt_values(r), r[VALUE_FIELD])
     return keys, rows
 
 
@@ -193,6 +218,9 @@ def compare_to_authors(corpus: Path, authors_rows: dict, split_ids: set, diff_pa
     c = {"in_split": Counter(), "outside_split": Counter()}
     exempt = Counter()
     exempt_assays = {name: set() for name in EXEMPT_FIELDS.values()}
+    # D013 Amendment 3: the tolerance's effect stays visible in the manifest.
+    within_tol = Counter()
+    max_rel = {"in_split": [0.0, None], "outside_split": [0.0, None]}
     present = set()
     with corpus.open(newline="") as f, diff_path.open("w", newline="") as d:
         r = csv.reader(f, delimiter="\t")
@@ -218,7 +246,14 @@ def compare_to_authors(corpus: Path, authors_rows: dict, split_ids: set, diff_pa
                 diff(aid, key, [desc, ref[1]], "assay_key_mismatch")
                 continue
             scope = "in_split" if desc in split_ids else "outside_split"
-            if ref[2] != comparable_digest(fields):
+            rv, av = fields[VALUE_FIELD], ref[4]
+            if rv != av:
+                rel = value_relative_difference(rv, av)
+                if rel is not None and rel > max_rel[scope][0]:
+                    max_rel[scope] = [rel, aid]
+                if values_agree(rv, av):
+                    within_tol[scope] += 1
+            if ref[2] != comparable_digest(fields) or not values_agree(rv, av):
                 diff(aid, key, [desc], "field_mismatch")
             else:
                 c[scope]["identical_rows"] += 1
@@ -228,7 +263,7 @@ def compare_to_authors(corpus: Path, authors_rows: dict, split_ids: set, diff_pa
                     name = EXEMPT_FIELDS[i]
                     exempt[(name, scope)] += 1
                     exempt_assays[name].add(key)
-        for aid, (key, desc, _, _exempt) in authors_rows.items():
+        for aid, (key, desc, *_rest) in authors_rows.items():
             if aid not in seen:
                 diff(aid, key, [desc], "missing_in_rebuilt")
     if exempt_path is not None:
@@ -249,16 +284,23 @@ def compare_to_authors(corpus: Path, authors_rows: dict, split_ids: set, diff_pa
             "assays_affected": {n: len(v) for n, v in sorted(exempt_assays.items())},
             "graph_pair_count_assays": sorted(exempt_assays["graph_pair_count"]),
         },
+        "standard_value_tolerance": {
+            "rule": "D013 Amendment 3",
+            "relative_tolerance": VALUE_RELATIVE_TOLERANCE,
+            "max_relative_difference": {s: v[0] for s, v in sorted(max_rel.items())},
+            "max_relative_difference_activity_id": {s: v[1] for s, v in sorted(max_rel.items())},
+            "rows_agreeing_within_tolerance_not_as_text": {s: within_tol[s] for s in ("in_split", "outside_split")},
+        },
         "in_split": dict(c["in_split"]),
         "outside_split": dict(c["outside_split"]),
         "split_ids_absent_from_authors_file": len(split_ids - authors_descs),
         "split_ids_absent_from_rebuilt_corpus": len(split_ids - present),
         "blocking_differences": blocking,
         "gate": "PASS" if blocking == 0 else "FAIL",
-        "comparison": ("exact on the compared fields, no tolerance and no normalization; "
-                       "standard_value at %d significant figures (the authors' file precision); "
+        "comparison": ("exact on the other compared fields, no tolerance and no normalization; "
+                       "standard_value within relative tolerance %r (D013 Amendment 3); "
                        "record_id_unused and graph_pair_count exempt, counted and listed, never blocking "
-                       "(D013 Amendment 2)" % VALUE_SIGNIFICANT_FIGURES),
+                       "(D013 Amendment 2)" % VALUE_RELATIVE_TOLERANCE),
     }
 
 

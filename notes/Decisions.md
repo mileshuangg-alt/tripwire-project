@@ -6340,3 +6340,49 @@ Amendment 1's **Qualification gate** keeps its structure — exact comparison, n
 
 Everything else in D013 and D013 Amendment 1 is unchanged, including the full Standard InChIKey identity rule and the conservative largest-fragment pretraining exclusion.
 
+## D013 Amendment 3 — `standard_value` comparison by relative tolerance (2026-11-15)
+
+**Status:** Approved (2026-11-15). Recorded on Miles's approval: "Approve it".
+
+This amendment does not authorize the corpus build, the benchmark or training. It changes only item 2 of D013 Amendment 2. It is made after the gate stopped for review, using the evidence that run produced.
+
+### Reason
+
+The reproduction run under Amendment 2 (Slurm job 3075157) ran builder SHA-256 `096951ebf0f3484f935230c665f3f8b93dbed473d89f68ca939fd1e6b2bff482` with comparison scope `a358c320693929d9`. It failed the gate (exit 3) with **4** blocking in-split differences. All four are in `standard_value` only:
+
+| activity_id | assay | rebuilt | authors |
+|---|---|---|---|
+| 489397 | 32524_nM_Ki | 446683592150963.5 | 446683592150963.0 |
+| 509845 | 32524_nM_Ki | 27542287033381.75 | 27542287033381.7 |
+| 481132 | 153318_nM_Ki | 27542287033381.75 | 27542287033381.7 |
+| 1706502 | 344234_nM_Ki | 9003570138859.375 | 9003570138859.371 |
+
+1. **Comparing by rounding fails by design at rounding boundaries.** Each of these pairs differs by about 2e-15 or less, relative. The two values fall on either side of a 15-significant-figure rounding boundary, so they round to different strings. This happens at any fixed number of significant figures; it is not specific to 15.
+2. **Amendment 2's premise is false.** The authors' file does not uniformly carry 15 significant figures. Counts of authors' values by significant digits: 15 → 666, 16 → 2,240, 17 → 6,374, 18 → 22, 19 → 21. One example is `0.15000000000000002`.
+3. **The measured differences are small and bounded.** Across all 1,959,397 matched rows (in and outside the split): the largest relative difference is 4.35e-15; no row exceeds 5e-15. Rows above 1e-15: 167; above 2e-15: 69; above 5e-15: 0. At this size the effect on `pIC50 = -log10(value)` is about 2e-15 absolute.
+4. **The other outside-split differences are already explained.** Of the 826 outside-split `field_mismatch` rows, 825 differ only in `count_scratch` and 1 in `standard_value`. Amendment 2 already accounts for this under accepted consequences.
+
+### Change
+
+Item 2 of Amendment 2 is replaced by:
+
+> **2. `standard_value` is compared numerically with a relative tolerance of 1e-14:** two values agree when |a − b| ≤ 1e-14 · max(|a|, |b|). Both must parse as finite floats. A value that does not parse is compared exactly as text. Any in-split pair outside this tolerance fails the gate.
+>
+> The tolerance is declared before the next run. It is about 2.3× the largest relative difference measured across all rows of job 3075157 (4.35e-15). It is roughly ten billion times smaller than the smallest change that would matter for a pIC50 label (1e-4 relative).
+
+Every other part of Amendment 2 is unchanged: the exact comparison on all other fields; the exemptions for `record_id_unused` and `graph_pair_count`; manifest reporting; the fail-closed rules.
+
+In addition, the manifest records the largest relative `standard_value` difference and the number of rows that agree under the tolerance but not as text, in and outside the split, so the tolerance's effect stays visible in the output.
+
+### Accepted consequences, recorded
+
+- This rule is a numerical tolerance. Amendment 2 deliberately avoided one, and this amendment says so openly.
+- 803 rows have `standard_value` text that differs from the authors'. All of them pass under this rule.
+- Job 3075157 stays FAILED as recorded. A new reproduction manifest is required.
+
+Everything else in D013, Amendment 1 and Amendment 2 is unchanged.
+
+### Alternatives considered
+
+Rounding at fewer significant figures (same boundary problem); ULP counting (authors' text is already rounded, so a ULP count is not meaningful); an exception list of the 4 activity_ids (hand-made carve-out, breaks on any rerun with different straddles); a tolerance on −log10(value) (equivalent here, adds a transform).
+

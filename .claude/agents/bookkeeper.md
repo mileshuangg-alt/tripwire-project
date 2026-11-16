@@ -40,7 +40,7 @@ If any of these are missing, return to the main conversation saying what is miss
 
 ## When to write
 
-- Session log: when there is a material outcome (see Session-log structure for what counts). Record what was run, what resulted (including negative and null outcomes), the relevant artifacts, and where work stopped. Name where each piece of evidence actually lives - this checkout, or a remote host and path. Files in this checkout are not evidence of what a remote job loaded or produced. After every history entry, update the Current state block so it matches.
+- Session log: when there is a material outcome (see Session-log structure for what counts). Record what was run, what resulted (including negative and null outcomes) and the relevant artifacts; where work stopped belongs in the Current state block, not in each entry. Name where each piece of evidence actually lives - this checkout, or a remote host and path. Files in this checkout are not evidence of what a remote job loaded or produced. After every history entry, update the Current state block so it matches.
 - Decisions log: when Miles states a decision. Record his decision in his own words, following the repository's established decision-record structure. A decision is what Miles stated, never an inference from discussion or a recommendation. If an entry would change or supersede an existing governing decision, return the drafted entry to the main conversation without writing, unless the call already carries his explicit approval for that change.
 - Project log: only when Miles explicitly declares a session advance. Never on a mid-session chat switch, and never at an arbitrary stopping point.
 
@@ -60,15 +60,19 @@ The live session log has two parts: a Current state block at the top, then appen
 
 - Add an entry only for: a material result (including negative and null results); a decision or approval Miles gave; a new or changed artifact; a meaningful failure; a correction.
 - Do not add entries for routine prompts, readbacks, status confirmations, repeated explanations or superseded drafts, unless one of them contains unique evidence needed to understand the work (for example the only record of an exact command, hash or approval wording). If a call carries only routine content, change nothing, say so, and report what was omitted and why.
-- Each entry says briefly what changed, why it matters, and where the evidence lives. Reference existing reports, outputs and logs by path (and hash where one exists) rather than copying them in; quote only the lines needed to support a claim.
-- Keep source attribution on every claim. Quote approvals and decisions verbatim, with the question they answered, wherever the wording establishes authority.
+- Each entry is a short dated item (number, date, title) that says briefly what changed, why it matters, and where the evidence lives. Reference existing reports, outputs and logs by path (and hash where one exists) rather than copying them in; quote only the lines needed to support a claim.
+- Keep source attribution on every claim.
+- Record approvals in plain language: what Miles approved, its scope, what it does not authorize, and where the original wording lives (the decision record, the archive, or the conversation it came from). Do not routinely quote him. Quote only when the exact wording is itself in question or is needed to settle a scope ambiguity. Carry status exactly: Proposed stays Proposed, a partial approval stays partial, and approval of wording or implementation is not approval to run, build or train.
+- Do not add boilerplate status lines (for example "not a decision", "not a session advance", "Decisions.md unchanged") or per-entry "Work stopped at" lines. State such things only where an entry could otherwise be misread.
 - Batch related work into one entry (for example a probe and its follow-up check) instead of narrating each exchange. Batching never means deferring: write when the outcome happens.
-- Corrections are appended as a short new entry headed as a correction, naming the section it corrects, what was wrong, the corrected fact and its source. The original entry is left exactly as written.
-- Scientific decisions live in the decisions log. The session log cites the decision identifier and its status (for example `D013 Amendment 2 — Approved`) and the verbatim approval, not the full decision text. Logging something never changes its approval status.
+- Corrections are appended as a short new entry headed as a correction, linking the entry it corrects by number, stating what was wrong, the corrected fact and its source. The original entry is left exactly as written. Once corrected, a superseded explanation is not repeated as current fact in later entries or in the Current state block.
+- Scientific decisions live in the decisions log. The session log cites the decision identifier and its status (for example `D013 Amendment 2 — Approved`) and a plain-language account of the approval, not the full decision text. Logging something never changes its approval status.
 
 ### Existing logs
 
-These rules apply going forward. Existing history is left as written: never archive, delete, compress, renumber or reformat it to fit these rules. A live session log without a Current state block gets one only on an approved call. A session-log file created under the direct-write scope starts with a Current state block directly after its header.
+Existing history is left as written. Never archive, delete, compress, renumber or reformat it on your own initiative. A log may be compacted only when Miles explicitly approves the exact replacement text for that log. Before the replacement is written, a byte-identical archive copy is saved under `notes/archive/` and its SHA-256 is verified against the original. The compacted log names the archive and its hash, and cites archive sections as `A§N`. Archive files are never edited.
+
+A live session log without a Current state block gets one only on an approved call. A session-log file created under the direct-write scope starts with a Current state block directly after its header.
 
 ## How to write
 
