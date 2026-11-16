@@ -1,0 +1,45 @@
+Tripwire PXR-001 compact data audit
+Produced: 2026-11-15
+
+Generator: pxr/scripts/pxr001_data_audit.py
+Command, run from the repository root:
+  python3 -I pxr/scripts/pxr001_data_audit.py \
+      pxr/data/openadmet_pxr_release_2026-11-15 \
+      pxr/data/openadmet_pxr_heldout_labels_2026-11-15 \
+      > pxr/artifacts/pxr001_data_audit/audit_report.txt
+Exit status 0; stderr empty.
+
+Output: audit_report.txt (196 lines). The report's section 0 records the SHA-256 of every
+input file it read; those hashes match the SHA256SUMS of the two preserved data directories.
+
+Inputs: the preserved OpenADMET PXR release pinned to Hugging Face revision
+063e723841063c2dfa86231f58fb59a6a738d113, committed as 5cca55c.
+
+Interpreter and libraries used for this run:
+  python 3.13.13; pandas 2.3.3; numpy 2.5.3; pyarrow 25.0.1; rdkit 2026.03.6
+  (/opt/homebrew/Caskroom/miniforge/base/bin/python3, run with -I)
+
+Scope and limits:
+- The audit is read-only. It applies no exclusion, filter, eligibility rule or transformation,
+  and it writes nothing back to the data directories.
+- The firewalled files under pxr/data/openadmet_pxr_heldout_labels_2026-11-15/ were read for
+  identity columns and row counts only (Molecule Name, SMILES, phase). No label value was read,
+  aggregated or printed. The script declares those columns explicitly in HELDOUT_IDENTITY_COLS.
+- Train/test overlap is reported primarily by exact Molecule Name. That rule is the identity
+  precedent recorded in notes/Decisions.md for the CYP arm; it is NOT an established PXR
+  identity rule. Structural comparisons in the report are labeled diagnostic.
+
+Findings recorded in the report that are observations, not decisions:
+- The primary TRAIN table contains 4,139 molecules, every one with a fitted pEC50 and a
+  positive Emax. It contains no inactives or non-responders.
+- The TRAIN Split column is constant, so the release supplies no internal partition. The
+  predeclared scaffold/series holdout is not instantiated by the official data.
+- Four InChIKey connectivity-block groups inside TRAIN contain more than one molecule, with
+  pEC50 spreads up to 1.22. Whether these are genuine stereochemical or tautomeric
+  distinctions or representation inconsistencies is not established.
+- One semi-pure HT-chem compound, OCNT-2395416, is structurally identical to blinded test
+  molecule OADMET-0006234. A name-based identity rule does not catch this.
+- Train/test overlap is zero at every level tested, including InChIKey connectivity.
+- Phase 1 (253) and Phase 2 (260) are disjoint and together cover all 513 blinded compounds.
+
+No exclusion is frozen and no evaluation criterion is established by this artifact.
