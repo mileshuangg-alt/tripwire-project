@@ -6386,3 +6386,271 @@ Everything else in D013, Amendment 1 and Amendment 2 is unchanged.
 
 Rounding at fewer significant figures (same boundary problem); ULP counting (authors' text is already rounded, so a ULP count is not meaningful); an exception list of the 4 activity_ids (hand-made carve-out, breaks on any rerun with different straddles); a tolerance on −log10(value) (equivalent here, adds a transform).
 
+# D014 — PXR Primary Internal Evaluation Holdout: Bemis-Murcko Scaffold Holdout
+
+**Thread:** Tripwire-PXR (PXR induction arm), session PXR-001. This is the first decision record for the PXR arm; before it, no PXR entry existed in this file or in `notes/project_log.md`.
+
+**Decision date:** 2026-11-15
+
+**Status:** Approved choice of holdout type. Not implemented: no split artifact, seed value or partition proportions exist, and no model, training, tuning or evaluation has occurred in the PXR arm.
+
+## Decision
+
+Miles chose, in his own words: "just go with A".
+
+Option A, as presented to him and chosen:
+
+> **A. Bemis-Murcko scaffold holdout (standard scaffolds, chirality excluded).** Whole scaffold groups assigned to exactly one partition. This is the literal reading of the README's "predeclared scaffold holdout" and the field default (Bemis & Murcko 1996; the standard split in MoleculeNet and Chemprop tooling).
+
+This fixes the primary internal PXR evaluation holdout as a Bemis-Murcko scaffold holdout. It fixes nothing else.
+
+## Options rejected by that choice
+
+- **B.** Butina analog-cluster holdout (the CYP-shaped option).
+- **C.** Generic-framework / graph scaffold holdout.
+- **D.** Difficulty-matched holdout in the manner of SIMPD.
+
+## Constraints presented with the recommendation — not separately confirmed
+
+Option A was recommended together with four constraints. Miles did not comment on them separately, so they are recorded as the content of the recommendation he accepted by choosing A, not as four independently stated decisions:
+
+1. Whole scaffold groups never cross a partition boundary.
+2. The four InChIKey connectivity-block near-duplicate groups found in the PXR-001 data audit stay intact — asserted and tested, not assumed.
+3. Group assignment stratified on group-median pEC50.
+4. A single fixed seed, with the resulting assignment frozen as a CSV artifact carrying its own SHA-256, keyed on PXR's `Molecule Name` (OADMET ids), **not** CYP's `Molecule_Name` (OCNT ids).
+
+## Relationship to the project proposal — UNKNOWN
+
+The governing document `Tripwire_Project_Proposal_Rev3.md` is not in this repository and is not in its git history. Its text was unavailable when Miles asked to be shown exactly what Rev 3 already commits him to. It is therefore **not established** whether option A restates a procedure Rev 3 already declares or is a new decision. This record does not resolve that either way.
+
+## Left open
+
+- Partition proportions.
+- Whether the design is a single holdout or a train/validation/test three-way split.
+- The seed value and the split implementation itself.
+
+## Supporting evidence
+
+Measured 2026-11-15 by read-only diagnostics on the preserved PXR data (scratchpad scripts, not committed; the numbers below are the reported outputs of those scripts, which are not in this checkout):
+
+- PXR train is structurally sparse: 3,670 Bemis-Murcko scaffolds across 4,139 molecules; 85% of molecules in singleton scaffolds; median nearest-neighbour Tanimoto (ECFP4, 2048 bits) within train 0.391.
+- Butina clustering is near-degenerate on this data (4,103 clusters at Tanimoto ≥ 0.7), which is why the CYP-shaped option B was not recommended.
+- The 513 blinded test molecules sit closer to train (median nearest-neighbour Tanimoto 0.523) than train molecules sit to each other (0.391), while only 19% share a Murcko scaffold with train.
+
+## Recorded consequence
+
+Any internal holdout chosen under this record will be a conservative, pessimistic proxy for the official test set.
+
+## Context already committed today
+
+- Commit `5cca55c` preserved the official OpenADMET PXR release pinned to Hugging Face revision `063e723841063c2dfa86231f58fb59a6a738d113`, under `pxr/data/openadmet_pxr_release_2026-11-15/` and `pxr/data/openadmet_pxr_heldout_labels_2026-11-15/`, each with `PROVENANCE.txt` and `SHA256SUMS`.
+- Commit `fdd5573` added `pxr/scripts/pxr001_data_audit.py` and `pxr/artifacts/pxr001_data_audit/` (report, `PROVENANCE.txt`, `SHA256SUMS`).
+
+## Not authorized by this record
+
+Implementing or running the split; fixing proportions, seed or three-way structure; any PXR model training, tuning or evaluation.
+
+## D014 Amendment 1 — Reconciliation with Project Proposal Rev 3 (2026-11-15)
+
+**Status:** Approved (2026-11-15). Recorded on Miles's approval: "sounds good, move forward with your proposed amendment".
+
+This amendment does not authorize implementing or running the split, and does not fix the proportions or the seed. It records what the governing proposal already commits to, now that the proposal's text is available.
+
+### Source
+
+`Tripwire_Project_Proposal_Rev3.md` ("Final project proposal, deep learning course. Revision 3 | September 30, 2026"), supplied by Miles on 2026-11-15 as a file in his Downloads folder (`Tripwire_Project_Proposal_Rev3-1.md`). It is **not** a repository artifact: it is not in this repository and not in its git history. Line numbers below are those of the file as Miles provided it.
+
+### Change 1 — "Relationship to the project proposal — UNKNOWN" is superseded
+
+The section above headed "Relationship to the project proposal — UNKNOWN" is superseded in full by this change. The question it left open is resolved.
+
+Rev 3 commits to the **type** of split and to several checks, but never to an algorithm: no Murcko, no Butina, no similarity threshold and no proportions appear anywhere in it. Option A is therefore neither a deviation from Rev 3 nor a redundant re-declaration — it is the operational instantiation that Rev 3 requires to be recorded but deliberately leaves unspecified.
+
+- Rev 3 line 52 (Datasets, induction arm table): "Primary project evaluation | Predeclared internal scaffold/series holdout"
+- Rev 3 line 117: "Primary evaluation is MAE of predicted pEC50 on the predeclared scaffold/series holdout, with Spearman correlation for ranking quality."
+- Rev 3 line 59: "The internal holdout is declared before modeling decisions that could exploit it. Its compound assignments, preprocessing, exclusions, metrics, and model-selection rules must be recorded."
+
+### Change 2 — constraint 2 is a standing Rev 3 commitment, not an unconfirmed recommendation
+
+Constraint 2 ("the four InChIKey connectivity-block near-duplicate groups found in the PXR-001 data audit stay intact — asserted and tested, not assumed") is promoted out of "Constraints presented with the recommendation — not separately confirmed". It is not awaiting Miles's sign-off; Rev 3 already requires it.
+
+- Rev 3 line 109: "Scaffold/series splits are fixed before final evaluation. Near-duplicates and analog leakage across splits are checked explicitly."
+- Rev 3 line 194, as the domain-shift mitigation: "Use scaffold/series holdouts, calibration, per-chemotype analysis, and explicit applicability warnings."
+
+The four InChIKey connectivity-block groups found in the PXR-001 audit are precisely the near-duplicates that commitment covers.
+
+### Change 3 — why scaffold-only discharges Rev 3's "scaffold/series" phrasing
+
+Rev 3 writes "scaffold/series" at lines 52, 109, 117 and 194; option A groups by Bemis-Murcko scaffold only. The reason this is adequate here is empirical, and is recorded as the reason: Butina clustering is near-degenerate on this data — 4,103 clusters from 4,139 molecules at Tanimoto ≥ 0.7, and 2,977 clusters even at ≥ 0.4 — so no meaningful analog-series structure exists to group by. The explicit near-duplicate check in Change 2 is what discharges the "series" half of the obligation. Scaffold-only is a measured judgement, not a silent dropping of half the phrase.
+
+### Change 4 — the three-way structure is already required, not open
+
+"Whether the design is a single holdout or a train/validation/test three-way split" is removed from "Left open". Rev 3 line 109: "Training and validation data are used for fitting and selection; the final internal holdout is not an iterative tuning target." A two-way split would leave model selection nowhere to happen but the holdout, which that sentence forbids.
+
+After this change, **Left open** contains only:
+
+- Partition proportions.
+- The seed value (and the split implementation itself, which remains unauthorized).
+
+Correspondingly, "fixing … three-way structure" in "Not authorized by this record" no longer applies: the three-way structure is fixed by Rev 3, not by a later decision.
+
+### Change 5 — the metrics were never open either
+
+Rev 3 line 117 (quoted in Change 1) already fixes MAE of predicted pEC50 on the predeclared holdout as the primary PXR metric, with Spearman correlation for ranking quality. No metric choice is open in the PXR arm.
+
+### Corroboration that the preserved data is the data Rev 3 describes
+
+- Rev 3 line 55: "The closeout added 260 compounds to the 253 previously released (official)" — matches the PXR-001 audit exactly (Phase 1 = 253, Phase 2 = 260, disjoint, union 513).
+- Rev 3 line 48 gives dose-response coverage as "Over 4,000 compounds (official closeout wording); exact usable label count to be checked from the data"; the audit measured 4,139 rows.
+
+### Unchanged
+
+Constraints 1 (whole scaffold groups never cross a partition boundary), 3 (stratification on group-median pEC50) and 4 (fixed seed; assignment frozen as a CSV artifact with its own SHA-256, keyed on PXR's `Molecule Name` OADMET ids, not CYP's `Molecule_Name` OCNT ids) still have **no decision force**. Rev 3 does not speak to stratification or to the identity key. They remain part of the recommendation Miles accepted by choosing A, awaiting his explicit confirmation.
+
+Everything else in D014 is unchanged, including the choice of option A itself and the recorded consequence that any internal holdout here is a conservative, pessimistic proxy for the official test set.
+
+## D014 Amendment 2 — Constraints 1, 3 and 4 bind (2026-11-15)
+
+**Status:** Approved (2026-11-15). Recorded on Miles's decision, in his own words: "Yes, all three bind". He was answering whether constraints 1, 3 and 4 bind as part of D014.
+
+This amendment does not authorize implementing or running the split, nor any PXR model training, tuning or evaluation. It fixes no seed value and no partition proportions.
+
+### Change
+
+Constraints 1, 3 and 4 were recorded in D014 ("Constraints presented with the recommendation — not separately confirmed") and again in Amendment 1's "Unchanged" subsection as having no decision force and awaiting Miles's explicit confirmation. This is that confirmation. As of 2026-11-15 all three bind as part of D014:
+
+1. Whole scaffold groups never cross a partition boundary.
+3. Group assignment stratified on group-median pEC50.
+4. A single fixed seed, with the resulting assignment frozen as a CSV artifact carrying its own SHA-256, keyed on PXR's `Molecule Name` (OADMET ids), **not** CYP's `Molecule_Name` (OCNT ids).
+
+Constraint 2 is not part of this amendment; Amendment 1 recorded it as a standing Rev 3 commitment rather than a choice.
+
+### Scope of constraint 4
+
+Constraint 4 binds the **requirement** of a single fixed seed and of a frozen, hashed CSV artifact keyed on `Molecule Name`. It does **not** fix the seed value, which remains open.
+
+### Authority
+
+All three bind on Miles's decision of 2026-11-15, not on the project proposal:
+
+- Rev 3 does not speak to stratification (constraint 3) or to the identity key (constraint 4).
+- Constraint 1 is what gives "scaffold holdout" operational meaning; Rev 3 does not state it separately because whole-group assignment is what a scaffold split is. Its authority here is nonetheless his decision today, not an inference from the proposal.
+
+### Left open after two amendments
+
+For the PXR holdout, exactly two items remain open:
+
+- the partition proportions;
+- the seed value.
+
+Nothing else is open. Amendment 1 established that the three-way train/validation/holdout structure is required by Rev 3 line 109, and that MAE of predicted pEC50 with Spearman for ranking quality is fixed by Rev 3 line 117. The split implementation itself remains unauthorized.
+
+Everything else in D014 and D014 Amendment 1 is unchanged.
+
+## D014 Amendment 3 — Partition proportions and seed value (2026-11-15)
+
+**Status:** Approved (2026-11-15). Question put to Miles, verbatim: "Use 70/15/15 with seed 20261115 for the PXR holdout?" His answer, verbatim: "Yes, 70/15/15".
+
+His answer accepts the question as put, so the proportions are 70/15/15 and the seed value is 20261115. His literal words named the proportions only, while the question he answered named both. He has been told that if he meant the proportions alone and wants a different seed, he should say so and this record will be amended.
+
+This amendment does not authorize implementing or running the split, nor any PXR model training, tuning or evaluation. No split artifact exists.
+
+### Change
+
+The two items left open by Amendment 2 are now fixed:
+
+1. **Partition proportions:** 70 / 15 / 15 across train / validation / holdout, under the three-way structure Amendment 1 recorded as required by Rev 3 line 109.
+2. **Seed value:** 20261115. This fills in the seed whose *requirement* constraint 4 already bound under Amendment 2. Constraint 4's other requirements are unchanged: the resulting assignment is frozen as a CSV artifact carrying its own SHA-256, keyed on PXR's `Molecule Name` (OADMET ids), not CYP's `Molecule_Name` (OCNT ids).
+
+### Why these values
+
+- On 4,139 PXR training molecules, 70/15/15 gives approximately 2,900 train, 620 validation and 620 holdout. These counts are **approximate**: whole scaffold groups are assigned indivisibly under constraint 1, so realized partition sizes will not land exactly on the nominal percentages. The realized counts in the eventual split artifact are therefore not a discrepancy.
+- A real validation partition is required because Rev 3 line 109 forbids selecting on the holdout.
+- Seed 20261115 follows the existing project convention of a date-shaped seed (as in `CYP002_SEED = 20261001` in `cyp/scripts/cyp002_config.py`) and is today's date.
+
+### Measured caveat
+
+As already recorded in D014's evidence, 85% of PXR training molecules sit in singleton Bemis-Murcko scaffolds, so a 15% holdout takes roughly 577 of the 3,670 scaffold groups and group-wise proportions will land close to molecule-wise ones. The whole-group constraint still guarantees that no scaffold spans a partition boundary, but it does less work on this data than it would on an analog-dense set.
+
+### Alternative considered
+
+80/10/10 (approximately 3,300 train and 414 each) was considered and not chosen, because the validation partition becomes thin for selecting among Chemprop configurations.
+
+### Status of the holdout specification
+
+The PXR primary internal evaluation holdout is now **fully specified**. Nothing about it remains open. This supersedes the "Left open after two amendments" subsection of Amendment 2.
+
+Everything else in D014, Amendment 1 and Amendment 2 is unchanged.
+
+## D014 Amendment 4 — Grouping of ringless (acyclic) molecules (2026-11-15)
+
+**Status:** Approved (2026-11-15). Recorded on Miles's decision, in his own words: "Give each ringless molecule its own group, but still keep molecules with the same InChIKey connectivity block together. Having no rings doesn't prove they're unrelated. Record this amendment then regenerate on the same seed."
+
+This amendment **does** authorize regenerating the split under the amended rule, since he directed it explicitly. It does not authorize any PXR model training, tuning or evaluation.
+
+### What prompted it
+
+The split was generated and independently verified today. It surfaced an artifact of the standard Bemis-Murcko implementation: RDKit returns an **empty** scaffold string for a molecule with no rings. All 30 ringless molecules in the 4,139-compound training table therefore shared the empty string, were treated as a single scaffold group, and were assigned together — all 30 landed in validation, leaving train and holdout with no acyclic compounds at all.
+
+Literally no scaffold spanned a partition boundary, so D014 constraint 1 was satisfied. The problem is that the empty string is not a shared scaffold, so the grouping did not mean what it appeared to mean. This is a known wart in the standard implementation; DeepChem and Chemprop-style scaffold splits inherit the same behaviour.
+
+### The rule
+
+1. Each ringless molecule forms its **own** assignment group, rather than all ringless molecules forming one group through the shared empty scaffold string.
+2. The InChIKey connectivity-block merge still applies to them: two ringless molecules sharing a connectivity block remain in the same group. In his words: "Having no rings doesn't prove they're unrelated." D014 constraint 2, standing under Rev 3 line 109, is **not** weakened for ringless molecules; only the empty-scaffold lumping is removed.
+3. The split is regenerated on the same seed, 20261115, unchanged from Amendment 3.
+
+### Consequences
+
+- The previously generated artifact (train 2,897 / validation 621 / holdout 621; 69.99 / 15.00 / 15.00 percent; 3,670 groups) is **superseded** and must not be treated as the frozen split. It was never committed and nothing depends on it.
+- The regenerated artifact will differ, and its realized sizes will differ slightly, because the 30 ringless molecules now distribute across the partitions instead of sitting in one.
+
+### Unchanged
+
+Everything else about the declaration: Bemis-Murcko scaffold with chirality excluded; whole groups indivisible (constraint 1); stratification on group-median pEC50 (constraint 3); three-way 70/15/15; seed 20261115; the assignment frozen as a CSV artifact with its own SHA-256, keyed on `Molecule Name` (constraint 4); MAE of predicted pEC50 primary with Spearman for ranking quality.
+
+Everything else in D014, Amendment 1, Amendment 2 and Amendment 3 is unchanged.
+
+## D014 Artifact record — Frozen PXR-001 split assignment (2026-11-15)
+
+**Status:** Factual record, not a decision. It names the artifact that D014 constraint 4 requires to be frozen and hashed, together with its realized counts and verification. It changes no rule and authorizes nothing; PXR model training, tuning and evaluation remain unauthorized.
+
+### Artifact
+
+Produced 2026-11-15 under D014 Amendment 4, seed 20261115. Evidence lives in this checkout, **uncommitted** as of this entry.
+
+| Item | Value |
+|---|---|
+| Split assignment | `pxr/artifacts/pxr001_split/pxr001_split_assignments.csv`, SHA-256 `c6028f1b7216ab2ea4bab96616fc02b95ce011be20b1b96f807d1e7d582ece46` |
+| Hash manifest | `pxr/artifacts/pxr001_split/SHA256SUMS`; `shasum -a 256 -c` verifies OK from the repository root |
+| Provenance | `pxr/artifacts/pxr001_split/PROVENANCE.txt` |
+| Generator | `pxr/scripts/pxr001_split.py` |
+| Tests | `pxr/tests/test_pxr001_split.py`, 19 passed |
+| Input | `pxr/data/openadmet_pxr_release_2026-11-15/pxr-challenge_TRAIN.csv`, SHA-256 `fdc2252bb5763ab5742e78cb1ba692bebe131a972cf83aa1bd45e43d8c5bc223` |
+
+### Realized partitions
+
+4,139 molecules in 3,699 assignment groups:
+
+- train 2,897 molecules (69.99%), 2,584 groups;
+- validation 621 molecules (15.00%), 557 groups;
+- holdout 621 molecules (15.00%), 558 groups.
+
+The group count rose from 3,670 to 3,699 because the 30 ringless molecules now form 30 groups rather than one (Amendment 4); none of them shares a connectivity block with another.
+
+### Independent verification
+
+By a separate script that recomputed scaffolds and connectivity blocks from the preserved raw CSV rather than trusting the artifact's own columns:
+
+- the artifact's `scaffold_smiles` and `connectivity_block` columns reproduce exactly;
+- 0 ringed scaffolds span more than one partition; 0 connectivity blocks span; 0 groups span;
+- the 4 near-duplicate connectivity blocks are each within a single partition — all four in train under this regeneration;
+- 0 duplicate identities, 0 unassigned rows; the identity set equals the preserved TRAIN table exactly;
+- 0 names shared with TEST_BLINDED;
+- re-running the generator reproduces the CSV byte-identically;
+- partition pEC50 medians 4.65 train / 4.64 validation / 4.66 holdout, means within 0.03.
+
+### Recorded observation
+
+The 30 ringless molecules distributed 19 train / 3 validation / 8 holdout, which is not proportional to 70/15/15. With 30 indivisible singleton groups spread across potency strata, small-count deviation of this size is expected; it is not a constraint violation.
+

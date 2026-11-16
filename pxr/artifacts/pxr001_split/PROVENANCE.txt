@@ -1,0 +1,36 @@
+Tripwire PXR-001 predeclared scaffold holdout
+Produced: 2026-11-15
+
+Governing record: notes/Decisions.md D014 and Amendments 1-3.
+Generator: pxr/scripts/pxr001_split.py   seed 20261115
+Input: pxr/data/openadmet_pxr_release_2026-11-15/pxr-challenge_TRAIN.csv
+  SHA-256 fdc2252bb5763ab5742e78cb1ba692bebe131a972cf83aa1bd45e43d8c5bc223
+
+Grouping: Bemis-Murcko scaffold, chirality excluded. Grouping keys sharing an
+InChIKey connectivity block are merged into one assignment unit, so near-duplicates
+cannot straddle a partition boundary (D014 constraint 2; Rev 3 line 109).
+Ringless molecules have an empty Bemis-Murcko scaffold and are grouped individually
+rather than lumped together by that empty string (D014 Amendment 4); the
+connectivity-block merge still keeps related ringless molecules in one group.
+Assignment: whole groups only, stratified on group-median pEC50 across 10 strata.
+No exclusion, filtering or molecule standardization is applied; the official SMILES
+strings are used as released.
+
+Realized sizes (nominal 70 / 15 / 15; whole groups are indivisible, so realized
+fractions do not land exactly on the nominal percentages):
+  train        2897 molecules (69.99%)    2584 groups
+  validation    621 molecules (15.00%)     557 groups
+  holdout       621 molecules (15.00%)     558 groups
+
+Total molecules 4139; total assignment groups 3699.
+
+Invariants asserted before the artifact was written:
+  - every molecule assigned to exactly one partition;
+  - no scaffold spans more than one partition (the empty scaffold is excluded:
+    it marks a ringless molecule, not a shared scaffold, and those are grouped
+    individually under Amendment 4);
+  - no InChIKey connectivity block spans more than one partition;
+  - molecule identity unique across the assignment.
+
+The holdout is not a tuning target (Rev 3 line 109). Primary metric is MAE of
+predicted pEC50 with Spearman for ranking quality (Rev 3 line 117).
