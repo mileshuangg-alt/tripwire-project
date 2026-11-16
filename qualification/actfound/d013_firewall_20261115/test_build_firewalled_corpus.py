@@ -4,6 +4,7 @@ from __future__ import annotations
 import csv
 import hashlib
 import json
+import math
 import os
 import shutil
 import sys
@@ -113,13 +114,87 @@ def _reformat_first(chembl):
     return edit
 
 
-def test_formatting_only_difference_inside_split_blocks(tmp_path: Path):
+def test_standard_value_formatting_inside_split_does_not_block(tmp_path: Path):
+    """D013 Amendment 2: standard_value is compared at 15 significant figures."""
     rc, m, out, _, _ = _repro(tmp_path, edit=_reformat_first("CHEMBL101"))
     g = m["reproduction_vs_authors"]
+    assert rc == 0 and g["gate"] == "PASS" and g["blocking_differences"] == 0
+    assert "field_mismatch" not in g["in_split"]
+    assert _diffs(out) == []
+
+
+def test_one_ulp_standard_value_difference_does_not_block(tmp_path: Path):
+    """Upper bound on the precision: a 1-ULP neighbour is equal at 15 significant
+    figures, as in the real 776247116628693.0 vs 776247116628692.8 case. A stricter
+    constant (e.g. 17) would make this block."""
+    def edit(rows):
+        r = next(x for x in rows if x[11] == "CHEMBL101")
+        r[6] = repr(math.nextafter(float(r[6]), math.inf))
+    rc, m, out, _, _ = _repro(tmp_path, edit=edit)
+    g = m["reproduction_vs_authors"]
+    assert rc == 0 and g["gate"] == "PASS" and g["blocking_differences"] == 0
+    assert _diffs(out) == []
+
+
+def test_standard_value_difference_within_15_significant_figures_blocks(tmp_path: Path):
+    """Lower bound on the precision: a 0.1% change is visible at 15 significant
+    figures and must block. A looser constant (e.g. 2) would hide it."""
+    def edit(rows):
+        r = next(x for x in rows if x[11] == "CHEMBL101")
+        r[6] = repr(float(r[6]) * 1.001)
+    rc, m, out, _, _ = _repro(tmp_path, edit=edit)
+    g = m["reproduction_vs_authors"]
     assert rc == bc.EXIT_GATE_FAIL and g["gate"] == "FAIL" and g["in_split"]["field_mismatch"] == 1
-    d = _diffs(out)
-    assert [(x["scope"], x["kind"]) for x in d] == [("in_split", "field_mismatch")]
     assert (out / "SHA256SUMS.txt").exists()  # outputs kept for review
+
+
+@pytest.mark.parametrize("field,name", [(2, "record_id_unused"), (14, "graph_pair_count")])
+def test_exempt_columns_inside_split_are_counted_not_blocking(tmp_path: Path, field, name):
+    """D013 Amendment 2 items 3-5: exempt, but counted and listed per assay."""
+    def edit(rows):
+        r = next(x for x in rows if x[11] == "CHEMBL101")
+        r[field] = str(int(r[field]) + 7)
+    rc, m, out, _, _ = _repro(tmp_path, edit=edit)
+    g = m["reproduction_vs_authors"]
+    assert rc == 0 and g["gate"] == "PASS" and g["blocking_differences"] == 0
+    assert g["exempt_columns"]["row_counts"]["%s|in_split" % name] == 1
+    assert g["exempt_columns"]["assays_affected"][name] == 1
+    with (out / "exempt_differences_by_assay.tsv").open() as f:
+        listed = [r for r in csv.DictReader(f, delimiter="\t") if r["column"] == name]
+    assert len(listed) == 1
+    if name == "graph_pair_count":
+        assert g["exempt_columns"]["graph_pair_count_assays"] == [listed[0]["assay_key"]]
+
+
+def test_count_scratch_difference_inside_split_still_blocks(tmp_path: Path):
+    """The graph_pair_count exemption does not extend to the retained count."""
+    def edit(rows):
+        r = next(x for x in rows if x[11] == "CHEMBL101")
+        r[12] = str(int(r[12]) + 1)
+    rc, m, _, _, _ = _repro(tmp_path, edit=edit)
+    assert rc == bc.EXIT_GATE_FAIL and m["reproduction_vs_authors"]["in_split"]["field_mismatch"] == 1
+
+
+def test_canonical_smiles_difference_inside_split_blocks(tmp_path: Path):
+    def edit(rows):
+        next(x for x in rows if x[11] == "CHEMBL101")[13] = "CCO"
+    rc, m, _, _, _ = _repro(tmp_path, edit=edit)
+    assert rc == bc.EXIT_GATE_FAIL and m["reproduction_vs_authors"]["in_split"]["field_mismatch"] == 1
+
+
+def test_firewall_mode_refuses_manifest_from_a_different_comparison_scope(tmp_path: Path):
+    pre, code, base = _run(tmp_path)
+    authors, fw = _firewall_inputs(tmp_path)
+    args = base + ["--authors-csv", str(authors), "--authors-csv-sha256", _sha(authors),
+                   "--firewall-list", str(fw), "--firewall-list-sha256", _sha(fw)]
+    manifest_args = _fake_repro_manifest(tmp_path, base, authors)
+    p = Path(manifest_args[1])
+    m = json.loads(p.read_text())
+    m["reproduction_vs_authors"]["comparison_scope_id"] = "0" * 16   # a manifest from another scope
+    p.write_text(json.dumps(m))
+    manifest_args[3] = _sha(p)
+    with pytest.raises(SystemExit, match="different comparison scope"):
+        bc.main(args + ["--out-dir", str(tmp_path / "fwscope")] + manifest_args)
 
 
 @pytest.mark.parametrize("edit,kind", [
@@ -140,7 +215,10 @@ def test_assay_missing_from_rebuilt_inside_split_blocks(tmp_path: Path):
 
 
 def test_difference_outside_split_is_reported_not_blocking(tmp_path: Path):
-    rc, m, out, _, _ = _repro(tmp_path, edit=_reformat_first("CHEMBL102"),
+    def edit(rows):  # a real value change, outside the split
+        r = next(x for x in rows if x[11] == "CHEMBL102")
+        r[6] = str(float(r[6]) * 2)
+    rc, m, out, _, _ = _repro(tmp_path, edit=edit,
                               split=(["CHEMBL101_nM_IC50"], ["CHEMBL_OTHER_nM_IC50"]))
     g = m["reproduction_vs_authors"]
     assert rc == 0 and g["gate"] == "PASS" and g["outside_split"]["field_mismatch"] == 1
@@ -172,7 +250,8 @@ def _firewall_inputs(tmp: Path):
 
 
 def _fake_repro_manifest(tmp: Path, base, authors, gate="PASS") -> list:
-    m = {"artifact_type": bc.REPRODUCTION_ARTIFACT, "reproduction_vs_authors": {"gate": gate},
+    m = {"artifact_type": bc.REPRODUCTION_ARTIFACT,
+         "reproduction_vs_authors": {"gate": gate, "comparison_scope_id": bc.COMPARISON_SCOPE_ID},
          "inputs": {"pregraph_sha256": base[3], "authors_csv_sha256": _sha(authors), "graph_code_sha256": bc.GRAPH_CODE,
                     "script_sha256": _sha(Path(bc.__file__)), "upstream_split_sha256": "s" * 64}}
     p = tmp / f"repro_{gate}.json"

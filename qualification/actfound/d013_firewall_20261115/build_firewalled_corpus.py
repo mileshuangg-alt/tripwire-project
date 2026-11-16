@@ -59,6 +59,47 @@ def row_digest(fields) -> bytes:
     return hashlib.blake2b("\t".join(fields).encode(), digest_size=16).digest()
 
 
+FIELD_NAMES = ("activity_id", "assay_id", "record_id_unused", "molregno", "bao_endpoint",
+               "standard_relation", "standard_value", "standard_units", "standard_type",
+               "assay_type", "bao_format", "assay_chembl_id", "count_scratch",
+               "canonical_smiles", "graph_pair_count")
+
+# D013 Amendment 2 — scope of the reproduction-gate comparison.
+VALUE_FIELD = 6
+VALUE_SIGNIFICANT_FIGURES = 15        # the precision the authors' released file carries
+EXEMPT_FIELDS = {2: "record_id_unused", 14: "graph_pair_count"}
+COMPARED_FIELDS = tuple(i for i in range(len(FIELD_NAMES)) if i not in EXEMPT_FIELDS)
+
+COMPARISON_SCOPE = {
+    "amendment": "D013 Amendment 2",
+    "compared_exactly": [FIELD_NAMES[i] for i in COMPARED_FIELDS if i != VALUE_FIELD],
+    "standard_value": "compared at %d significant figures" % VALUE_SIGNIFICANT_FIGURES,
+    "exempt_reported_never_blocking": [EXEMPT_FIELDS[i] for i in sorted(EXEMPT_FIELDS)],
+    "blocking": ("any in-split difference in a compared field, a missing or extra in-split row, "
+                 "or an assay-key mismatch"),
+}
+COMPARISON_SCOPE_ID = hashlib.sha256(
+    json.dumps(COMPARISON_SCOPE, sort_keys=True).encode()).hexdigest()[:16]
+
+
+def canonical_value(v: str) -> str:
+    """standard_value at the reference's precision; an unparsable value compares exactly."""
+    try:
+        return "%.*g" % (VALUE_SIGNIFICANT_FIGURES, float(v))
+    except ValueError:
+        return v
+
+
+def comparable_digest(fields) -> bytes:
+    """Digest over the fields D013 Amendment 2 compares, standard_value canonicalised."""
+    parts = [canonical_value(fields[i]) if i == VALUE_FIELD else fields[i] for i in COMPARED_FIELDS]
+    return hashlib.blake2b("\t".join(parts).encode(), digest_size=16).digest()
+
+
+def exempt_values(fields) -> tuple:
+    return tuple(fields[i] for i in sorted(EXEMPT_FIELDS))
+
+
 REPRODUCTION_ARTIFACT = "D013_route_c_reproduction_manifest_v1"
 EXIT_GATE_FAIL = 3
 
@@ -90,7 +131,7 @@ def authors_index(path: Path):
             keys.add(k)
             if r[0] in rows:
                 raise SystemExit(f"duplicate authors activity_id {r[0]}")
-            rows[r[0]] = (k, split_descriptor(r), row_digest(r))
+            rows[r[0]] = (k, split_descriptor(r), comparable_digest(r), exempt_values(r))
     return keys, rows
 
 
@@ -141,7 +182,8 @@ def filter_pregraph(pregraph: Path, out: Path, keys: set, firewall: set, audit_c
             "rows_removed_by_exclusion_basis": dict(sorted(removed_by_basis.items()))}
 
 
-def compare_to_authors(corpus: Path, authors_rows: dict, split_ids: set, diff_path: Path) -> dict:
+def compare_to_authors(corpus: Path, authors_rows: dict, split_ids: set, diff_path: Path,
+                       exempt_path: Path = None) -> dict:
     """Exact row comparison, every difference scoped in_split / outside_split.
 
     A difference is in_split if the rebuilt row's or the authors' row's split
@@ -149,6 +191,8 @@ def compare_to_authors(corpus: Path, authors_rows: dict, split_ids: set, diff_pa
     """
     seen = set()
     c = {"in_split": Counter(), "outside_split": Counter()}
+    exempt = Counter()
+    exempt_assays = {name: set() for name in EXEMPT_FIELDS.values()}
     present = set()
     with corpus.open(newline="") as f, diff_path.open("w", newline="") as d:
         r = csv.reader(f, delimiter="\t")
@@ -169,26 +213,52 @@ def compare_to_authors(corpus: Path, authors_rows: dict, split_ids: set, diff_pa
             ref = authors_rows.get(aid)
             if ref is None:
                 diff(aid, key, [desc], "extra_in_rebuilt")
-            elif ref[0] != key or ref[1] != desc:
+                continue
+            if ref[0] != key or ref[1] != desc:
                 diff(aid, key, [desc, ref[1]], "assay_key_mismatch")
-            elif ref[2] != row_digest(fields):
+                continue
+            scope = "in_split" if desc in split_ids else "outside_split"
+            if ref[2] != comparable_digest(fields):
                 diff(aid, key, [desc], "field_mismatch")
             else:
-                scope = "in_split" if desc in split_ids else "outside_split"
                 c[scope]["identical_rows"] += 1
-        for aid, (key, desc, _) in authors_rows.items():
+            # D013 Amendment 2: exempt columns are counted and listed, never blocking.
+            for n, i in enumerate(sorted(EXEMPT_FIELDS)):
+                if ref[3][n] != fields[i]:
+                    name = EXEMPT_FIELDS[i]
+                    exempt[(name, scope)] += 1
+                    exempt_assays[name].add(key)
+        for aid, (key, desc, _, _exempt) in authors_rows.items():
             if aid not in seen:
                 diff(aid, key, [desc], "missing_in_rebuilt")
+    if exempt_path is not None:
+        with exempt_path.open("w", newline="") as e:
+            w = csv.writer(e, delimiter="\t", lineterminator="\n")
+            w.writerow(["column", "assay_key"])
+            for name in sorted(exempt_assays):
+                for k in sorted(exempt_assays[name]):
+                    w.writerow([name, k])
     authors_descs = {v[1] for v in authors_rows.values()}
     blocking = sum(n for k, n in c["in_split"].items() if k != "identical_rows")
     return {
+        "comparison_scope": COMPARISON_SCOPE,
+        "comparison_scope_id": COMPARISON_SCOPE_ID,
+        "exempt_columns": {
+            "rule": "D013 Amendment 2: counted and listed per assay, never blocking",
+            "row_counts": {"%s|%s" % (n, s): v for (n, s), v in sorted(exempt.items())},
+            "assays_affected": {n: len(v) for n, v in sorted(exempt_assays.items())},
+            "graph_pair_count_assays": sorted(exempt_assays["graph_pair_count"]),
+        },
         "in_split": dict(c["in_split"]),
         "outside_split": dict(c["outside_split"]),
         "split_ids_absent_from_authors_file": len(split_ids - authors_descs),
         "split_ids_absent_from_rebuilt_corpus": len(split_ids - present),
         "blocking_differences": blocking,
         "gate": "PASS" if blocking == 0 else "FAIL",
-        "comparison": "exact; no tolerance, no normalization",
+        "comparison": ("exact on the compared fields, no tolerance and no normalization; "
+                       "standard_value at %d significant figures (the authors' file precision); "
+                       "record_id_unused and graph_pair_count exempt, counted and listed, never blocking "
+                       "(D013 Amendment 2)" % VALUE_SIGNIFICANT_FIGURES),
     }
 
 
@@ -200,6 +270,8 @@ def check_reproduction_manifest(path: Path, expected_sha: str, current_inputs: d
         raise SystemExit("not a route-C reproduction manifest")
     if m.get("reproduction_vs_authors", {}).get("gate") != "PASS":
         raise SystemExit("reproduction gate did not PASS; firewalled build blocked")
+    if m.get("reproduction_vs_authors", {}).get("comparison_scope_id") != COMPARISON_SCOPE_ID:
+        raise SystemExit("reproduction manifest was produced under a different comparison scope")
     for k, v in current_inputs.items():
         if m.get("inputs", {}).get(k) != v:
             raise SystemExit(f"reproduction manifest was made with a different {k}")
@@ -283,8 +355,10 @@ def main(argv=None) -> int:
         "runtime": {"python": platform.python_version(), "seconds": round(time.time() - started, 1)},
     }
     if reproduction:
-        manifest["reproduction_vs_authors"] = compare_to_authors(corpus, authors_rows, split_ids,
-                                                                 a.out_dir / "reproduction_differences.tsv")
+        manifest["reproduction_vs_authors"] = compare_to_authors(
+            corpus, authors_rows, split_ids,
+            a.out_dir / "reproduction_differences.tsv",
+            a.out_dir / "exempt_differences_by_assay.tsv")
     (a.out_dir / "corpus_manifest.json").write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
     names = [corpus.name, "corpus_manifest.json", "graph_stage_summary.json"] + (["reproduction_differences.tsv"] if reproduction else [])
     (a.out_dir / "SHA256SUMS.txt").write_text("".join(f"{sha256(a.out_dir / n)}  {n}\n" for n in names))

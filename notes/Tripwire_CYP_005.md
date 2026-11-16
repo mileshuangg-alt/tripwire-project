@@ -11,6 +11,30 @@
 
 ---
 
+## Current state
+
+*Mutable summary, updated in place. Everything below the next `---` rule is append-only history. Last updated: 2026-11-15. Seeded from §45–§53, `notes/Decisions.md` (D013, Amendments 1 and 2) and the local `git status` / `git diff --stat` of 2026-11-15.*
+
+- **Objective:** D013 — ActFound-CYP whole-package study on a firewalled ChEMBL32 foundation corpus (`notes/Decisions.md`, D013, status "Approved design; foundation corpus, retraining and evaluation not yet executed"). Immediate: qualify the route-C reproduction under the D013 Amendment 2 comparison scope (§50, §51, §52).
+- **Last completed step:** Reproduction job 3075157, run with the deployed Amendment 2 builder (scope `a358c320693929d9`), FAILED the gate (exit 3) on 4 in-split `standard_value` rows at a 15-significant-figure rounding boundary; diagnosed read-only, no code defect found (§52). Job 3073155's gate also stays FAILED as recorded (§47, §49). Then read-only precision probes: max `standard_value` relative difference 4.35e-15, none >5e-15; the 826 outside-split mismatches are 825 `count_scratch` + 1 `standard_value`; 8,657 authors' values carry >15 significant digits, contradicting the Amendment 2 premise; §52 E's "two values with 16 digits" corrected to one (§53).
+- **Next step:** UNKNOWN — awaits Miles's decision on the proposed D013 Amendment 3 draft (§53 E). The firewalled corpus build cannot run without a PASS manifest.
+- **Pending decisions or approvals:**
+  - Miles's decision on the proposed D013 Amendment 3 (`standard_value` comparison rule), drafted at his "Draft Amendment 3": Proposed only, not approved, not recorded in `notes/Decisions.md` (§53 E). It would change D013 Amendment 2 (Approved) and needs his approval.
+  - Corpus build, benchmark and training: not authorized (D013 Amendment 2: "This amendment does not authorize the corpus build, the benchmark or training"; §50 Status, §51 Status, §52 Status).
+- **Active constraints:**
+  - Governing: D013, D013 Amendment 1, D013 Amendment 2 (all Approved). Firewall mode refuses to run without a PASS reproduction manifest (Amendment 1 gate, kept by Amendment 2).
+  - Decisions and session progress are recorded when they happen, never retrospectively (§46).
+  - Files in this checkout are not evidence of what a CoreHPC job loaded or produced.
+  - Who runs CoreHPC commands: Miles paused assistant CoreHPC work for credit cost and ran 3073155 himself (§45); the assistant later ran read-only probes over the shared connection on his instructions (§48–§50, §52). Job 3075157 followed Miles's stated plan to upload and run himself (§51); the assistant's §52 commands were read-only. Standing arrangement for the next CoreHPC run: UNKNOWN.
+- **Artifact references:**
+  - Reproduction-run inputs, CoreHPC paths and SHA-256 (pinned in D013 Amendment 1): §45 D; as used by 3075157: §52 B.
+  - Code deployed to CoreHPC `.../tripwire-project/qualification/actfound/d013_firewall_20261115/`: bundle SHA-256 `ab2eb4aec5885e0a01b41ab768befb682f37483e5f0d6d6c604d5172ffd24450` (§45 B); `build_firewalled_corpus.py` on CoreHPC now `096951ebf0f3484f935230c665f3f8b93dbed473d89f68ca939fd1e6b2bff482`, the Amendment 2 version, equal to this checkout's (§52 B). CoreHPC hash of `test_build_firewalled_corpus.py`: not reported, UNKNOWN.
+  - Job 3073155 outputs: CoreHPC `/scratch/user/mhuang8/actfound/chembl32/d013_reproduction_20261115` (file list §47 B); SHA-256 values not reported, UNKNOWN.
+  - Job 3075157 outputs: CoreHPC `/scratch/user/mhuang8/actfound/chembl32/d013_reproduction_20261115b`, stdout `/scratch/user/mhuang8/d013_repro2_3075157.out` (observed via `scontrol show job 3075157` `StdOut=`, tail read, §53 D); output SHA-256 values not reported, UNKNOWN. Probe scripts for §53: assistant scratchpad only, not in this checkout.
+  - This checkout, Amendment 2 implementation (uncommitted against HEAD `83c665a`, §51): `qualification/actfound/d013_firewall_20261115/build_firewalled_corpus.py` SHA-256 `096951ebf0f3484f935230c665f3f8b93dbed473d89f68ca939fd1e6b2bff482` (declared `COMPARISON_SCOPE_ID = a358c320693929d9`) and `qualification/actfound/d013_firewall_20261115/test_build_firewalled_corpus.py` SHA-256 `617248d96998acfc19bde6a8392133697581e749f624a5b798b01df0b25bbc82`; 31 tests passed locally in the frozen env. Builder deployed to CoreHPC (§52 B).
+
+---
+
 ## 1. Session Objective
 
 Recovered from the sources below. The work is the ActFound ChEMBL32 model-side reconstruction and production training run [GPT-R, HO-C]. The operational objective was to:
@@ -2745,3 +2769,184 @@ This is a routine factual results entry plus the record of an approval Miles gav
 - D013 and D013 Amendment 1: otherwise **unchanged**.
 
 Work stopped at: Amendment 2 recorded in `notes/Decisions.md`; no manifest regenerated, nothing rerun on CoreHPC. Pending: the manifest regeneration under the amended scope. The §49 B / §50 A magnitude-and-direction conflict is no longer pending: it was **resolved on 2026-11-15** by annotating §49 B on Miles's explicit approval ("Annotate it" for the annotation; "Close it" for closing this pending item).
+
+---
+
+## 51. D013 Amendment 2 Implemented in the Builder: Comparison Scope, Exempt-Column Reporting, Tests and Mutation Checks — Local Only (2026-11-15)
+
+Sources: implementation and test results reported in the main conversation [assistant 2026-11-15]; Miles's authorization "Yes, draft it" and his operating instruction [Miles 2026-11-15]. Thread and session (Tripwire CYP, Session 005) as identified by the main conversation ("Yes, log to 005"). This entry follows §50 and closes the "local uncommitted changes ... Not recorded in this log's history" item in the Current state block as of the previous update.
+
+This is a routine factual results entry. It is not a decision, carries no D-number, and is not a session advance. `notes/Decisions.md` is unchanged by this entry.
+
+**Evidence location.** **This local checkout only.** **Nothing was uploaded to CoreHPC and nothing was rerun there.** CoreHPC still holds the previous builder, `build_firewalled_corpus.py` = `c73d6a7c48cb7547f7d284ac732df6302cb4511d4e729c542ab7e3b0122bbd54` (§45 B), so the deployed code and this checkout now differ.
+
+### Authorization and operating instruction (verbatim)
+
+Miles, 2026-11-15, authorising implementation of D013 Amendment 2's comparison scope in the builder:
+
+> "Yes, draft it"
+
+Miles, 2026-11-15, on deployment and execution:
+
+> "i will upload the copy manually and run, then report results to you"
+
+### A. Code change — `qualification/actfound/d013_firewall_20261115/build_firewalled_corpus.py`
+
+| | SHA-256 |
+|---|---|
+| Before | `c73d6a7c48cb7547f7d284ac732df6302cb4511d4e729c542ab7e3b0122bbd54` |
+| After | `096951ebf0f3484f935230c665f3f8b93dbed473d89f68ca939fd1e6b2bff482` |
+
+Diff size: **92 insertions** in this file.
+
+- New module constants `FIELD_NAMES`, `VALUE_FIELD` (6), `VALUE_SIGNIFICANT_FIGURES` (15), `EXEMPT_FIELDS` (`{2: record_id_unused, 14: graph_pair_count}`), `COMPARED_FIELDS`, and a declared `COMPARISON_SCOPE` dict with a derived `COMPARISON_SCOPE_ID = a358c320693929d9`.
+- Resulting scope:
+  - compared exactly: `activity_id`, `assay_id`, `molregno`, `bao_endpoint`, `standard_relation`, `standard_units`, `standard_type`, `assay_type`, `bao_format`, `assay_chembl_id`, `count_scratch`, `canonical_smiles`;
+  - `standard_value` compared at **15 significant figures**;
+  - `record_id_unused` and `graph_pair_count` **exempt**.
+- New helpers `canonical_value()` (unparsable values compare exactly), `comparable_digest()` and `exempt_values()`. `authors_index` now stores the comparable digest plus the raw exempt values. `compare_to_authors` uses the comparable digest for blocking decisions and counts exempt differences separately by scope, collecting the affected assay keys.
+- The manifest's `reproduction_vs_authors` block now carries `comparison_scope`, `comparison_scope_id`, and an `exempt_columns` block with row counts by column and scope, `assays_affected` counts, and the full `graph_pair_count` assay list. New output file `exempt_differences_by_assay.tsv` lists every affected assay per exempt column.
+- `check_reproduction_manifest` now additionally **rejects** a manifest whose `comparison_scope_id` differs from the running code's, so a manifest made under another comparison rule cannot authorise a firewalled build.
+- The manifest `"comparison"` string now states the rule rather than `"exact; no tolerance, no normalization"`.
+
+### B. Tests — `qualification/actfound/d013_firewall_20261115/test_build_firewalled_corpus.py`
+
+| | SHA-256 |
+|---|---|
+| Before | `ebb5ed9701bf5a16884f312567df332b15ab7bb608c4f086d5995329d35aae92` |
+| After | `617248d96998acfc19bde6a8392133697581e749f624a5b798b01df0b25bbc82` |
+
+Diff size: **89 insertions**.
+
+- Full local suite for that directory: **31 passed** (previously 24), run with the frozen env `/opt/homebrew/Caskroom/miniforge/base/envs/tripwire_cyp002/bin/python -m pytest -q`.
+- New tests: `standard_value` formatting inside the split does not block; a 1-ULP neighbour does not block; a 0.1% change does block; `record_id_unused` and `graph_pair_count` differences inside the split are counted and listed but do not block (parametrised, 2 tests); a `count_scratch` difference inside the split still blocks; a `canonical_smiles` difference inside the split blocks; firewall mode refuses a manifest from a different comparison scope.
+- Two pre-existing tests were changed because Amendment 2 changes what they assert: the former `test_formatting_only_difference_inside_split_blocks` is now `test_standard_value_formatting_inside_split_does_not_block`, and `test_difference_outside_split_is_reported_not_blocking` now uses a real value change instead of a formatting-only edit (which no longer registers). `_fake_repro_manifest` now includes `comparison_scope_id`.
+
+### C. Mutation testing (evidence the new assertions are red-capable, not vacuous)
+
+All mutations were reverted afterwards and the suite returned to **31 passed**.
+
+| Mutation | Outcome |
+|---|---|
+| Add `count_scratch` to `EXEMPT_FIELDS` | `test_count_scratch_difference_inside_split_still_blocks` **FAILED**, as intended |
+| `VALUE_SIGNIFICANT_FIGURES` 15 → 2 | `test_standard_value_difference_within_15_significant_figures_blocks` **FAILED**, as intended |
+| `VALUE_SIGNIFICANT_FIGURES` 15 → 17 | `test_one_ulp_standard_value_difference_does_not_block` **FAILED**, as intended |
+
+Recorded for the avoidance of a false confidence claim: an earlier version of the value test used a **doubling**, which **survived** the 15 → 2 mutation and therefore did not pin the precision constant at all. It was replaced by the two boundary tests above after the mutation run exposed this.
+
+### Status (as of 2026-11-15)
+
+- Amendment 2 comparison scope: **implemented and passing locally only**.
+- **Not uploaded to CoreHPC, not run there, no manifest regenerated.** The CoreHPC copy of the builder is still the previous version (`c73d6a7c…`), so deployed code and this checkout differ.
+- Job **3073155**'s gate remains **FAILED** (§47, §49).
+- Corpus build, benchmark and training: still **unauthorized**.
+- D013, D013 Amendment 1 and D013 Amendment 2: **unchanged** by this entry.
+
+Work stopped at: the builder and its tests updated and green locally (31 passed), with mutation checks reverted. Pending: Miles will upload the copy manually and run it, then report the results.
+
+---
+
+## 52. D013 Reproduction Job 3075157 Under the Amendment 2 Comparison Scope: Gate FAILED (Exit 3, 4 In-Split `standard_value` Rows) (2026-11-15)
+
+Sources: Miles's report "job has failed again" with his pasted `watch sacct` output and log tail [Miles 2026-11-15]; then read-only CoreHPC commands run by the assistant over the existing shared SSH connection (`sacct`/`scontrol`, `sha256sum`, `ls`, reading the manifest and the differences TSV, `grep` of rows) [assistant 2026-11-15]. Thread and session (Tripwire CYP, Session 005) as identified by the main conversation. This entry follows §51.
+
+This is a routine factual results entry. It is not a decision, carries no D-number, and is not a session advance. `notes/Decisions.md` is unchanged by this entry.
+
+**Evidence location and read-only character.** All evidence is on CoreHPC, not in this local checkout. **Nothing was written, created or modified on CoreHPC** by the assistant's commands. Files in this checkout are not evidence of what the job loaded or produced.
+
+### A. Slurm accounting and log tail (Miles's `watch sacct` paste)
+
+- Job **3075157**: **FAILED**, ExitCode **3:0**, Elapsed **00:12:57**, MaxRSS **3865224K** (batch step), node **gcpu2-05**.
+- Log tail: runtime python **3.9.18**; seconds **756.2**; outside_split `field_mismatch` **826**, `identical_rows` **433197**; `split_ids_absent_from_authors_file` **0**; `split_ids_absent_from_rebuilt_corpus` **0**.
+
+### B. Submission and deployed code (assistant, read-only CoreHPC)
+
+- Submit line (from `sacct`): `sbatch --partition=cpu --cpus-per-task=4 --mem=16G --time=2:00:00 --job-name=d013-repro2 --output=/scratch/user/mhuang8/d013_repro2_%j.out`, reproduction mode (no firewall list), `--out-dir /scratch/user/mhuang8/actfound/chembl32/d013_reproduction_20261115b`.
+- Inputs: pregraph SHA-256 `43dfd672e790ba3f92bd1e17b5902a44aec88911a5bbf0db26f92d0e192db076`; authors CSV `/scratch/user/mhuang8/actfound/chembl32/authors_20261115/chembl_processed_chembl32.csv` SHA-256 `a5b562d4cd237f94f80b1d6a85031825bc1b0b1157e734f76bc3315f256c5e20`; upstream split SHA-256 `7f3cd5988bfd3d608a8f6c120b54e19d932e0b3c026ec5e43b9798e0d2a6e3e1`.
+- Deployed builder on CoreHPC `.../tripwire-project/qualification/actfound/d013_firewall_20261115/build_firewalled_corpus.py`: SHA-256 `096951ebf0f3484f935230c665f3f8b93dbed473d89f68ca939fd1e6b2bff482`, equal to the §51 local "After" hash. The Amendment 2 builder **was deployed** to CoreHPC; this supersedes the "not uploaded" status recorded in §51 (which was accurate when written; §51 is left as written).
+
+### C. Manifest `reproduction_vs_authors` (assistant, read-only CoreHPC)
+
+- Exit code 3 = `EXIT_GATE_FAIL`. Gate **FAIL**, `blocking_differences` **4**, `comparison_scope_id` **`a358c320693929d9`** (matches the §51 declared scope).
+- in_split: `field_mismatch` **4**, `identical_rows` **1,525,371**.
+- outside_split: `field_mismatch` **826**, `extra_in_rebuilt` **1**, `identical_rows` **433,197**.
+- Exempt columns: `graph_pair_count` — **69** assays (rows in_split **9,814**, outside **9,679**); `record_id_unused` — **47,324** assays (rows in_split **1,525,375**, outside **434,023**).
+- The 826 outside-split mismatches were **not** broken down by field; UNKNOWN.
+
+### D. The 4 blocking rows (assistant, read-only CoreHPC)
+
+All four differ in `standard_value` only; every other compared field is identical. Rebuilt vs authors text:
+
+```text
+activity 489397,  32524_nM_Ki:  446683592150963.5 vs 446683592150963.0
+activity 509845,  32524_nM_Ki:  27542287033381.75 vs 27542287033381.7
+activity 481132,  153318_nM_Ki: 27542287033381.75 vs 27542287033381.7
+activity 1706502, 344234_nM_Ki: 9003570138859.375 vs 9003570138859.371
+```
+
+### E. Assistant analysis (assistant analysis, not a finding or decision)
+
+- Relative differences are about `1e-15` or smaller. These values straddle a 15-significant-figure rounding boundary, so `%.15g` rounds the two texts to different strings (e.g. `...963.5` → `...964` vs `...963`).
+- Two of the authors' values (`446683592150963.0` and `9003570138859.371`) are written with **16** significant digits, which contradicts Amendment 2's stated premise that the authors' file carries 15 significant figures (D013 Amendment 2: "the precision the authors' released file carries").
+- The gate result is **FAIL correctly** under Amendment 2 as approved ("Any in-split difference remaining at that precision fails the gate"). No code defect found.
+
+### Status (as of 2026-11-15)
+
+- Reproduction gate for job 3075157: **FAILED** (exit 3), 4 blocking in-split `standard_value` rows. Firewall mode cannot run from this manifest.
+- No change proposed or made; nothing fixed, normalized, rerun or deleted.
+- Corpus build, benchmark and training: still **unauthorized**.
+- D013, D013 Amendment 1 and D013 Amendment 2: **unchanged**.
+
+Work stopped at: job 3075157 complete with exit 3, outputs kept on CoreHPC, diagnosed read-only. Pending: Miles's decision on how to treat the 4 boundary rows; field breakdown of the 826 outside-split mismatches (not done).
+
+---
+
+## 53. Read-Only Precision Probes of Job 3075157 and the Authors' `standard_value`, Correction to §52 E, and Amendment 3 Draft Status (2026-11-15)
+
+Sources: Miles's instruction "Draft Amendment 3" [Miles 2026-11-15]; two read-only python probes run by the assistant on the CoreHPC login node over the existing shared SSH connection, piped via stdin into the pinned env `/scratch/user/mhuang8/actfound/envs/actfound_c96f055/bin/python -I` [assistant 2026-11-15]; `scontrol show job 3075157` [assistant 2026-11-15]. Probe scripts are in the assistant's scratchpad only, not in this checkout. Thread and session (Tripwire CYP, Session 005) as identified by the main conversation. This entry follows §52.
+
+This is a routine factual results entry with a correction. It is not a decision, carries no D-number, and is not a session advance. `notes/Decisions.md` is unchanged by this entry.
+
+**Evidence location and read-only character.** All evidence is on CoreHPC. **Nothing was written, created or modified on CoreHPC.** Files in this checkout are not evidence of what the job loaded or produced.
+
+### A. Probe 1 — job 3075157 outputs vs the authors' CSV, joined on `activity_id`
+
+Rebuilt: `/scratch/user/mhuang8/actfound/chembl32/d013_reproduction_20261115b`; authors: the CSV recorded in §52 B.
+
+- Matched rows **1,959,397**; `standard_value` text differs on **803**; unparsable **0**.
+- Relative difference `|a-b|/max(|a|,|b|)`: max **4.351811221356154e-15** (activity **2091754**, rebuilt `11220184543019.65` vs authors `11220184543019.7`, outside split).
+- Rows above threshold: >1e-16: **553**; >5e-16: **309**; >1e-15: **167**; >2e-15: **69**; >5e-15: **0**; >1e-14: **0**; >1e-12: **0**; >1e-6: **0**.
+- Non-value compared-field mismatches: **825** rows, all outside_split, all in `count_scratch` only. Of the **826** outside-split `field_mismatch` rows (§52 C), **825** are `count_scratch` and **1** is `standard_value` at 15 s.f. This closes the §52 C/§52 Status pending item "field breakdown of the 826 outside-split mismatches". The assay the 825 rows belong to was **not printed** by the probe (UNKNOWN from this probe).
+
+### B. Probe 2 — significant digits of `standard_value` in the authors' file (all rows)
+
+Count of rows by number of significant digits:
+
+```text
+1:530139  2:652322  3:458567  4:178234  5:62570  6:45526  7:14346  8:4666  9:1194  10:1148
+11:904  12:141  13:180  14:137  15:666  16:2240  17:6374  18:22  19:21
+```
+
+Examples: 16 digits `5.654999999999999`; 17 digits `0.15000000000000002`; 18 digits `165958690743755616`; 19 digits `1071519305237609216`. **8,657** authors' values carry more than 15 significant digits.
+
+### C. Correction to §52 E (assistant analysis)
+
+§52 E stated that two of the four authors' values (`446683592150963.0` and `9003570138859.371`) were written with 16 significant digits. **That was wrong:** only `9003570138859.371` has 16; `446683592150963.0` has 15. Source: the assistant's re-examination reported by the main conversation, 2026-11-15. §52 is left as written.
+
+More broadly, probe 2 (B) shows the authors' file does **not** uniformly carry 15 significant figures. This contradicts the premise stated in D013 Amendment 2, Change item 2 ("the precision the authors' released file carries") and Reason 2 ("The authors' file carries 15 significant digits"). This is evidence bearing on a proposed amendment; it changes no decision. D013 Amendment 2 remains **Approved** and unchanged.
+
+### D. Job 3075157 stdout path (observed)
+
+`scontrol show job 3075157` reported `StdOut=/scratch/user/mhuang8/d013_repro2_3075157.out`, and the assistant read its tail. The path is therefore observed, not only inferred from the `%j` pattern as described in the Current state block before this entry. §52 is left as written.
+
+### E. D013 Amendment 3 draft status
+
+In response to Miles's "Draft Amendment 3", the assistant drafted a proposed D013 Amendment 3 for the `standard_value` comparison rule. The draft is **Proposed only**: being shown to Miles for approval, **not approved and not recorded** in `notes/Decisions.md`.
+
+### Status (as of 2026-11-15)
+
+- Reproduction gate for job 3075157: still **FAILED** (exit 3) as recorded in §52. Nothing rerun, changed or deleted.
+- D013, D013 Amendment 1 and D013 Amendment 2: **unchanged**. Amendment 3: draft only, awaiting Miles.
+- Corpus build, benchmark and training: still **unauthorized**.
+
+Work stopped at: both probes complete read-only; Amendment 3 draft being shown to Miles. Pending: Miles's decision on the Amendment 3 draft.
