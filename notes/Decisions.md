@@ -5329,905 +5329,115 @@ Revisit D011 only if:
 - or a separately approved future decision supersedes D011.
 
 A disappointing tuning result is not grounds to extend the grid, add candidates, change architecture, introduce first-order ANIL, or otherwise modify D011 after results are observed.
-## D012 — Assay-resolved CYP transfer study
+
+
+# D012 — Assay-Resolved CYP Transfer Study
 
 **Decision date:** 2026-11-10
 
-**Status:** Approved; preregistration complete. Implementation and qualification may proceed; production training remains separately approval-gated.
+**Status:** Complete / frozen
 
-### Decision
+## Decision and scope
 
-D012 prospectively replaces D011 as the CYP meta-learning development study. D011 remains superseded/incomplete; its completed artifacts are preserved, its partial candidate scores do not inform D012, and its held remainder is not released or cancelled without explicit human approval.
+D012 replaces D011 as the CYP meta-learning development study. D011 remains superseded and incomplete; its artifacts are preserved and its partial scores do not inform D012.
 
-D012 tests whether assay-episodic ANIL pretraining on routed, assay-resolved CYP IC50 measurements improves prediction of the four fixed OpenADMET direct-inhibition pIC50 endpoints beyond conventional multitask transfer trained with equivalent auxiliary information.
+D012 tests whether assay-episodic ANIL pretraining on routed, assay-resolved CYP IC50 measurements improves prediction of the four OpenADMET direct-inhibition pIC50 endpoints beyond conventional multitask transfer trained on the same auxiliary information. It is a whole-method comparison: it does not isolate feature reuse, make a few-shot claim, or establish why the D010/D011 formulation performed as it did.
 
-This is a whole-method comparison. It does not isolate feature reuse, make a few-shot target-learning claim, or establish that the four-task D010/D011 formulation caused prior performance. Both transfer methods use all available frozen target-training observations.
+The frozen final result is:
 
-### Study arms
+- Arm B O150: `0.7965659341568319`
+- Arm C O150: `1.0292234351463552`
+- D007 T121 O150: `0.7012125767956957`
+- B − T121 mean over 150 paired cells: `+0.09535335736113623`
+- C − B: `+0.23265750098952334`
+- C − T121: `+0.3280108583506596`
 
-D012 has three arms:
+Lower ST-RAE is better. T121 beat B, B beat C, and T121 beat C in 150/150 cells. Both transfer arms show negative transfer; Arm C substantially more.
 
-1. **A — target-only control:** frozen T121. Existing T121 configuration and results are reused wherever target data, endpoints, partitions, seeds and evaluation protocol match D012. T121 is not automatically retuned or retrained.
-2. **B — conventional transfer:** assay-preserving auxiliary multitask Chemprop training followed by target fine-tuning.
-3. **C — meta-learning:** assay-episodic ANIL auxiliary training followed by target adaptation/fine-tuning.
+No post-hoc tuning, rescue, resumption of the dropout diagnostic to produce a replacement O150, or follow-up meta-learning experiment is authorized. A follow-up requires its own literature-backed alternatives pass and preregistration.
 
-The primary comparison is C versus B. B versus A and C versus A are secondary comparisons testing whether auxiliary training improves upon target-only T121.
+## Arms
 
-### Auxiliary endpoint and target relationship
+- **A — target-only control:** frozen T121, reused without retraining; `O150(T121) = 0.701212576796`.
+- **B — conventional transfer:** assay-preserving auxiliary multitask Chemprop training, then full-network target fine-tuning with validation-driven early stopping and checkpoint selection under the T121 target schedule.
+- **C — meta-learning:** exact through-adaptation ANIL on the scalar head (inner LR `0.01`, `K=1`), then one frozen-encoder, full-support, head-only adaptation step with no target fine-tuning or checkpoint selection.
 
-Auxiliary labels are exact ChEMBL IC50 concentrations converted deterministically to pIC50:
+The primary comparison is C versus B; B and C versus T121 are secondary. B and C use the same auxiliary information, the same frozen target-training observations and the same 50 auxiliary epochs with no auxiliary early stopping or selection. Both use Adam/NoamLR with the T121 LR anchors (initial `1.4283739994469765e-05`, maximum `0.0008245400010426866`, final `0.00020141638331344468`), warmup over the first 10 auxiliary epochs. Exposure is equalized in objective-bearing label exposure, not computation: each retained label contributes once per epoch to B's objective and once as a C query.
 
-`pIC50 = -log10(IC50_M)`.
+## Data and identity
 
-The four OpenADMET targets are continuous direct-inhibition pIC50 regression endpoints for CYP1A2, CYP2C9, CYP2D6 and CYP3A4.
+Auxiliary labels are exact ChEMBL IC50 values converted to `pIC50 = -log10(IC50_M)`, represented per `(isoform, assay task, full Standard InChIKey)` by the median. Assay identity is retained. Identity is the full Standard InChIKey under Python 3.12.14, RDKit 2026.03.6 and InChI 1.07.3 with no added standardization. Identities matching OpenADMET validation, internal test or the original blinded challenge are protected and unavailable to auxiliary training; OpenADMET-training overlaps remain available but flagged. Public/unblinded challenge labels were not accessed.
 
-The numerical quantity is therefore pIC50 in both auxiliary and target data, but the experimental measurements are not treated as interchangeable. Auxiliary measurements retain assay identity because their experimental contexts differ.
+The routed population has 176 candidate assay tasks. One pair, CYP3A4 / CHEMBL2448771 and CYP3A4 / CHEMBL3137501 (same `assay_src_id=14`, `assay_src_assay_id=1034082`), has duplicate authority and forms `D012_CONSOLIDATED_CYP3A4_CHEMBL2448771_CHEMBL3137501` (63 identities). The frozen population is 175 task units (CYP1A2 22, CYP2C9 33, CYP2D6 40, CYP3A4 80), 4,664 task-identity instances and 4,795 source observations, with task sizes of 15–160 identities and no minimum-size filter. Task units are not claimed to be independent. Artifacts: `qualification/cyp_external_task_qualification_20261109/d012_auxiliary_population/` (`SHA256SUMS.txt`).
 
-### Molecular identity and leakage contract
+## Development matrix and firewall
 
-Cross-source identity uses full Standard InChIKey under:
+D012 uses the frozen D007 matrix: 50 split manifests (5 repetitions × 10 folds) × training seeds `20261101`, `20261102`, `20261103` = 150 cells. For each manifest, auxiliary instances whose full Standard InChIKey occurs among that manifest's target-validation identities are removed, with no access to validation potency labels; missing or ambiguous identity fails closed. The same mask applies to B, C and all three seed cells of the manifest. The mask removes 0–14 instances per manifest (mean 4.9), leaves all 175 tasks present, and has a minimum post-mask task size of 14.
 
-- Python 3.12.14;
-- RDKit 2026.03.6;
-- InChI 1.07.3;
-- no project-added molecular standardization.
+## Evaluation
 
-Standard InChI intrinsic normalization is acknowledged. Verbatim source SMILES, canonical-isomeric-SMILES witnesses and full Standard InChI are preserved.
+Report all 150 paired cell differences with mean, sample standard deviation, median, range and win count. C outperforms B only if `O150(C) < O150(B)`. No significance threshold and no favorable seed selection.
 
-Frozen OpenADMET `Molecule_Name` partitions remain unchanged.
+## Claim boundary
 
-The bounded audit represented all 5,655 OpenADMET structures and 4,821 of 4,822 selected ChEMBL exact records. Activity 7817060 / CHEMBL508338 / CHEMBL1909136 remains `source_structure_unavailable` and identity-unresolved.
+B and C receive different target-side optimization. D012 therefore does not claim matched target optimization, isolation of feature reuse or of the adaptation operator, or a few-shot result. Both use all target-training observations.
 
-Within-assay source molecule-ID grouping and qualified full-InChIKey grouping were exactly concordant across the 4,821 represented records: 4,690 groups under each definition, with zero merges, zero splits and zero same-key/different-InChI cases.
+## Post-result addendum (2026-11-12)
 
-External identities matching OpenADMET validation, internal test or original blinded challenge are protected and unavailable to auxiliary training. OpenADMET-training overlaps remain available but explicitly flagged. Public/unblinded challenge labels remain inaccessible during development and selection.
+The corrected matrix and its aggregation were complete before these findings and are not altered by them. Authoritative aggregation: `artifacts/d012_corrected_final_aggregation/` (`d012_final_aggregate_summary.json` SHA-256 `3f2479f47ac794f6c357335fbc3b497a537caec6988b2973fab9a7948db03175`; `d012_cell_level_joined_results.tsv` `1585acc9ac4202a192274c8418d200c000b188c6fe40215e4af162fe119fdcbb`; `SHA256SUMS.txt` `c136dbc03876359e54d81e23de176f7a55f287394cb40856a14149835a38ae57`).
 
-### Measurement rule
+- **Defect.** In corrected Arm C target transfer the new `D012ScalarHead` (`Dropout(0.4)`) was never set to `eval()`, so dropout stayed active during the K=1 adaptation and validation prediction. It affects only target transfer downstream of `arm_c_auxiliary_final.pt`, not the 50-epoch meta-training.
+- **Deterministic K0/K1 diagnostic** (`rep_01_fold_01 / seed 20261102`, heads in eval mode): macro ST-RAE `11.888744` unadapted, `1.044312` after K=1 (production `1.060972`). The K=1 operator is effective but the result remained far worse than T121 and B.
+- **Partial matrix diagnostic.** Stopped after 59 of 150 cells: 58/59 improved over production, generally modestly relative to the C-versus-B and C-versus-T121 deficits. It is descriptive only and implies no replacement O150. Location: `artifacts/d012_postresult_dropout_diagnostic/`.
+- **Interpretation.** The dropout defect is real and directionally harmful but does not explain the Arm C deficit. The remaining evidence is consistent with poor transfer of the episodically trained representation, a hypothesis not isolated by this whole-method design. B also underperformed T121. No claim is made that meta-learning, ANIL or one-step adaptation fails in general.
 
-Within a qualified `(isoform, assay task, full Standard InChIKey)` group, exact IC50 measurements are converted to pIC50 and represented by the median derived pIC50.
+Production artifacts, the preserved `arm_c_auxiliary_final.pt` checkpoints and the diagnostic artifacts are preserved. K, inner LR, architecture, episode construction, dropout and target fine-tuning are not tuned post hoc.
 
-All contributing source measurements, units, activity IDs and stored ChEMBL pChEMBL values remain provenance. Stored pChEMBL is a witness, not label authority.
+## Governing principle
 
-### Task provenance and demonstrated duplicate
-
-The routed pre-consolidation population contains 176 candidate assay tasks.
-
-Exactly one pair has affirmative duplicate authority:
-
-- CYP3A4 / CHEMBL2448771
-- CYP3A4 / CHEMBL3137501
-
-Both have `assay_src_id=14` and `assay_src_assay_id=1034082`.
-
-They will form one task using the frozen molecular-identity and measurement rules. No other unresolved relationship is consolidated.
-
-The expected post-consolidation count is 175 task units. Final identity/observation counts and task-size distribution must be materialized before the D012 auxiliary population is frozen. The pre-consolidation count of 4,664 available task-identity instances is not the final D012 auxiliary count.
-
-The remaining task units are not claimed to be independent.
-
-### Materialized D012 auxiliary population
-
-The demonstrated duplicate consolidation was materialized before model implementation.
-
-The 176 source assay tasks produce exactly **175 final task units**. The sole consolidated unit is:
-
-`D012_CONSOLIDATED_CYP3A4_CHEMBL2448771_CHEMBL3137501`.
-
-Its two source assays contain 36 and 27 available identities respectively. Their qualified full-Standard-InChIKey intersection is zero, so the consolidated task contains 63 identities. No shared-identity measurement reconciliation was required by this consolidation.
-
-The frozen D012 auxiliary population contains:
-
-- 175 task units;
-- 4,664 task-identity instances;
-- 4,795 contributing source exact observations;
-- 4,615 external-only task-identity instances;
-- 49 `overlap_openadmet_train` task-identity instances;
-- zero mixed available overlap-class instances;
-- zero zero-identity tasks.
-
-Task units by isoform are:
-
-- CYP1A2: 22;
-- CYP2C9: 33;
-- CYP2D6: 40;
-- CYP3A4: 80.
-
-Overall available identities per task range from 15 to 160. Nearest-rank quartiles are 17 / 21 / 29.
-
-The smallest-task counts are:
-
-- size 15: 1 task;
-- size 16: 18 tasks;
-- size 17: 26 tasks;
-- size 18: 15 tasks;
-- size 19: 11 tasks;
-- size 20: 12 tasks.
-
-No minimum task-size filter was applied. The D010/D011 16-molecule requirement has no D012 authority.
-
-The 175 final task units are not claimed to be mutually independent. All provenance relationships other than the single demonstrated duplicate remain at their previously established status.
-
-The authoritative materialization artifacts are under:
-
-`qualification/cyp_external_task_qualification_20261109/d012_auxiliary_population/`
-
-with frozen hashes recorded in that directory's `SHA256SUMS.txt`.
-
-### Equal-information and exposure contract
-
-Arms B and C receive identical finalized auxiliary task units, molecular structures and labels and the same frozen target-training observations. Neither receives assay descriptions, substrate/probe names, source identifiers or provenance metadata as model inputs.
-
-Fairness is tracked separately as:
-
-- equal input access;
-- equal task sampling;
-- objective-bearing molecule exposure;
-- auxiliary optimization opportunity;
-- target-side tuning opportunity.
-
-Tasks are treated uniformly during auxiliary training.
-
-One auxiliary epoch gives every available auxiliary label exactly one objective-bearing exposure.
-
-For conventional multitask training, each identity contributes once to its assay's supervised objective per auxiliary epoch.
-
-For ANIL, each identity contributes exactly once as query per auxiliary epoch. Support identities may be reused.
-
-Both arms record objective-bearing label exposures, total molecule forward passes, optimizer updates, epochs and GPU/wall time. Identical computational operations are not required.
-
-### ANIL episode construction
-
-For a task with `N` identities:
-
-`Q(N) = max(1, ceil(0.20 * N))`
-
-`S(N) = N - Q(N)`.
-
-Support and query identities are disjoint by full Standard InChIKey and sampled without replacement within an episode.
-
-Within an auxiliary epoch, query sets cycle through a seeded shuffled permutation until every identity has appeared exactly once as query. The final query set may contain fewer than `Q(N)` identities. Support reuse is permitted.
-
-Support loss is the mean over support molecules. Query loss is the mean over query molecules. When multiple tasks form a meta-batch, task query losses are averaged equally so larger assays do not receive greater outer-objective weight merely because of task size.
-
-The D010/D011 13+3 / 16-molecule requirement has no D012 authority.
-
-### Conventional multitask transfer
-
-Arm B uses the same Chemprop encoder family and finalized auxiliary evidence.
-
-Auxiliary learning uses assay-specific scalar regression heads with task-balanced exposure. At target transfer, auxiliary heads are discarded, a fresh target regression head is attached, and all frozen target-training observations are available for fine-tuning.
-
-### ANIL target transfer
-
-Arm C uses the episodically trained encoder and learned scalar-head initialization, then adapts/fine-tunes using all frozen target-training observations.
-
-D012 therefore does not make a few-shot target-prediction claim.
-
-### Target-side tuning
-
-Arms B and C receive matched prospectively bounded validation-only target-side tuning budgets.
-
-Shared parameters use the same candidate set where their meanings are equivalent. Algorithm-specific parameters may receive separately declared bounded searches where no meaningful counterpart exists.
-
-No arm receives additional tuning because an initial result is unfavorable.
-
-### T121 control
-
-T121 is the frozen target-only control and is not automatically retrained or retuned.
-
-Existing T121 results are reused wherever target endpoints, molecular universe, train/validation/test assignments, preprocessing/features, labels, seeds and evaluation protocol match D012.
-
-A new target-only run is authorized only if a concrete incompatibility or missing declared seed/evaluation cell is demonstrated. Any such run uses the frozen T121 configuration only; it does not reopen target-only hyperparameter selection.
-
-No new T121 run is currently authorized. Preserved T121 seed coverage must first be inventoried.
-
-### Repeated-seed evaluation
-
-D012 uses five preregistered seeds. Exact seed integers remain pending inspection of the existing project/T121 seed convention.
-
-For each arm, report every seed-level per-isoform and macro ST-RAE result plus arithmetic mean, sample standard deviation, median, minimum and maximum.
-
-The primary statistic is:
-
-`Delta_C-B = mean(O_ANIL) - mean(O_MT)`.
-
-Lower ST-RAE is better.
-
-ANIL outperforms conventional transfer only if its five-seed mean macro ST-RAE is strictly lower than the conventional-transfer mean.
-
-Also report paired seed differences, median paired difference and ANIL seed-win count. No post-hoc significance threshold is introduced.
-
-B-versus-T121 and C-versus-T121 are secondary comparisons and must use matched seed populations.
-
-### Negative-result interpretation
-
-Negative results are authorized outcomes.
-
-D012 distinguishes:
-
-- neither external method improving T121;
-- conventional transfer improving T121 without ANIL improving conventional transfer;
-- ANIL improving conventional transfer while neither external method improves T121;
-- ANIL improving both conventional transfer and T121;
-- substantial seed variability.
-
-No favorable seed selection or automatic tuning extension is permitted.
-
-### Prerequisites before implementation or training
-
-Before implementation/training authority is granted:
-
-1. materialize the demonstrated duplicate consolidation and freeze the actual 175-task identity/observation population and distribution;
-2. inventory preserved T121 seed/configuration/evaluation coverage and select the five D012 seeds from the established project convention where possible;
-3. determine the exact minimum T121 rerun requirement, if any;
-4. complete the final D012 preregistration fields and obtain human approval.
-
-### Final preregistration amendment
-
-This section supersedes any conflicting provisional D012 language above concerning repeated seeds, target-transfer optimization, auxiliary scheduling, or target-side tuning.
-
-#### Frozen development matrix and T121 reuse
-
-D012 inherits the exact frozen D007 development matrix:
-
-- 5 repetitions;
-- 10 folds per repetition;
-- training seeds `20261101`, `20261102`, `20261103`;
-- 50 split manifests;
-- 150 total development cells.
-
-The three training seeds associated with a split manifest share that manifest's frozen target train/validation membership.
-
-T121 is the frozen target-only control. Its compatible existing 150-cell development evidence is reused without retraining or retuning. Its authoritative development quantity remains:
-
-`O150(T121) = 0.701212576796`.
-
-No new T121 development runs are required by D012.
-
-D012 B and C are evaluated on the identical 150-cell target development matrix. The primary comparison is the cell-paired difference:
-
-`O150(C) - O150(B)`,
-
-with B-versus-T121 and C-versus-T121 secondary.
-
-Report all 150 cell-level paired differences, their arithmetic mean, sample standard deviation, median, range and directional win count. O150 remains the primary aggregate development quantity.
-
-#### Cell-specific auxiliary validation firewall
-
-The finalized global D012 auxiliary population contains 175 task units and 4,664 task-identity instances.
-
-For each frozen D007 split manifest `m`, construct its auxiliary population by removing every D012 task-identity instance whose qualified full Standard InChIKey occurs among that manifest's target-validation identities.
-
-Validation identity is established without accessing validation potency labels:
-
-`validation Molecule_Name -> already-qualified OpenADMET full Standard InChIKey`.
-
-Any missing or ambiguous identity witness fails closed and may not be interpreted as non-overlap.
-
-The same manifest-specific auxiliary mask is used by B and C and by all three training-seed cells associated with that manifest.
-
-The mask is manifest-specific, not global. An identity that is target-validation in one manifest may remain auxiliary-eligible in another manifest where it is target-training, subject to the frozen routing rules.
-
-The characterization found:
-
-- all 5,655 OpenADMET Molecule_Name values mapped uniquely through the qualified identity bridge;
-- zero unmapped validation identities;
-- 49 of 50 manifests contain at least one auxiliary/validation overlap;
-- 33 unique auxiliary molecular identities occur in validation in at least one manifest;
-- 245 manifest-specific affected task-identity instances;
-- 0 to 14 auxiliary task-identity instances removed per manifest, mean 4.9;
-- 4,650 to 4,664 auxiliary task-identity instances retained per manifest;
-- zero task units become empty;
-- all 175 task units remain present in every manifest;
-- minimum post-mask task size across all manifests is 14;
-- at most one task is below 15 identities in any manifest;
-- at most two tasks are below 16 identities in any manifest.
-
-No minimum task-size criterion is introduced. The historical D010/D011 16-molecule requirement has no D012 authority.
-
-Protected internal-test and original blinded-challenge routing remains governed by the already-qualified global firewall and is not reopened by this manifest-specific rule.
-
-#### Arm B — conventional multitask transfer
-
-B performs assay-preserving conventional multitask auxiliary training followed by conventional target fine-tuning.
-
-Auxiliary training:
-
-- uses the manifest-specific masked auxiliary population;
-- uses the common Chemprop encoder architecture;
-- uses assay/task-specific scalar regression heads;
-- runs for exactly 50 auxiliary epochs;
-- has no auxiliary early stopping;
-- has no auxiliary checkpoint selection;
-- does not access OpenADMET validation labels;
-- transfers the final epoch-50 auxiliary state.
-
-One B auxiliary epoch means that every retained task-identity label in that manifest contributes exactly once to the supervised auxiliary objective.
-
-Within each task, identities are deterministically shuffled from the declared run/cell seed and consumed in task-local minibatches of size 16. Loss is mean MSE over the minibatch.
-
-For a manifest with retained task sizes `N_t`, B therefore performs:
-
-`U_B = sum_t ceil(N_t / 16)`
-
-optimizer updates per auxiliary epoch.
-
-Across the 50 frozen manifests, `U_B` is either 387 or 388:
-
-- 387 updates/epoch in 10 manifests;
-- 388 updates/epoch in 40 manifests.
-
-At target transfer:
-
-1. initialize the encoder from B's final auxiliary checkpoint;
-2. discard all auxiliary heads;
-3. attach a fresh target head;
-4. fine-tune the full target network on the cell's complete target-training partition;
-5. use the cell's validation partition for early stopping and macro ST-RAE checkpoint selection.
-
-B inherits the applicable frozen T121 target-training schedule:
-
-- message-passing depth 4;
-- message hidden dimension 600;
-- FFN hidden dimension 2000;
-- one FFN layer;
-- dropout 0.4;
-- batch size 16;
-- maximum 50 target epochs;
-- patience 20 validation checks;
-- warmup 10 epochs;
-- Adam/NoamLR optimization;
-- initial LR `1.4283739994469765e-05`;
-- maximum LR `0.0008245400010426866`;
-- final LR `0.00020141638331344468`;
-- training-partition-only target standardization.
-
-B therefore receives target-validation-driven optimization and checkpoint selection as part of the conventional-transfer method.
-
-#### Arm C — assay-episodic ANIL transfer
-
-C performs assay-episodic ANIL auxiliary training followed by exactly one full-support head-only target adaptation step.
-
-Auxiliary meta-training:
-
-- uses the same manifest-specific masked auxiliary population as B;
-- runs for exactly 50 auxiliary epochs;
-- has no auxiliary early stopping;
-- has no auxiliary checkpoint selection;
-- does not access OpenADMET validation labels;
-- transfers the final epoch-50 encoder and learned scalar-head initialization;
-- uses exact through-adaptation differentiation;
-- adapts only the scalar head weights and bias in the inner loop;
-- uses inner LR `0.01`;
-- uses exactly one inner step, `K=1`.
-
-For a task containing `N` retained identities:
-
-`Q(N) = max(1, ceil(0.20*N))`
-
-and query sets cycle through one deterministic seeded permutation until every retained identity appears exactly once as query during the auxiliary epoch.
-
-Support and query identities are disjoint by qualified full Standard InChIKey within every episode. Support identities may be reused across episodes.
-
-Support loss is mean MSE over support identities. Query loss is mean MSE over query identities.
-
-With one task per meta-step, every episode produces one outer optimizer update.
-
-For task `t`:
-
-`E_t = ceil(N_t / Q(N_t))`.
-
-Therefore:
-
-`U_C = sum_t E_t`
-
-outer optimizer updates per auxiliary epoch.
-
-Across the 50 frozen manifests, `U_C` is:
-
-- 856 updates/epoch in 9 manifests;
-- 857 updates/epoch in 32 manifests;
-- 858 updates/epoch in 9 manifests.
-
-At target transfer for each development cell:
-
-1. load C's final epoch-50 encoder and learned scalar-head initialization;
-2. freeze the encoder;
-3. use the complete target-training partition as support;
-4. perform exactly one head-only gradient update at inner LR `0.01`;
-5. evaluate the resulting adapted state.
-
-C performs no subsequent generic target fine-tuning, no target early stopping and no target checkpoint selection.
-
-The cell validation partition is evaluation evidence for C, not an optimization or selection signal.
-
-#### Auxiliary exposure and optimization fairness
-
-D012 equalizes auxiliary information access and objective-bearing label exposure, not computational operations.
-
-For every manifest and auxiliary epoch:
-
-- B and C receive the same retained auxiliary task-identity population;
-- every retained auxiliary label contributes exactly once to B's supervised objective;
-- every retained auxiliary label contributes exactly once as a C query label.
-
-Support reuse in C is permitted and recorded.
-
-D012 does not require equality of:
-
-- optimizer-step counts;
-- support exposures;
-- total molecular forward passes;
-- gradient computations;
-- wall time.
-
-These are method-dependent quantities and are recorded as audit statistics.
-
-Fifty auxiliary epochs therefore means 50 objective-bearing opportunities for every retained auxiliary label in both B and C.
-
-#### Auxiliary optimizer and scheduler
-
-No new learning-rate search is introduced.
-
-Both auxiliary arms use Adam/NoamLR as the established outer/supervised optimizer family and inherit the T121 LR anchors:
-
-- initial LR `1.4283739994469765e-05`;
-- maximum LR `0.0008245400010426866`;
-- final LR `0.00020141638331344468`.
-
-The scheduler is defined relative to each arm's own declared optimizer-step topology rather than by assuming identical step counts.
-
-For each manifest:
-
-- B total auxiliary optimizer steps = `50 * U_B`;
-- C total auxiliary outer optimizer steps = `50 * U_C`.
-
-The warmup phase occupies the first 10 auxiliary epochs of the respective arm:
-
-- B warmup steps = `10 * U_B`;
-- C warmup steps = `10 * U_C`.
-
-The remaining schedule proceeds to the declared final LR over that arm's remaining auxiliary optimizer steps.
-
-Thus the LR anchors and epoch-relative schedule are shared while optimizer-step counts remain method-specific.
-
-#### Whole-method claim boundary
-
-D012 is a whole-method comparison.
-
-B receives conventional full-network target fine-tuning with validation-driven early stopping and checkpoint selection.
-
-C receives one frozen-encoder, head-only full-support adaptation step and no target-side optimization or checkpoint selection thereafter.
-
-D012 therefore does not claim:
-
-- matched target optimization opportunity;
-- isolation of feature reuse;
-- isolation of the adaptation operator;
-- a few-shot target-learning experiment.
-
-Both methods use all available target-training observations according to their declared target-transfer procedures.
-
-No additional tuning branch, MAML arm, metric-learning arm or post-result rescue rule is authorized.
-
-### First-cell production and operational qualification
-
-The D012 implementation/correctness qualification and first real production cells completed successfully before release of the remaining development matrix.
-
-#### Qualified implementation workload
-
-For `rep_01_fold_01` / training seed `20261101`, the qualified manifest-specific firewall removes all auxiliary instances whose qualified full Standard InChIKey occurs in that manifest's target-validation identities.
-
-The resulting first-cell auxiliary population contains:
-
-- 4,660 task-identity instances;
-- all 175 frozen task units;
-- zero unresolved validation identity witnesses.
-
-Arm B's frozen auxiliary workload is:
-
-- 388 task-local optimizer updates per auxiliary epoch;
-- 50 auxiliary epochs;
-- 19,400 auxiliary optimizer updates total.
-
-Arm C's frozen auxiliary workload is:
-
-- 857 exact-ANIL episodes/outer updates per auxiliary epoch;
-- 50 auxiliary epochs;
-- 42,850 outer updates total.
-
-These counts do not imply equal molecular forward-pass exposure. B gives every retained auxiliary label one supervised objective-bearing exposure per epoch. C gives every retained auxiliary label exactly one query exposure per epoch while support identities may be reused.
-
-#### Preserved complete-model runtime benchmark
-
-Production planning uses the preserved gpu-dev1 complete-model benchmark:
-
-`qualification/cyp_external_task_qualification_20261109/d012_arm_qualification/gpu_dev1/d012_chemprop_dmpnn_complete_model_runtime_benchmark_rep01_fold01_seed20261101.json`
-
-SHA-256:
-
-`e06f593ff5ba0090e655f0402c2bc69919b9fcafb390ef84c4cb5929a9f1d600`
-
-The benchmark ran on `n4pu04` using one NVIDIA L40S, Python 3.12.14, Torch 2.14.1+cu126, Chemprop 2.3.1 and the actual Chemprop D-MPNN molecular-graph path.
-
-It used 10 continuous warmup complete updates followed by 100 measured complete updates without optimizer/scheduler reset.
-
-The benchmark projected representative first-cell measured-region runtimes of approximately:
-
-- Arm B: 35.66 minutes;
-- Arm C: 12.08 minutes.
-
-The requested first-cell planning envelopes were therefore 60 minutes for B and 30 minutes for C.
-
-The benchmark excluded file loading, SMILES preprocessing and dataset-object construction, model construction, artifact serialization and queue time. Its GPU-memory measurement did not establish host-RAM sufficiency.
-
-No separate CoreHPC runtime witness is required for D012 production planning.
-
-#### Arm B first real production cell
-
-Arm B `rep_01_fold_01` / seed `20261101` completed successfully under the frozen D012 procedure.
-
-The cell executed assay-preserving auxiliary multitask training followed by conventional full-network target fine-tuning with validation-driven checkpoint selection and the frozen early-stopping rule.
-
-Observed end-to-end runtime:
-
-`336.19944089394994 s` = approximately `5.60 min`.
-
-Recorded phase timings:
-
-- auxiliary training: `244.65247676102445 s`;
-- model construction: `1.2096986830001697 s`;
-- target preparation: `0.45308310096152127 s`;
-- target training/checkpoint selection: `87.79631654091645 s`.
-
-Observed resource use:
-
-- peak host RSS: `1815.76953125 MB`;
-- peak CUDA allocated: `2628.216796875 MB`;
-- peak CUDA reserved: `2986.0 MB`.
-
-The target procedure stopped after 35 target epochs under the frozen validation/early-stopping procedure rather than changing the scientific stopping rule to fit wall time.
-
-The complete first-cell artifact contract passed SHA-256 verification, including:
-
-- final auxiliary checkpoint;
-- retained best target checkpoint;
-- target metrics;
-- startup configuration;
-- progress log;
-- completion record.
-
-#### Arm C first real production cell
-
-Arm C `rep_01_fold_01` / seed `20261101` completed successfully under the frozen D012 procedure.
-
-The cell executed 50 epochs of exact-ANIL auxiliary training followed by the frozen target procedure: encoder frozen, complete target-training support, exactly one head-only update at inner LR `0.01`, `K=1`, and validation scoring with no target checkpoint selection or generic target fine-tuning.
-
-Observed end-to-end runtime:
-
-`1111.704668656108 s` = approximately `18.53 min`.
-
-Recorded phase timings:
-
-- auxiliary training: `1105.5337280919775 s`;
-- model construction: `0.13799810397904366 s`;
-- target preparation: `0.3711214130744338 s`;
-- one-step target adaptation and validation: `3.1582950410665944 s`.
-
-Observed resource use:
-
-- peak host RSS: `1712.05859375 MB`;
-- peak CUDA allocated: `4812.59814453125 MB`;
-- peak CUDA reserved: `4978.0 MB`.
-
-The complete first-cell artifact contract passed SHA-256 verification, including:
-
-- final auxiliary checkpoint;
-- final transfer state;
-- validation metrics;
-- startup configuration;
-- progress log;
-- completion record.
-
-#### Operational disposition
-
-The first-cell execution gate passes for both arms.
-
-The existing requested production envelopes remain:
-
-- Arm B: one NVIDIA L40S, 4 CPUs, 32 GB host RAM, 60-minute wall time per cell;
-- Arm C: one NVIDIA L40S, 4 CPUs, 32 GB host RAM, 30-minute wall time per cell.
-
-The requests are operational safety envelopes and have no scientific stopping authority.
-
-The first-cell observations establish successful execution and observed resource use for these representative cells. They are not universal upper bounds for all remaining cells. Every production cell must retain runtime/resource measurement, progress/failure preservation and the frozen scientific stopping rules.
-
-The first-cell validation results have no authority to redesign D012, extend tuning, change stopping rules or select a different methodology.
-
-The remaining 149 B cells and 149 C cells are not released by this record. Their array mapping, artifact-storage plan and wrappers require review before separate production authorization.
-
-Large checkpoint payloads remain preserved on server-side storage. The local project preserves lightweight provenance, metrics, logs and hashes rather than duplicating all checkpoint payloads onto the Mac.
-
-### Governing principle
-
-D012 compares two methods for exploiting the same qualified assay-resolved auxiliary evidence while preserving the frozen OpenADMET target and evaluation framework.
-
-Algorithmic computation may differ. Information access, protected-data access and undeclared tuning opportunity may not.
-
-### Revisit when
-
-Revisit D012 methodology only if duplicate materialization exposes an inconsistency in the frozen data rules, the qualified molecular-identity contract fails reproducibility, or a demonstrated incompatibility prevents use of the frozen OpenADMET evaluation framework.
-
-The D012 auxiliary population, frozen 150-cell development matrix, training seeds, T121 reuse contract, cell-specific validation firewall, and B/C transfer procedures are now preregistered. Implementation and qualification findings that do not alter these scientific rules do not reopen D012; any required methodological change returns for explicit human adjudication before production training.
-
-
-### Post-result forensic addendum — 2026-11-12
-
-#### Status and authority
-
-This addendum records post-result forensic findings discovered only after the corrected D012 production matrix had completed and the authoritative corrected aggregation had been written.
-
-These findings do not retroactively alter the preregistered D012 methodology, do not authorize post-hoc hyperparameter selection or rescue tuning, and do not convert diagnostic measurements into authoritative D012 results.
-
-The authoritative corrected D012 aggregation remains preserved separately from all post-result forensic artifacts.
-
-#### Corrected D012 production result
-
-The completed corrected D012 aggregation reported:
-
-- Arm B O150 = `0.7965659341568319`;
-- Arm C O150 = `1.0292234351463552`;
-- frozen D007 T121 O150 = `0.7012125767956957`.
-
-Across the 150 paired development cells:
-
-- `B - T121` mean = `+0.09535335736113623`;
-- `C - B` mean = `+0.23265750098952334`;
-- `C - T121` mean = `+0.3280108583506596`.
-
-Lower ST-RAE is better.
-
-T121 beat B in 150/150 cells.
-B beat C in 150/150 cells.
-T121 beat C in 150/150 cells.
-
-Authoritative corrected aggregation artifacts are under:
-
-`artifacts/d012_corrected_final_aggregation/`
-
-including:
-
-- `d012_cell_level_joined_results.tsv`
-  - SHA256 `1585acc9ac4202a192274c8418d200c000b188c6fe40215e4af162fe119fdcbb`;
-- `d012_final_aggregate_summary.json`
-  - SHA256 `3f2479f47ac794f6c357335fbc3b497a537caec6988b2973fab9a7948db03175`;
-- `d012_final_aggregation_provenance.json`
-  - SHA256 `f534471380d746a36198ad9d0fd9182e6da6383a4eb365f0a4b8b14ca5111815`;
-- `SHA256SUMS.txt`
-  - SHA256 `c136dbc03876359e54d81e23de176f7a55f287394cb40856a14149835a38ae57`.
-
-#### Newly discovered Arm C target-head dropout defect
-
-Post-result source review identified an additional Arm C implementation defect in the corrected production runner.
-
-`D012ScalarHead` contains `Dropout(0.4)`.
-
-During corrected Arm C target transfer, the implementation:
-
-1. sets `model.encoder.eval()`;
-2. creates a new `D012ScalarHead`;
-3. loads the learned `scalar_head_initialization`;
-4. performs the one-step target support adaptation;
-5. predicts the validation set.
-
-However, the target scalar head is never switched to evaluation mode with `head.eval()`.
-
-Because a newly constructed PyTorch module defaults to training mode, dropout therefore remains active during both:
-
-- the single K=1 support-side target adaptation; and
-- subsequent target-validation prediction.
-
-This defect is distinct from the previously corrected Arm C defect in which all scalar-head parameters rather than only the selected output weight and bias were inner-adapted.
-
-The newly discovered dropout defect affects only the target-transfer operation downstream of the preserved `arm_c_auxiliary_final.pt` checkpoint. It does not invalidate or require repetition of the completed 50-epoch auxiliary meta-training.
-
-#### Deterministic K0/K1 forensic diagnostic
-
-A post-result diagnostic was performed on corrected Arm C cell:
-
-`rep_01_fold_01 / seed 20261102`.
-
-The diagnostic loaded the preserved auxiliary-final checkpoint and reproduced the frozen target split, training-only scaler, frozen encoder, learned scalar-head initialization, selected-output-only adaptation semantics, inner LR `0.01`, K=1, and ST-RAE evaluation.
-
-For this diagnostic only, target scalar heads were explicitly placed in evaluation mode before target inference/adaptation so dropout was disabled.
-
-Results:
-
-| Endpoint | K0 | deterministic K1 | K1 - K0 |
-| --- | ---: | ---: | ---: |
-| CYP1A2 | 11.347081 | 1.058554 | -10.288527 |
-| CYP2C9 | 12.780207 | 1.058281 | -11.721927 |
-| CYP2D6 | 13.117417 | 1.135048 | -11.982369 |
-| CYP3A4 | 10.310272 | 0.925368 | -9.384904 |
-| Macro | 11.888744 | 1.044312 | -10.844432 |
-
-This establishes for this diagnostic cell that the frozen K=1 adaptation operator produces a very large improvement over the unadapted meta-initialization.
-
-It therefore does not support the explanation that Arm C failed simply because its single adaptation step was ineffective.
-
-The deterministic K1 result nevertheless remained substantially worse than the matched target-only T121 result and the matched conventional-transfer B result.
-
-K0 is a forensic counterfactual and has no D012 selection or performance authority.
-
-#### Partial dropout-disabled matrix diagnostic
-
-A broader post-result diagnostic began applying the same dropout-disabled deterministic K=1 target-transfer operation to the 150 preserved corrected Arm C auxiliary-final checkpoints.
-
-The diagnostic was intentionally stopped after 59 cells because the observed pattern had already answered the forensic question and continuation was not required for D012 authority.
-
-Among the first 59 cells:
-
-- 58/59 had lower deterministic K1 ST-RAE after dropout was disabled than in corrected production;
-- 1/59 was worse;
-- observed improvements were generally modest relative to the authoritative C-versus-B and C-versus-T121 deficits;
-- deterministic C scores in the observed subset remained approximately in the same poor performance regime as corrected production.
-
-Examples include:
-
-- `rep_01_fold_01 / seed 20261102`: production `1.060972`, deterministic `1.044312`, delta `-0.016660`;
-- `rep_01_fold_04 / seed 20261102`: production `1.063418`, deterministic `1.018014`, delta `-0.045404`;
-- `rep_02_fold_06 / seed 20261101`: production `0.984902`, deterministic `0.936706`, delta `-0.048196`;
-- `rep_02_fold_09 / seed 20261103`: production `1.063429`, deterministic `1.068793`, delta `+0.005364`.
-
-Because this matrix diagnostic was stopped before completion, it is descriptive forensic evidence only. No O150, 150-cell win count, or replacement D012 result is inferred from it.
-
-The diagnostic working location is:
-
-`artifacts/d012_postresult_dropout_diagnostic/`
-
-Any artifacts present there must remain explicitly labeled post-result forensic diagnostics and must not overwrite the authoritative corrected D012 aggregation.
-
-#### Forensic interpretation
-
-The evidence supports the following bounded interpretation.
-
-1. Corrected Arm C contains a genuine target-transfer implementation defect: dropout remained active in the target scalar head during the one-step adaptation and validation prediction.
-
-2. The available post-result diagnostic evidence indicates that disabling dropout generally improves Arm C, so the defect was directionally harmful.
-
-3. The observed magnitude of that improvement in the partial diagnostic is far smaller than the authoritative corrected Arm C deficit relative to B and T121. The dropout defect therefore does not presently explain the large D012 Arm C negative-transfer result.
-
-4. In the representative deterministic K0/K1 diagnostic, the K=1 target update improved macro ST-RAE from `11.888744` to `1.044312`. The evidence therefore does not support characterizing the one-step adaptation operator as simply nonfunctional.
-
-5. The remaining evidence is consistent with poor transfer of the assay-episodically trained representation to the frozen OpenADMET molecular validation problem. This is a mechanistic hypothesis, not an isolated causal conclusion, because D012 is a whole-method comparison and did not independently vary representation learning, episode construction, adaptation depth, or target fine-tuning opportunity.
-
-6. Conventional Arm B also performed worse than target-only T121, establishing negative transfer from the qualified auxiliary evidence under the tested conventional-transfer procedure as well. Arm C showed substantially larger negative transfer under its tested procedure.
-
-No claim is made that meta-learning in general fails, that ANIL in general fails, or that one-step adaptation in general is inadequate.
-
-#### Disposition
-
-Do not delete or overwrite:
-
-- authoritative corrected D012 production artifacts;
-- preserved Arm C `arm_c_auxiliary_final.pt` checkpoints;
-- post-result forensic diagnostic artifacts;
-- terminal/session evidence associated with the partial 59-cell diagnostic.
-
-Do not resume the remaining dropout diagnostic cells merely to create a replacement D012 O150 unless a separately approved decision identifies a scientific question whose answer requires the complete matrix.
-
-Do not tune K, inner LR, architecture, episode construction, dropout probability, or target fine-tuning post hoc under D012.
-
-Any follow-up meta-learning experiment is a new prospective study and requires its own literature-backed alternatives pass and preregistration.
-
-### Governing principle
-
-D012 remains a preregistered whole-method comparison. Post-result forensic analysis may identify defects, characterize failure modes and constrain future hypotheses, but it may not silently transform the completed study into a post-hoc optimization exercise.
-
-### Revisit when
-
-Revisit this addendum only if:
-
-- a preserved artifact contradicts the recorded dropout-state behavior;
-- a separately approved complete deterministic target-transfer reconstruction is required for a defined scientific purpose;
-- or a new prospective transfer/meta-learning study is proposed and needs D012 forensic evidence as its starting rationale.
+D012 compares two methods for exploiting the same qualified auxiliary evidence under the frozen OpenADMET target and evaluation framework. Algorithmic computation may differ; information access, protected-data access and undeclared tuning opportunity may not. Post-result analysis may identify defects and constrain future hypotheses but may not turn the study into post-hoc optimization.
 
 # D013 — ActFound-CYP Whole-Package Study on a Firewalled ChEMBL32 Foundation Corpus
 
 **Decision date:** 2026-11-15
 
-**Status:** Approved design; foundation corpus, retraining and evaluation not yet executed
+**Status:** Approved with Amendments 1–4. Execution and results: `notes/Tripwire_CYP_005.md`.
 
 ## Decision and scope
 
-Approve a prospective ActFound-CYP whole-package study:
+Approve a prospective ActFound-CYP whole-package study: ActFound architecture + firewalled ChEMBL32 corpus → frozen foundation checkpoint → native upstream target adaptation on each frozen D007 cell → identical D007 150-cell evaluation → frozen T121 comparator. Both architecture and pretraining corpus differ from T121, so any result is a whole-package result; no component is claimed to be the cause.
 
-ActFound architecture + firewalled ActFound ChEMBL32 corpus → frozen foundation checkpoint → upstream ActFound target adaptation on each frozen D007 cell → identical D007 150-cell development evaluation → frozen T121 comparator.
+D013 does not by itself authorize production training or the 150-cell evaluation. D012 is background only. The architecture selection is not reopened.
 
-Because both the architecture and the pretraining corpus differ from T121, any result is a whole-package result. No claim is made that pairwise learning, corpus size, meta-learning or any other component individually caused it.
+## Scientific question and comparator
 
-This decision covers the study design, the foundation-corpus firewall, and the disposition of ActFound job 3066823. It does **not** by itself authorize production training or the 150-cell evaluation; each still requires the qualification, interactive benchmark and runtime extrapolation below, and Miles's go-ahead.
-
-## Provenance and authority
-
-The study design originates in a Nov 12, 2026 exchange (source: `Downloads/actfound_nov12_contract_source-1.md`):
-
-- 3:18 PM: a GPT-authored detailed proposal, pasted by Miles.
-- 3:19 PM: an assistant-written five-point summary.
-- 3:21 PM: Miles: "Makes sense. Going to proceed with pinning the act found source candidate." That reply approved source pinning only.
-
-The proposal was not recorded as a decision at the time. On 2026-11-15 Miles restated it as the intended study and, after the overlap audit (Session 005 §31), chose to retrain on a firewalled corpus ("A") and approved the firewall choices below ("Approve, draft D013"). This record is the first governing statement of the study; its authority is that 2026-11-15 approval.
-
-D012 remains background only. It is not this study's arm definition. D012's post-result addendum requires a follow-up meta-learning study to be prospective and preregistered; this record is that preregistration. The architecture selection ("ActFound is selected") is not reopened here. A record of the literature-backed alternatives pass behind that selection is not in the accessible records.
-
-## Scientific question
-
-On the identical frozen D007 molecule-level development matrix, does the ActFound-CYP package achieve lower held-out absolute-pIC50 validation macro ST-RAE than D007-T121?
-
-## Comparator and authoritative quantity
-
-As defined in D009: the single-model D007-T121 development procedure, with
-
-O150(T121) = 0.701212576796.
-
-T121 is untouched: no retraining, rescoring, recalibration or new selection. D009, D010 and D012 results remain historical characterization only.
+On the frozen D007 development matrix, does the ActFound-CYP package achieve lower held-out absolute-pIC50 validation macro ST-RAE than D007-T121? The comparator is the D009 single-model T121 development procedure, `O150(T121) = 0.701212576796`, untouched. A strictly lower O150 favors the package; there is no minimum effect size. This is a development-selection comparison, not unbiased validation.
 
 ## Foundation corpus and firewall
 
-1. **Base corpus:** the authors' released `chembl_processed_chembl32.csv` (SHA-256 `a5b562d4cd237f94f80b1d6a85031825bc1b0b1157e734f76bc3315f256c5e20`), from `chembl_processed_chembl32.zip` (`29389247…`) inside the pinned upstream `datas.zip` (`74b1b30c…`), with the pinned upstream split `chembl_split.json` (`7f3cd598…`).
-2. **Prohibited identities:** all 5,655 OpenADMET CYP structures in the frozen bounded representation audit (`c0881d8f…`): the D007 development universe (OpenADMET train 3,433 + validation 736 = 4,169) plus internal test (736) and blinded challenge (750).
-3. **Identity rule:** full Standard InChIKey under the frozen D012 identity environment (Python 3.12.14, RDKit 2026.03.6, InChI 1.07.3; no project-added standardization), computed from the ChEMBL32 source structure for each molregno, with source SMILES and identity witnesses retained. The ActFound runtime is not used for identity.
-4. **Removal:** every corpus row whose molecule matches a prohibited identity is removed before foundation training. Assays then left below ActFound's ≥20-usable-molecule requirement become ineligible and are logged, in every split.
-5. **Format:** a converter to the loader's graph-qualified format applies the same graph-qualification checks as the existing pipeline, and is tested before use.
-6. **Freeze:** the firewalled corpus is materialized once, hashed, and logged with full attrition counts. It is the only foundation-training corpus.
+1. **Base corpus:** the authors' `chembl_processed_chembl32.csv` (SHA-256 `a5b562d4cd237f94f80b1d6a85031825bc1b0b1157e734f76bc3315f256c5e20`) with the pinned split `chembl_split.json` (`7f3cd598…`).
+2. **Prohibited identities:** all 5,655 OpenADMET CYP structures (audit `c0881d8f…`): development 4,169, internal test 736, blinded challenge 750.
+3. **Identity rule:** full Standard InChIKey under the frozen D012 identity environment. In addition, every molregno whose largest-fragment full Standard InChIKey equals a protected structure's is excluded, from train and validation alike (protective, not an identity claim). First-block matches are report-only. Exclusion list v2 is 517 molregnos.
+4. **Removal:** matching rows are removed before training; assays left below 20 usable molecules are ineligible and logged.
+5. **Route C:** the assay universe is the authors' file; input rows are the rebuilt pre-graph population (`43dfd672…`); excluded molecules are removed and the unchanged graph stage is rerun. A reproduction run without exclusion must PASS against the authors' file in the train and valid splits before the firewalled build may run.
+6. **Acceptance:** recomputing identities on the built corpus must show no full-key or largest-fragment match in train or validation.
+7. **Freeze:** the corpus is built once, hashed and logged with full attrition counts.
 
-## Foundation training
+## Foundation training and freeze rule
 
-- Upstream ActFound at pinned commit `c96f0559ea7a2504e797b9d65b9f1af1aa899ddd` and the pinned environment `actfound_c96f055`, using the existing qualified project runner.
-- Hyperparameters, training budget (60 meta-training epochs, cosine schedule) and seeds inherited from the authors' ChEMBL configuration exactly as frozen in `actfound_chembl32_production_config_v1.json`. No tuning.
-- The pinned upstream train/valid split, after firewall attrition.
-- Before production: unit tests, an interactive hardware benchmark on the intended GPU and runtime extrapolation, per Miles's standing rules. No Slurm benchmark.
-
-## Checkpoint freeze rule
-
-The foundation checkpoint is the best-validation checkpoint (`model_best.pt`) by the runner's upstream validation score on the firewalled upstream `valid` split. It is fixed by that rule alone, before any CYP target data is touched. No epoch reselection through extra validation draws and no use of CYP results.
+Upstream ActFound at commit `c96f0559ea7a2504e797b9d65b9f1af1aa899ddd`, environment `actfound_c96f055`, config `actfound_chembl32_production_config_v1.json` (60 epochs, cosine schedule), no tuning, pinned split after attrition. The checkpoint is `model_best.pt` by upstream validation score on the firewalled `valid` split, fixed before any CYP data is touched, with no epoch reselection.
 
 ## Target adaptation and evaluation
 
-For each of the 150 frozen D007 cells and each of the four CYP endpoints:
+For each of the 150 cells and four endpoints, the cell's training molecules are the complete support set and validation molecules are evaluation-only. Adaptation uses the native upstream pathway (not actfound_transfer, KNN-MAML fusion or full fine-tuning). Absolute pIC50 predictions are scored by the unchanged frozen ST-RAE scorer. The protected internal test, blinded challenge and D008 enter no procedure.
 
-- the cell's frozen training molecules and labels are the complete support set;
-- its validation molecules are evaluation-only;
-- target labels enter only through the support set, and no validation label participates in adaptation;
-- adaptation uses the native upstream ActFound meta-adaptation pathway, not actfound_transfer, KNN-MAML fusion or full-parameter fine-tuning;
-- absolute pIC50 predictions are scored by the existing frozen ST-RAE scorer, unchanged.
+## Job 3066823
 
-The protected internal test, the blinded challenge and D008 enter no procedure.
-
-## Prospective comparison rule
-
-ActFound-CYP O150 is computed exactly as O150(T121). A strictly lower O150 than 0.701212576796 favors the ActFound-CYP package; there is no minimum effect size. All per-cell and per-endpoint results are reported as characterization.
-
-As in D009, this is a development-selection comparison, not unbiased validation: the 150 cells are correlated, and T121 was selected on this matrix.
-
-## Open items requiring separate approval before evaluation
-
-These are not settled by this record and must be fixed before any CYP number exists:
-
-1. What the three training seeds per D007 partition mean for a single frozen foundation checkpoint; this determines whether the matrix is 150 or 50 distinct cells.
-2. Whether any label-scale conversion is needed: pretraining labels are −log10(nM value), while CYP targets are pIC50 = −log10(M).
-3. How support sets far larger than ActFound's usual few-shot supports are handled, if pair-matrix memory forces a limit.
-4. The thin target adapter itself and its scientific unit tests.
-
-## Disposition of ActFound job 3066823
-
-Job 3066823 (best-validation checkpoint epoch 58) was trained on a corpus with no OpenADMET firewall. It contained 203 D007 development molecules, 44 internal-test and 7 blinded-challenge molecules in loader-kept training rows (Session 005 §31). It is **not** usable as this study's foundation checkpoint.
-
-Its artifacts, the overlap audit outputs and the rebuilt ChEMBL32 corpus are preserved unchanged. Any leaky-versus-clean comparison would be a new question requiring its own approval.
+Job 3066823 was trained without a firewall and contained 203 development, 44 internal-test and 7 blinded molecules. It is not usable as the study checkpoint; its artifacts are preserved.
 
 ## Not authorized
 
-- use of the stock ActFound checkpoint or job 3066823's checkpoint for the comparison;
+- the stock ActFound checkpoint or job 3066823's checkpoint for the comparison;
 - hyperparameter, architecture or adaptation-path changes;
 - any published-fidelity pass/fail gate;
 - post-result tuning, reselection or rescue;
@@ -6235,503 +5445,110 @@ Its artifacts, the overlap audit outputs and the rebuilt ChEMBL32 corpus are pre
 
 ## Governing principle
 
-One firewalled corpus, one frozen foundation checkpoint chosen by a pre-stated rule, then a single prospective 150-cell comparison against untouched T121, with whole-package claims only.
+One firewalled corpus, one frozen checkpoint chosen by a pre-stated rule, then a single prospective 150-cell comparison against untouched T121, with whole-package claims only.
 
-## Revisit when
+## Amendments
 
-- firewall attrition or the converter reveals that the authors' corpus cannot satisfy this record's provenance contract;
-- qualification shows upstream adaptation cannot run on D007-sized supports without a scientific change;
-- or an open item above cannot be resolved without changing this design.
+**Amendment 1 (2026-11-15) — Route C and conservative exclusion.** Upstream graph eligibility depends on pre-graph assay size, which the authors' post-graph file does not retain, so the graph step cannot be rerun on it after removal; and ActFound featurizes whole SMILES without salt stripping, so salt forms of protected structures pass a full-key firewall. Adds items 3 (largest-fragment exclusion), 5 (route C, reproduction gate) and 6 (acceptance) above.
 
-## D013 Amendment 1 — Graph re-qualification route and conservative pretraining exclusion for the firewalled corpus (2026-11-15)
+**Amendment 2 (2026-11-15) — Reproduction-gate scope.** The first reproduction run (job 3073155) differed only in `record_id_unused` (provenance column upstream does not consume), `standard_value` text precision and `graph_pair_count` (metadata reaching no training path; 69 assays, attributed by elimination to a different RDKit build). The gate compares all training-defining fields exactly, declares `record_id_unused` and `graph_pair_count` non-comparable but reported, and still fails if any retained molecule set or `count_scratch` differs. The corpus is the output of the pinned route-C pipeline, not byte-identical to the authors' file.
 
-**Status:** Approved (2026-11-15). Recorded on Miles's approval: "Approve for recording".
+**Amendment 3 (2026-11-15) — `standard_value` tolerance.** Job 3075157 failed on 4 rows straddling a 15-significant-figure rounding boundary (maximum relative difference 4.35e-15). `standard_value` is now compared with relative tolerance 1e-14 (unparseable values compared as text), replacing Amendment 2's 15-significant-figure rule; the manifest reports the largest difference and the count agreeing only under the tolerance.
 
-This amendment does not authorize the corpus build, the reproduction run, the benchmark or training.
+**Amendment 4 (2026-11-16) — Open items settled.** Authorizes no run.
 
-### Reason
-
-1. Upstream ActFound graph eligibility (chembl_preprocess.py lines 160–174) requires at least 20 molecules with degree ≥ √√N × 2, where N is the assay's size **before** graph filtering, including molecules later dropped for having no edges. The authors' released chembl_processed_chembl32.csv contains only post-graph rows, so N cannot be recovered from it and the graph step cannot be rerun exactly on that file after firewall removal.
-2. ActFound featurizes the whole SMILES with a Morgan count fingerprint and does no salt stripping (`external/ActFound/dataset/data_base.py:93`), so a salt or mixture form of a protected structure is a near-duplicate input that the full-key firewall does not remove.
-
-### Change 1 — graph re-qualification (route C)
-
-Item 5 of "Foundation corpus and firewall" ("Format: a converter … applies the same graph-qualification checks …") is replaced by:
-
-5. **Graph re-qualification (route C).** The assay universe is the set of assays in the authors' released file (assay key `assay_id_units_type`). For those assays, the input rows are the project's rebuilt pre-graph population (`chembl32_actfound_pregraph.tsv`, SHA-256 `43dfd672…`). Excluded molecules (Change 2) are removed from those rows, and the unchanged graph-stage code that built the rebuilt corpus (`actfound_graph_stage.py` `1783c5fe…`, `actfound_chembl32_projection.py` `22fca408…`) is rerun on the remainder.
-
-   **Qualification gate.** The same pipeline run without any exclusion is compared exactly with the authors' released file, row by row (keyed by activity_id), against the hash-pinned upstream split (`chembl_split.json`, SHA-256 `7f3cd598…`):
-   - The comparison is exact. There is no tolerance and no normalization; a formatting-only difference is a difference.
-   - A missing or mismatched split input stops the run before any output is written.
-   - Any difference (field, missing or extra row, missing or extra assay, assay-key mismatch) in an assay whose upstream ID is in train or valid fails the gate. The outputs are kept for review, the run exits nonzero, and the matter returns to Miles.
-   - Differences outside train and valid are reported and do not block.
-   - The excluded build refuses to run without a PASS reproduction manifest made by the same builder on the same pre-graph, authors' file and graph code.
-
-The authors' file remains the authority for which assays form the corpus and for what a correct unexcluded result is.
-
-### Change 2 — conservative pretraining exclusion
-
-**Pretraining exclusion (conservative).** The identity rule remains the full Standard InChIKey. In addition, the pretraining corpus excludes every ChEMBL32 molregno whose largest-fragment full Standard InChIKey equals that of a protected OpenADMET structure (largest fragment = most heavy atoms, ties broken by canonical SMILES, computed in the frozen identity environment). The exclusion applies to all pretraining rows, train and validation alike, because validation selects the checkpoint. These are largest-fragment matches, not proven identical active compounds or activities; the exclusion is protective, not an identity claim. First-block-only and largest-fragment first-block-only matches remain report-only and are not deemed safe.
-
-**Acceptance.** The built corpus must contain no row, in train or validation, with a full-key or largest-fragment full-key match to a protected structure, verified by recomputing identities from the built file. The final graph-stage and loader impact is measured after the build and reported. The training runner's corpus-manifest check (matching file hash, firewall recorded as applied) is defense-in-depth, not proof of zero overlap.
-
-### Scope of the exclusion (existing artifacts; categories overlap and are not summed)
-
-Protected structures: 5,655 OpenADMET CYP structures (development universe 4,169 + internal test 736 + blinded challenge 750; audit `c0881d8f…`). Molregnos considered: 1,076,934 (job 3066823 membership export, `molecules.tsv.gz` `e7f756f7…`).
-
-| Category | Count | Scope and source |
-|---|---|---|
-| Full Standard InChIKey matches (excluded) | 337 molregnos: development 263, internal test 61, blinded 13 | `d013_firewall_20261115/firewall_list/summary.json`. Includes the blinded-challenge identities. |
-| Largest-fragment full-key matches (excluded by Change 2) | 180 molregnos: development 140, internal test 40, blinded 0; 0 overlap with the 337 | `firewall_list/summary.json` (`largest_fragment_full`), heavy-atom rule above; per-split impact in Session 005 §39 B. |
-| Exclusion list v2 | 517 molregnos = 337 + 180 (disjoint) | `firewall_list_v2/summary.json`, by basis and tier. |
-| Of the 180: in loader-kept training rows | development 77, internal test 27 molecules; 358 + 98 rows; 2 more training assays fall below 20 kept rows (33,184 → 33,182) | Session 005 §39 B (row-level membership; std gate and graph-stage effects not established without a rebuild). |
-| Of the 180: in loader-kept validation rows | development 3 molecules, 3 rows; 0 validation assays below 20 | Session 005 §39 B. |
-| First-block (connectivity) matches, report-only | 219 molregnos (molecule-tier rows: development 182, internal test 33, blinded 4) | Same 219-molregno set in both `firewall_list/near_matches_not_removed.tsv` and the earlier census `firewall_corpus_20261115/prohibited/near_matches_report_only.tsv`. Disjoint from the 180. |
-| Largest-fragment first-block matches, report-only | 461 before Change 2; 281 after removing the 180 | `firewall_list/summary.json` and `firewall_list_v2/summary.json`. Contains all 219 first-block and all 180 largest-fragment matches. |
-
-**Reconciliation with the earlier census.** The earlier report-only census in this conversation (`firewall_corpus_20261115/prohibited/`, superseded) counted 184 largest-fragment matches (development 143, internal test 41; loader-kept training molecules development 79, internal test 28). It is the same 180 plus 4 molregnos (674418, 834692, 996164, 1248748), because it used RDKit's default `LargestFragmentChooser`, which counts all atoms including hydrogens, instead of the heavy-atom rule above. All three differences in the training-kept counts (79 − 77 = 2 development, 28 − 27 = 1 internal test) are those 4 molregnos. Under this amendment's heavy-atom rule they are not excluded: each is a multi-component salt or mixture in which the selected fragment is the counterion or an equal-size co-component (for example a pamoate salt), not the protected structure.
-
-### Evidence
-
-The rebuilt graph-qualified corpus has the identical molecule set to the authors' file in 47,323 of 47,324 assays. The exception, `CHEMBL4651403_nM_IC50`, has one extra molecule and is in no upstream split (Session 005 log, §36 D), so under the gate it is report-only. Molecule-set agreement does not establish field-level agreement; that is what the gate tests.
-
-Everything else in D013 is unchanged, including the full Standard InChIKey identity rule.
-
-## D013 Amendment 2 — Scope of the reproduction-gate comparison (2026-11-15)
-
-**Status:** Approved (2026-11-15). Recorded on Miles's approval: "Approve it".
-
-This amendment does not authorize the corpus build, the benchmark or training. It changes only how the Amendment 1 qualification gate decides agreement, and it is made after the gate ran and stopped for review, on the evidence that run produced.
-
-### Reason
-
-The route-C reproduction run (Slurm job 3073155) failed the Amendment 1 gate with 1,525,375 in-split differing rows. A field-level diagnosis of all 1,959,398 compared rows established that the rebuilt corpus agrees with the authors' released file in every field that defines the training data, and that the differences fall into exactly three characterised classes:
-
-1. **`record_id_unused`** — differs on 100% of mismatching rows (1,525,375 in-split, 424,141 outside). The project's own `cyp/scripts/actfound_chembl32_projection.py` header states: "Column 2 is not consumed by pinned preprocessing/runtime code. We preserve ChEMBL record_id there as provenance." The project therefore stores a different value there by design.
-2. **`standard_value`** — 600 in-split rows (203 outside). Of these, 164 in-split differ only in text; the other 436 have an authors/rebuilt ratio inside 0.9999–1.0001, i.e. about one unit in the last place. The authors' file carries 15 significant digits and the rebuilt file carries Python 3's shortest round-trip repr. The join key is `activity_id`, so each pair is the same ChEMBL activity.
-3. **`graph_pair_count`** — 9,814 in-split rows, from 69 assays. For 68 of those the molecule set, row count and `count_scratch` are identical on both sides; only the recorded edge count differs, by 1–47 pairs, almost always upward. `graph_pair_count` is parsed, stored and carried by `cyp/scripts/actfound_model_side.py` but reaches no feature, sampling, loss or training path. `count_scratch` differs on 825 rows, all outside the split, from the single remaining assay.
-
-No row, in or out of split, differs in `canonical_smiles`, `molregno`, `activity_id`, `assay_id`, `assay_chembl_id`, `standard_units`, `standard_type`, `standard_relation`, `bao_endpoint`, `bao_format` or `assay_type`.
-
-The cause of class 3 was investigated. The upstream pair rule excludes a pair when `affinity_a - affinity_b == 0` and similarity ≤ 0.7, an exact float equality on `-log10(standard_value)`. That mechanism was tested and refuted as the general cause: of the 69 affected assays, 68 have identical equal-affinity pair counts on both sides, and 5 have byte-identical `standard_value` text yet still differ in pair count. With molecules, SMILES, values and relations identical in those 5, the only remaining input is the Morgan-fingerprint Tanimoto similarity and its 0.3 candidate gate and 0.7 exclusion threshold. The difference therefore arises inside the fingerprint/similarity computation, consistent with the authors' released file having been produced by a different RDKit build from the pinned RDKit 2023.03.1. This attribution is by elimination; similarity values were not measured directly.
-
-Byte-level identity with the authors' file is therefore not achievable from the pinned environment, and this amendment does not pursue it.
-
-### Change
-
-Amendment 1's **Qualification gate** keeps its structure — exact comparison, no tolerance, no normalization, a missing or mismatched split input fails closed, in-split differences fail the gate, outside-split differences are reported and do not block, and firewall mode still refuses to run without a PASS reproduction manifest — with the comparison scope stated as follows.
-
-1. **Compared exactly, no tolerance:** `activity_id`, `assay_id`, `assay_chembl_id`, `molregno`, `bao_endpoint`, `bao_format`, `assay_type`, `standard_relation`, `standard_units`, `standard_type`, `canonical_smiles`, the assay key, assay membership, and per assay the retained molecule set and the retained count `count_scratch`. Any in-split difference in any of these fails the gate.
-
-2. **`standard_value` is compared at 15 significant figures**, the precision the authors' released file carries. A reference cannot be required to agree beyond the precision it records; this is a declared comparison rule, not a tolerance applied to a disagreement. Any in-split difference remaining at that precision fails the gate.
-
-3. **`record_id_unused` is declared non-comparable**, on the grounds in Reason 1: the project deliberately stores ChEMBL `record_id` in a column upstream does not consume. Its differences are counted and reported in the manifest, and never block.
-
-4. **`graph_pair_count` is declared non-comparable** as recorded metadata, on the grounds in Reason 3. Its differences are counted and reported per assay in the manifest, and never block. This exemption covers the recorded count only: if the retained molecule set or `count_scratch` of any in-split assay differs, the gate still fails under item 1.
-
-5. The manifest records, for every run, the counts under items 3 and 4 and the list of assays affected, so that an exempted difference is always visible in the artifact rather than silently absent.
-
-### Accepted consequences, recorded
-
-- The firewalled corpus built under this gate is **not** byte-identical to the authors' released file, and is not claimed to be.
-- 436 in-split rows carry `standard_value` differing by about one unit in the last place. These propagate into `pIC50 = -log10(value)` at roughly 1e-16 relative. This is nonzero, not nil.
-- 69 assays carry a different `graph_pair_count`. For 68 the retained data is identical; the 69th is `CHEMBL4651403_nM_IC50`, which differs in membership (authors 825 molecules, rebuilt 826) and `count_scratch`, and is in no upstream split, so it is reported and does not block.
-- The corpus is defined as the output of the pinned route-C pipeline, agreeing with the authors' released file on every training-defining field under the comparison above.
-
-Everything else in D013 and D013 Amendment 1 is unchanged, including the full Standard InChIKey identity rule and the conservative largest-fragment pretraining exclusion.
-
-## D013 Amendment 3 — `standard_value` comparison by relative tolerance (2026-11-15)
-
-**Status:** Approved (2026-11-15). Recorded on Miles's approval: "Approve it".
-
-This amendment does not authorize the corpus build, the benchmark or training. It changes only item 2 of D013 Amendment 2. It is made after the gate stopped for review, using the evidence that run produced.
-
-### Reason
-
-The reproduction run under Amendment 2 (Slurm job 3075157) ran builder SHA-256 `096951ebf0f3484f935230c665f3f8b93dbed473d89f68ca939fd1e6b2bff482` with comparison scope `a358c320693929d9`. It failed the gate (exit 3) with **4** blocking in-split differences. All four are in `standard_value` only:
-
-| activity_id | assay | rebuilt | authors |
-|---|---|---|---|
-| 489397 | 32524_nM_Ki | 446683592150963.5 | 446683592150963.0 |
-| 509845 | 32524_nM_Ki | 27542287033381.75 | 27542287033381.7 |
-| 481132 | 153318_nM_Ki | 27542287033381.75 | 27542287033381.7 |
-| 1706502 | 344234_nM_Ki | 9003570138859.375 | 9003570138859.371 |
-
-1. **Comparing by rounding fails by design at rounding boundaries.** Each of these pairs differs by about 2e-15 or less, relative. The two values fall on either side of a 15-significant-figure rounding boundary, so they round to different strings. This happens at any fixed number of significant figures; it is not specific to 15.
-2. **Amendment 2's premise is false.** The authors' file does not uniformly carry 15 significant figures. Counts of authors' values by significant digits: 15 → 666, 16 → 2,240, 17 → 6,374, 18 → 22, 19 → 21. One example is `0.15000000000000002`.
-3. **The measured differences are small and bounded.** Across all 1,959,397 matched rows (in and outside the split): the largest relative difference is 4.35e-15; no row exceeds 5e-15. Rows above 1e-15: 167; above 2e-15: 69; above 5e-15: 0. At this size the effect on `pIC50 = -log10(value)` is about 2e-15 absolute.
-4. **The other outside-split differences are already explained.** Of the 826 outside-split `field_mismatch` rows, 825 differ only in `count_scratch` and 1 in `standard_value`. Amendment 2 already accounts for this under accepted consequences.
-
-### Change
-
-Item 2 of Amendment 2 is replaced by:
-
-> **2. `standard_value` is compared numerically with a relative tolerance of 1e-14:** two values agree when |a − b| ≤ 1e-14 · max(|a|, |b|). Both must parse as finite floats. A value that does not parse is compared exactly as text. Any in-split pair outside this tolerance fails the gate.
->
-> The tolerance is declared before the next run. It is about 2.3× the largest relative difference measured across all rows of job 3075157 (4.35e-15). It is roughly ten billion times smaller than the smallest change that would matter for a pIC50 label (1e-4 relative).
-
-Every other part of Amendment 2 is unchanged: the exact comparison on all other fields; the exemptions for `record_id_unused` and `graph_pair_count`; manifest reporting; the fail-closed rules.
-
-In addition, the manifest records the largest relative `standard_value` difference and the number of rows that agree under the tolerance but not as text, in and outside the split, so the tolerance's effect stays visible in the output.
-
-### Accepted consequences, recorded
-
-- This rule is a numerical tolerance. Amendment 2 deliberately avoided one, and this amendment says so openly.
-- 803 rows have `standard_value` text that differs from the authors'. All of them pass under this rule.
-- Job 3075157 stays FAILED as recorded. A new reproduction manifest is required.
-
-Everything else in D013, Amendment 1 and Amendment 2 is unchanged.
-
-### Alternatives considered
-
-Rounding at fewer significant figures (same boundary problem); ULP counting (authors' text is already rounded, so a ULP count is not meaningful); an exception list of the 4 activity_ids (hand-made carve-out, breaks on any rerun with different straddles); a tolerance on −log10(value) (equivalent here, adds a transform).
-
-## D013 Amendment 4 — Open items 1-4 settled; O150 execution; adaptation/scoring split (2026-11-16)
-
-**Status:** Approved (2026-11-16).
-
-This amendment authorizes no run. The architecture, the checkpoint, T121 and the 150-cell design are unchanged.
-
-1. **Seeds.** The 150-cell design is kept. Adaptation performs no per-cell training and consumes no seed: the seed's only per-task consumer, `make_episode_split`, is replaced by the frozen cell, and the adaptation path contains no other RNG call and no dropout. Predictions were bit-identical across two seed values in all three qualification cells (Session 005 entry 47). O150 is therefore computed from 200 unique cell-endpoint adaptations (50 partitions x 4 endpoints), each recorded into its three seed slots, giving 600 results and 150 cell values. This is an execution shortcut, not a claim of numerical identity with 150 literal runs and not a claim that 150 independent adaptations were performed; each recorded row is marked as a replicate. The three-cell repeat check is the agreed evidence; no further seed sweep is added.
-
-2. **Label scale.** pIC50 is kept, with no conversion. The learned quantity is a label difference and predictions are anchored on the support labels supplied, so the 9-unit offset between pIC50 and the pretraining scale cancels throughout, including the inner-loop support loss. Measured agreement between the two scales was 1.19e-5 to 1.34e-5 pIC50 against a pre-declared threshold of 1e-3, with a derived ST-RAE consequence of at most 6.2e-6 (entry 47).
-
-3. **Support size.** The complete support set is kept: every molecule in the cell's frozen training set carrying an observed label for that endpoint. No cap, no subsampling, and no change to the anchor count. Supports are 965 to 1,815 molecules per cell because endpoint labels are sparse (entry 43), and peak GPU use was 444 MiB of 46,068 (entry 47). The mismatch with ActFound's few-shot pretraining regime was known when complete support was chosen and is not reopened.
-
-4. **Thin target adapter.** Specified by the implementation brief approved on 2026-11-16: two stages, frozen settings in a hashed config, the upstream adaptation path unchanged, and that brief's scientific unit tests. Implementation is not authorized by this amendment.
-
-5. **Adaptation and scoring run in separate processes.** `references/cyp_upstream/custom_scoring_functions.py` (`c0ee287c...`) declares PEP 604 annotations with no `from __future__ import annotations`, so it requires Python 3.10 or later and cannot be imported in the pinned ActFound environment (Python 3.9.18), where the checkpoint, torch 1.12.1 and the version-sensitive RDKit 2023.03.1 featuriser live. Adaptation therefore runs in the pinned environment and writes a hash-pinned predictions artifact; the frozen scorer consumes it in a Python 3.10+ environment. The scorer is unchanged: only where it runs changes. "Target adaptation and evaluation" is amended to this extent only.
-
-6. **Comparator.** O150(T121) = 0.701212576796 stands, and so does its citation `cyp/artifacts/cyp_007/finalist_completion_v1/C0_COMPARISON.json` (`48bd619e...`). That file is **not present in this checkout**. `artifacts/d009_closure_workspace/p1_d009_o150_result_20261108.json` (SHA-256 `b277f4ccd9138b688ff20bfaf2378ebfcb66bc118ab5943df48027168adc0e2b`) records the same value and the strict advancement rule, and is **corroborating only**: a matching number does not establish equivalent provenance. A targeted check must locate or account for the cited artifact before the final comparison.
+1. **Seeds.** The 150-cell design is kept. Adaptation consumes no seed and predictions were bit-identical across seeds in all three qualification cells, so O150 is computed from 200 unique cell-endpoint adaptations (50 partitions × 4 endpoints), each recorded as a replicate in its three seed slots. This is an execution shortcut, not a claim of 150 independent adaptations.
+2. **Label scale.** pIC50 with no conversion; the learned quantity is a label difference, so the offset to the pretraining scale cancels (measured 1.19e-5 to 1.34e-5 against a 1e-3 threshold).
+3. **Support size.** Complete support, no cap or subsampling (965–1,815 molecules per cell).
+4. **Thin target adapter.** Two stages, frozen settings in a hashed config, upstream adaptation path unchanged, per the approved brief. Implementation is not authorized by this amendment.
+5. **Separate processes.** `references/cyp_upstream/custom_scoring_functions.py` (`c0ee287c…`) requires Python ≥ 3.10 and cannot be imported in the pinned environment (Python 3.9.18). Adaptation runs in the pinned environment and writes a hash-pinned predictions artifact; the unchanged scorer runs in a Python ≥ 3.10 environment.
+6. **Comparator.** `O150(T121) = 0.701212576796` and its citation `cyp/artifacts/cyp_007/finalist_completion_v1/C0_COMPARISON.json` (`48bd619e…`) stand. That file is not in this checkout; `artifacts/d009_closure_workspace/p1_d009_o150_result_20261108.json` (SHA-256 `b277f4ccd9138b688ff20bfaf2378ebfcb66bc118ab5943df48027168adc0e2b`) records the same value and is corroborating only. The cited artifact must be located or accounted for before the comparison is final.
 
 # D014 — PXR Primary Internal Evaluation Holdout: Bemis-Murcko Scaffold Holdout
 
-**Thread:** Tripwire-PXR (PXR induction arm), session PXR-001. This is the first decision record for the PXR arm; before it, no PXR entry existed in this file or in `notes/project_log.md`.
-
 **Decision date:** 2026-11-15
 
-**Status:** Approved choice of holdout type. Not implemented: no split artifact, seed value or partition proportions exist, and no model, training, tuning or evaluation has occurred in the PXR arm.
+**Status:** Approved with Amendments 1–4. Holdout frozen as `pxr/artifacts/pxr001_split/pxr001_split_assignments.csv`.
 
-## Decision
+## Decision and scope
 
-Miles chose, in his own words: "just go with A".
+The primary internal PXR evaluation holdout is a Bemis-Murcko scaffold holdout (standard scaffolds, chirality excluded): whole scaffold groups are assigned to exactly one partition. Rejected alternatives: Butina analog-cluster, generic-framework and SIMPD-style difficulty-matched holdouts. Butina clustering is near-degenerate on this data (4,103 clusters from 4,139 molecules at Tanimoto ≥ 0.7).
 
-Option A, as presented to him and chosen:
-
-> **A. Bemis-Murcko scaffold holdout (standard scaffolds, chirality excluded).** Whole scaffold groups assigned to exactly one partition. This is the literal reading of the README's "predeclared scaffold holdout" and the field default (Bemis & Murcko 1996; the standard split in MoleculeNet and Chemprop tooling).
-
-This fixes the primary internal PXR evaluation holdout as a Bemis-Murcko scaffold holdout. It fixes nothing else.
-
-## Options rejected by that choice
-
-- **B.** Butina analog-cluster holdout (the CYP-shaped option).
-- **C.** Generic-framework / graph scaffold holdout.
-- **D.** Difficulty-matched holdout in the manner of SIMPD.
-
-## Constraints presented with the recommendation — not separately confirmed
-
-Option A was recommended together with four constraints. Miles did not comment on them separately, so they are recorded as the content of the recommendation he accepted by choosing A, not as four independently stated decisions:
+Binding constraints:
 
 1. Whole scaffold groups never cross a partition boundary.
-2. The four InChIKey connectivity-block near-duplicate groups found in the PXR-001 data audit stay intact — asserted and tested, not assumed.
-3. Group assignment stratified on group-median pEC50.
-4. A single fixed seed, with the resulting assignment frozen as a CSV artifact carrying its own SHA-256, keyed on PXR's `Molecule Name` (OADMET ids), **not** CYP's `Molecule_Name` (OCNT ids).
+2. The four InChIKey connectivity-block near-duplicate groups found in the PXR-001 audit stay intact (required by Rev 3 line 109).
+3. Group assignment is stratified on group-median pEC50.
+4. A single fixed seed, with the assignment frozen as a CSV artifact carrying its own SHA-256, keyed on PXR's `Molecule Name` (OADMET ids), not CYP's `Molecule_Name` (OCNT ids).
 
-## Relationship to the project proposal — UNKNOWN
+Partitions are train / validation / holdout at 70 / 15 / 15 with seed `20261115`. The primary metric is MAE of predicted pEC50 on the holdout, with Spearman correlation for ranking quality (Rev 3 line 117). Model selection uses validation only; the holdout is not an iterative tuning target.
 
-The governing document `Tripwire_Project_Proposal_Rev3.md` is not in this repository and is not in its git history. Its text was unavailable when Miles asked to be shown exactly what Rev 3 already commits him to. It is therefore **not established** whether option A restates a procedure Rev 3 already declares or is a new decision. This record does not resolve that either way.
+Any internal holdout here is a conservative, pessimistic proxy for the official test set: 85% of 4,139 training molecules are in singleton scaffolds, and the 513 blinded test molecules sit closer to train (median nearest-neighbour Tanimoto 0.523) than train molecules do to each other (0.391).
 
-## Left open
+D014 does not authorize PXR model training, tuning or evaluation.
 
-- Partition proportions.
-- Whether the design is a single holdout or a train/validation/test three-way split.
-- The seed value and the split implementation itself.
+## Amendments
 
-## Supporting evidence
+**Amendment 1 (2026-11-15) — Reconciliation with Project Proposal Rev 3** (`Tripwire_Project_Proposal_Rev3.md`, September 30, 2026; not a repository artifact). Rev 3 fixes the split type, the near-duplicate check, the three-way structure and the metrics but no algorithm or proportions; option A is its operational instantiation. Scaffold-only grouping is adequate because no meaningful analog-series structure exists to group by, and the near-duplicate check discharges the "series" obligation.
 
-Measured 2026-11-15 by read-only diagnostics on the preserved PXR data (scratchpad scripts, not committed; the numbers below are the reported outputs of those scripts, which are not in this checkout):
+**Amendment 2 (2026-11-15) — Constraints 1, 3 and 4 bind.** Constraint 4 binds the requirement of a fixed seed and hashed artifact, not its value.
 
-- PXR train is structurally sparse: 3,670 Bemis-Murcko scaffolds across 4,139 molecules; 85% of molecules in singleton scaffolds; median nearest-neighbour Tanimoto (ECFP4, 2048 bits) within train 0.391.
-- Butina clustering is near-degenerate on this data (4,103 clusters at Tanimoto ≥ 0.7), which is why the CYP-shaped option B was not recommended.
-- The 513 blinded test molecules sit closer to train (median nearest-neighbour Tanimoto 0.523) than train molecules sit to each other (0.391), while only 19% share a Murcko scaffold with train.
+**Amendment 3 (2026-11-15) — Proportions and seed.** 70/15/15 with seed `20261115` (the project's date-shaped seed convention). 80/10/10 was not chosen because validation becomes too thin for model selection. The confirmation named the proportions only, so the seed value rests on acceptance of the proposal as put and is amended if a different seed is intended.
 
-## Recorded consequence
+**Amendment 4 (2026-11-15) — Ringless molecules.** RDKit returns an empty scaffold string for ringless molecules, which grouped all 30 together and placed them all in validation. Each ringless molecule now forms its own group, subject to the connectivity-block merge, and the split is regenerated on the same seed. The first artifact (train 2,897 / validation 621 / holdout 621) is superseded.
 
-Any internal holdout chosen under this record will be a conservative, pessimistic proxy for the official test set.
-
-## Context already committed today
-
-- Commit `5cca55c` preserved the official OpenADMET PXR release pinned to Hugging Face revision `063e723841063c2dfa86231f58fb59a6a738d113`, under `pxr/data/openadmet_pxr_release_2026-11-15/` and `pxr/data/openadmet_pxr_heldout_labels_2026-11-15/`, each with `PROVENANCE.txt` and `SHA256SUMS`.
-- Commit `fdd5573` added `pxr/scripts/pxr001_data_audit.py` and `pxr/artifacts/pxr001_data_audit/` (report, `PROVENANCE.txt`, `SHA256SUMS`).
-
-## Not authorized by this record
-
-Implementing or running the split; fixing proportions, seed or three-way structure; any PXR model training, tuning or evaluation.
-
-## D014 Amendment 1 — Reconciliation with Project Proposal Rev 3 (2026-11-15)
-
-**Status:** Approved (2026-11-15). Recorded on Miles's approval: "sounds good, move forward with your proposed amendment".
-
-This amendment does not authorize implementing or running the split, and does not fix the proportions or the seed. It records what the governing proposal already commits to, now that the proposal's text is available.
-
-### Source
-
-`Tripwire_Project_Proposal_Rev3.md` ("Final project proposal, deep learning course. Revision 3 | September 30, 2026"), supplied by Miles on 2026-11-15 as a file in his Downloads folder (`Tripwire_Project_Proposal_Rev3-1.md`). It is **not** a repository artifact: it is not in this repository and not in its git history. Line numbers below are those of the file as Miles provided it.
-
-### Change 1 — "Relationship to the project proposal — UNKNOWN" is superseded
-
-The section above headed "Relationship to the project proposal — UNKNOWN" is superseded in full by this change. The question it left open is resolved.
-
-Rev 3 commits to the **type** of split and to several checks, but never to an algorithm: no Murcko, no Butina, no similarity threshold and no proportions appear anywhere in it. Option A is therefore neither a deviation from Rev 3 nor a redundant re-declaration — it is the operational instantiation that Rev 3 requires to be recorded but deliberately leaves unspecified.
-
-- Rev 3 line 52 (Datasets, induction arm table): "Primary project evaluation | Predeclared internal scaffold/series holdout"
-- Rev 3 line 117: "Primary evaluation is MAE of predicted pEC50 on the predeclared scaffold/series holdout, with Spearman correlation for ranking quality."
-- Rev 3 line 59: "The internal holdout is declared before modeling decisions that could exploit it. Its compound assignments, preprocessing, exclusions, metrics, and model-selection rules must be recorded."
-
-### Change 2 — constraint 2 is a standing Rev 3 commitment, not an unconfirmed recommendation
-
-Constraint 2 ("the four InChIKey connectivity-block near-duplicate groups found in the PXR-001 data audit stay intact — asserted and tested, not assumed") is promoted out of "Constraints presented with the recommendation — not separately confirmed". It is not awaiting Miles's sign-off; Rev 3 already requires it.
-
-- Rev 3 line 109: "Scaffold/series splits are fixed before final evaluation. Near-duplicates and analog leakage across splits are checked explicitly."
-- Rev 3 line 194, as the domain-shift mitigation: "Use scaffold/series holdouts, calibration, per-chemotype analysis, and explicit applicability warnings."
-
-The four InChIKey connectivity-block groups found in the PXR-001 audit are precisely the near-duplicates that commitment covers.
-
-### Change 3 — why scaffold-only discharges Rev 3's "scaffold/series" phrasing
-
-Rev 3 writes "scaffold/series" at lines 52, 109, 117 and 194; option A groups by Bemis-Murcko scaffold only. The reason this is adequate here is empirical, and is recorded as the reason: Butina clustering is near-degenerate on this data — 4,103 clusters from 4,139 molecules at Tanimoto ≥ 0.7, and 2,977 clusters even at ≥ 0.4 — so no meaningful analog-series structure exists to group by. The explicit near-duplicate check in Change 2 is what discharges the "series" half of the obligation. Scaffold-only is a measured judgement, not a silent dropping of half the phrase.
-
-### Change 4 — the three-way structure is already required, not open
-
-"Whether the design is a single holdout or a train/validation/test three-way split" is removed from "Left open". Rev 3 line 109: "Training and validation data are used for fitting and selection; the final internal holdout is not an iterative tuning target." A two-way split would leave model selection nowhere to happen but the holdout, which that sentence forbids.
-
-After this change, **Left open** contains only:
-
-- Partition proportions.
-- The seed value (and the split implementation itself, which remains unauthorized).
-
-Correspondingly, "fixing … three-way structure" in "Not authorized by this record" no longer applies: the three-way structure is fixed by Rev 3, not by a later decision.
-
-### Change 5 — the metrics were never open either
-
-Rev 3 line 117 (quoted in Change 1) already fixes MAE of predicted pEC50 on the predeclared holdout as the primary PXR metric, with Spearman correlation for ranking quality. No metric choice is open in the PXR arm.
-
-### Corroboration that the preserved data is the data Rev 3 describes
-
-- Rev 3 line 55: "The closeout added 260 compounds to the 253 previously released (official)" — matches the PXR-001 audit exactly (Phase 1 = 253, Phase 2 = 260, disjoint, union 513).
-- Rev 3 line 48 gives dose-response coverage as "Over 4,000 compounds (official closeout wording); exact usable label count to be checked from the data"; the audit measured 4,139 rows.
-
-### Unchanged
-
-Constraints 1 (whole scaffold groups never cross a partition boundary), 3 (stratification on group-median pEC50) and 4 (fixed seed; assignment frozen as a CSV artifact with its own SHA-256, keyed on PXR's `Molecule Name` OADMET ids, not CYP's `Molecule_Name` OCNT ids) still have **no decision force**. Rev 3 does not speak to stratification or to the identity key. They remain part of the recommendation Miles accepted by choosing A, awaiting his explicit confirmation.
-
-Everything else in D014 is unchanged, including the choice of option A itself and the recorded consequence that any internal holdout here is a conservative, pessimistic proxy for the official test set.
-
-## D014 Amendment 2 — Constraints 1, 3 and 4 bind (2026-11-15)
-
-**Status:** Approved (2026-11-15). Recorded on Miles's decision, in his own words: "Yes, all three bind". He was answering whether constraints 1, 3 and 4 bind as part of D014.
-
-This amendment does not authorize implementing or running the split, nor any PXR model training, tuning or evaluation. It fixes no seed value and no partition proportions.
-
-### Change
-
-Constraints 1, 3 and 4 were recorded in D014 ("Constraints presented with the recommendation — not separately confirmed") and again in Amendment 1's "Unchanged" subsection as having no decision force and awaiting Miles's explicit confirmation. This is that confirmation. As of 2026-11-15 all three bind as part of D014:
-
-1. Whole scaffold groups never cross a partition boundary.
-3. Group assignment stratified on group-median pEC50.
-4. A single fixed seed, with the resulting assignment frozen as a CSV artifact carrying its own SHA-256, keyed on PXR's `Molecule Name` (OADMET ids), **not** CYP's `Molecule_Name` (OCNT ids).
-
-Constraint 2 is not part of this amendment; Amendment 1 recorded it as a standing Rev 3 commitment rather than a choice.
-
-### Scope of constraint 4
-
-Constraint 4 binds the **requirement** of a single fixed seed and of a frozen, hashed CSV artifact keyed on `Molecule Name`. It does **not** fix the seed value, which remains open.
-
-### Authority
-
-All three bind on Miles's decision of 2026-11-15, not on the project proposal:
-
-- Rev 3 does not speak to stratification (constraint 3) or to the identity key (constraint 4).
-- Constraint 1 is what gives "scaffold holdout" operational meaning; Rev 3 does not state it separately because whole-group assignment is what a scaffold split is. Its authority here is nonetheless his decision today, not an inference from the proposal.
-
-### Left open after two amendments
-
-For the PXR holdout, exactly two items remain open:
-
-- the partition proportions;
-- the seed value.
-
-Nothing else is open. Amendment 1 established that the three-way train/validation/holdout structure is required by Rev 3 line 109, and that MAE of predicted pEC50 with Spearman for ranking quality is fixed by Rev 3 line 117. The split implementation itself remains unauthorized.
-
-Everything else in D014 and D014 Amendment 1 is unchanged.
-
-## D014 Amendment 3 — Partition proportions and seed value (2026-11-15)
-
-**Status:** Approved (2026-11-15). Question put to Miles, verbatim: "Use 70/15/15 with seed 20261115 for the PXR holdout?" His answer, verbatim: "Yes, 70/15/15".
-
-His answer accepts the question as put, so the proportions are 70/15/15 and the seed value is 20261115. His literal words named the proportions only, while the question he answered named both. He has been told that if he meant the proportions alone and wants a different seed, he should say so and this record will be amended.
-
-This amendment does not authorize implementing or running the split, nor any PXR model training, tuning or evaluation. No split artifact exists.
-
-### Change
-
-The two items left open by Amendment 2 are now fixed:
-
-1. **Partition proportions:** 70 / 15 / 15 across train / validation / holdout, under the three-way structure Amendment 1 recorded as required by Rev 3 line 109.
-2. **Seed value:** 20261115. This fills in the seed whose *requirement* constraint 4 already bound under Amendment 2. Constraint 4's other requirements are unchanged: the resulting assignment is frozen as a CSV artifact carrying its own SHA-256, keyed on PXR's `Molecule Name` (OADMET ids), not CYP's `Molecule_Name` (OCNT ids).
-
-### Why these values
-
-- On 4,139 PXR training molecules, 70/15/15 gives approximately 2,900 train, 620 validation and 620 holdout. These counts are **approximate**: whole scaffold groups are assigned indivisibly under constraint 1, so realized partition sizes will not land exactly on the nominal percentages. The realized counts in the eventual split artifact are therefore not a discrepancy.
-- A real validation partition is required because Rev 3 line 109 forbids selecting on the holdout.
-- Seed 20261115 follows the existing project convention of a date-shaped seed (as in `CYP002_SEED = 20261001` in `cyp/scripts/cyp002_config.py`) and is today's date.
-
-### Measured caveat
-
-As already recorded in D014's evidence, 85% of PXR training molecules sit in singleton Bemis-Murcko scaffolds, so a 15% holdout takes roughly 577 of the 3,670 scaffold groups and group-wise proportions will land close to molecule-wise ones. The whole-group constraint still guarantees that no scaffold spans a partition boundary, but it does less work on this data than it would on an analog-dense set.
-
-### Alternative considered
-
-80/10/10 (approximately 3,300 train and 414 each) was considered and not chosen, because the validation partition becomes thin for selecting among Chemprop configurations.
-
-### Status of the holdout specification
-
-The PXR primary internal evaluation holdout is now **fully specified**. Nothing about it remains open. This supersedes the "Left open after two amendments" subsection of Amendment 2.
-
-Everything else in D014, Amendment 1 and Amendment 2 is unchanged.
-
-## D014 Amendment 4 — Grouping of ringless (acyclic) molecules (2026-11-15)
-
-**Status:** Approved (2026-11-15). Recorded on Miles's decision, in his own words: "Give each ringless molecule its own group, but still keep molecules with the same InChIKey connectivity block together. Having no rings doesn't prove they're unrelated. Record this amendment then regenerate on the same seed."
-
-This amendment **does** authorize regenerating the split under the amended rule, since he directed it explicitly. It does not authorize any PXR model training, tuning or evaluation.
-
-### What prompted it
-
-The split was generated and independently verified today. It surfaced an artifact of the standard Bemis-Murcko implementation: RDKit returns an **empty** scaffold string for a molecule with no rings. All 30 ringless molecules in the 4,139-compound training table therefore shared the empty string, were treated as a single scaffold group, and were assigned together — all 30 landed in validation, leaving train and holdout with no acyclic compounds at all.
-
-Literally no scaffold spanned a partition boundary, so D014 constraint 1 was satisfied. The problem is that the empty string is not a shared scaffold, so the grouping did not mean what it appeared to mean. This is a known wart in the standard implementation; DeepChem and Chemprop-style scaffold splits inherit the same behaviour.
-
-### The rule
-
-1. Each ringless molecule forms its **own** assignment group, rather than all ringless molecules forming one group through the shared empty scaffold string.
-2. The InChIKey connectivity-block merge still applies to them: two ringless molecules sharing a connectivity block remain in the same group. In his words: "Having no rings doesn't prove they're unrelated." D014 constraint 2, standing under Rev 3 line 109, is **not** weakened for ringless molecules; only the empty-scaffold lumping is removed.
-3. The split is regenerated on the same seed, 20261115, unchanged from Amendment 3.
-
-### Consequences
-
-- The previously generated artifact (train 2,897 / validation 621 / holdout 621; 69.99 / 15.00 / 15.00 percent; 3,670 groups) is **superseded** and must not be treated as the frozen split. It was never committed and nothing depends on it.
-- The regenerated artifact will differ, and its realized sizes will differ slightly, because the 30 ringless molecules now distribute across the partitions instead of sitting in one.
-
-### Unchanged
-
-Everything else about the declaration: Bemis-Murcko scaffold with chirality excluded; whole groups indivisible (constraint 1); stratification on group-median pEC50 (constraint 3); three-way 70/15/15; seed 20261115; the assignment frozen as a CSV artifact with its own SHA-256, keyed on `Molecule Name` (constraint 4); MAE of predicted pEC50 primary with Spearman for ranking quality.
-
-Everything else in D014, Amendment 1, Amendment 2 and Amendment 3 is unchanged.
-
-## D014 Artifact record — Frozen PXR-001 split assignment (2026-11-15)
-
-**Status:** Factual record, not a decision. It names the artifact that D014 constraint 4 requires to be frozen and hashed, together with its realized counts and verification. It changes no rule and authorizes nothing; PXR model training, tuning and evaluation remain unauthorized.
-
-### Artifact
-
-Produced 2026-11-15 under D014 Amendment 4, seed 20261115. Evidence lives in this checkout, **uncommitted** as of this entry.
+## Frozen artifact
 
 | Item | Value |
 |---|---|
 | Split assignment | `pxr/artifacts/pxr001_split/pxr001_split_assignments.csv`, SHA-256 `c6028f1b7216ab2ea4bab96616fc02b95ce011be20b1b96f807d1e7d582ece46` |
-| Hash manifest | `pxr/artifacts/pxr001_split/SHA256SUMS`; `shasum -a 256 -c` verifies OK from the repository root |
-| Provenance | `pxr/artifacts/pxr001_split/PROVENANCE.txt` |
-| Generator | `pxr/scripts/pxr001_split.py` |
-| Tests | `pxr/tests/test_pxr001_split.py`, 19 passed |
+| Generator and tests | `pxr/scripts/pxr001_split.py`; `pxr/tests/test_pxr001_split.py` (19 passed) |
+| Provenance and hashes | `pxr/artifacts/pxr001_split/PROVENANCE.txt`, `SHA256SUMS` |
 | Input | `pxr/data/openadmet_pxr_release_2026-11-15/pxr-challenge_TRAIN.csv`, SHA-256 `fdc2252bb5763ab5742e78cb1ba692bebe131a972cf83aa1bd45e43d8c5bc223` |
 
-### Realized partitions
+Realized partitions (4,139 molecules, 3,699 groups): train 2,897 (69.99%), validation 621 (15.00%), holdout 621 (15.00%). Independent recomputation from the raw CSV found no scaffold, connectivity block or group spanning partitions, the four near-duplicate blocks all in train, no shared names with TEST_BLINDED, and byte-identical regeneration. Committed locally as `fabec38`.
 
-4,139 molecules in 3,699 assignment groups:
-
-- train 2,897 molecules (69.99%), 2,584 groups;
-- validation 621 molecules (15.00%), 557 groups;
-- holdout 621 molecules (15.00%), 558 groups.
-
-The group count rose from 3,670 to 3,699 because the 30 ringless molecules now form 30 groups rather than one (Amendment 4); none of them shares a connectivity block with another.
-
-### Independent verification
-
-By a separate script that recomputed scaffolds and connectivity blocks from the preserved raw CSV rather than trusting the artifact's own columns:
-
-- the artifact's `scaffold_smiles` and `connectivity_block` columns reproduce exactly;
-- 0 ringed scaffolds span more than one partition; 0 connectivity blocks span; 0 groups span;
-- the 4 near-duplicate connectivity blocks are each within a single partition — all four in train under this regeneration;
-- 0 duplicate identities, 0 unassigned rows; the identity set equals the preserved TRAIN table exactly;
-- 0 names shared with TEST_BLINDED;
-- re-running the generator reproduces the CSV byte-identically;
-- partition pEC50 medians 4.65 train / 4.64 validation / 4.66 holdout, means within 0.03.
-
-### Recorded observation
-
-The 30 ringless molecules distributed 19 train / 3 validation / 8 holdout, which is not proportional to 70/15/15. With 30 indivisible singleton groups spread across potency strata, small-count deviation of this size is expected; it is not a constraint violation.
-
-### Commit (factual follow-up)
-
-The PXR-001 split work is committed as `fabec38` on `main`, "Freeze the PXR-001 predeclared scaffold holdout". This qualifies the "uncommitted as of this entry" note above, which was true only when that note was written.
-
-Six files, parent `fdd5573` ("Add the PXR-001 read-only data audit and its artifact"), whose own parent is `d1ccb7a`, a CYP D013 commit of Miles's that landed between the two PXR commits:
-
-- `notes/Decisions.md` (D014, Amendments 1-4 and this artifact record; 268 lines added, nothing deleted);
-- `pxr/scripts/pxr001_split.py`;
-- `pxr/tests/test_pxr001_split.py`;
-- `pxr/artifacts/pxr001_split/pxr001_split_assignments.csv`;
-- `pxr/artifacts/pxr001_split/PROVENANCE.txt`;
-- `pxr/artifacts/pxr001_split/SHA256SUMS`.
-
-The commit is **local only**. Nothing has been pushed; Miles handles pushes himself, so this is not recorded as present on any remote.
-
-Only `notes/Decisions.md` and the four `pxr/` paths were staged. The concurrent CYP/ActFound working-tree changes — the modification to `notes/Tripwire_CYP_005.md` and the untracked `qualification/actfound/d013_benchmark_20261115/` — were deliberately left out and remain uncommitted.
-
-# D015 — Updated T121 and ActFound comparison plan; fresh corrected-penalty ActFound foundation (2026-11-17)
-
-**Thread:** Tripwire-CYP, Session 005.5 (recorded in `notes/Tripwire_CYP_005.md`, §5.14 and §6).
+# D015 — Updated T121 and ActFound Comparison Plan
 
 **Decision date:** 2026-11-17
 
-**Status:** Form approved. On 2026-11-17 Miles chose a new decision record over a D013 Amendment 5, in answer to the form question: "New D015". The six items below are Miles's own statements of 2026-11-17 and are recorded verbatim as his decisions. **This record authorizes no run: no training, model run or SLURM submission is authorized.** There is no commit or push.
+**Status:** Approved as a plan. **This record authorizes no run.**
 
-## Decision (Miles, 2026-11-17, in his own words)
+## Decision and scope
 
-1. **Comparison.** "Frozen T121 vs updated T121 and ActFound; preserve full O150, protected identities and existing scoring/comparator-provenance checks, including nonfinal comparison status if unresolved."
-2. **ActFound foundation.** "fresh original seeded foundation initialization with corrected penalty, then selected foundation → screening → pIC50. No historical penalty-omitting checkpoint or epoch-49 hunt."
-3. **ActFound screening.** "80 epochs, existing schedule, eight fixed validation episodes, minimum native query WMSE checkpoint, no full-screen refit."
-4. **T121 screening.** "50 epochs; trial-specific warmup 10 verified. Preserve approved validation/selection and transfer rules."
-5. **Weighting.** "Preserve exact approved uncertainty and harmonic pair weighting from qualified code and session evidence. Do not recreate formulas from defaults."
-6. **Execution.** "I run execution commands. No training, model runs or SLURM submissions are authorized here. Runtime benchmarking is waived only for this CYP comparison, not correctness checks." "No commit/push." The waiver covers runtime benchmarking only, for this comparison. It does not authorize any run.
+1. **Comparison.** Compare frozen T121 against updated T121 and ActFound, preserving full O150, protected identities and the existing scoring and comparator-provenance checks, including non-final status if unresolved.
+2. **ActFound foundation.** A fresh, seeded foundation initialization with the corrected inner-loop learning-rate penalty, then selected foundation → screening → pIC50 adaptation. No historical penalty-omitting checkpoint and no epoch-49 search.
+3. **ActFound screening.** 80 epochs on the existing schedule, eight fixed validation episodes, checkpoint at minimum native query WMSE, no full-screen refit.
+4. **T121 screening.** 50 epochs, warmup 10; approved validation, selection and transfer rules preserved.
+5. **Weighting.** The approved uncertainty and harmonic pair weighting is preserved from qualified code and session evidence, not recreated from defaults.
+6. **Execution.** No training, model runs or SLURM submissions are authorized. Runtime benchmarking is waived for this comparison only, not correctness checks.
 
-"Corrected penalty" refers to the inner-loop learning-rate penalty found absent from the deployed trainer's objective (session report §5.11).
+D013 and Amendments 1–4 remain in force. The epoch-51 checkpoint (SHA-256 `4db29a04f69ecc1ef6ec2f058aa0335e132394a2a0bbe36c14bd27d54a49de2b`) and job 3076848 are preserved. Whether item 2 supersedes D013's foundation-training and checkpoint-freeze terms is not decided.
 
-## Relationship to D013 — open question for Miles
-
-D013 and Amendments 1-4 remain in force as recorded. This record does **not** state that it supersedes any D013 term. In particular:
-
-- The epoch-51 checkpoint `model_best.pt` (SHA-256 `4db29a04f69ecc1ef6ec2f058aa0335e132394a2a0bbe36c14bd27d54a49de2b`) and job 3076848 are preserved unchanged.
-- Whether item 2 supersedes D013's "Foundation training" and "Checkpoint freeze rule" terms (and the frozen epoch-51 checkpoint) for this comparison **is not decided**. Miles has not said so. It is an open question for him.
-
-## Open items (Miles's wiring list, verbatim as open; none done)
-
-- pIC50 support weights reaching adaptation;
-- normalization/reset semantics;
-- qualification evidence bound to deployed hashes;
-- real adapter/config/input binding;
-- T121 production/O150 routing and epoch-end checkpoint behavior.
-
-Component and mock tests do not establish launch readiness. No resume support is established.
-
-## Not authorized by this record
+## Not authorized
 
 - any training, model run, GPU job or SLURM submission;
-- any implementation edit, commit or push;
 - calling the comparison final while the comparator-provenance requirement (D013 Amendment 4 item 6) is unresolved.
 
-## Naming note
+# D016 — Evaluation-Phase Adaptation Weighting: Screening Validation Only
 
-The folder `qualification/actfound/d014_lr_penalty_20261117/` has no relation to D014 (the PXR holdout decision above). Nothing was renamed.
+**Decision date:** 2026-11-17
+
+**Status:** Approved. **This record authorizes no run.**
+
+## Decision and scope
+
+Evaluation adaptation is weighted for screening validation only. The pIC50 evaluator stays unweighted, with no uncertainty input. D016 fixes the weights' scope and no formula; D015 item 5 governs which weighting applies.
+
+D013 and Amendments 1–4 are unchanged; D013's unweighted pIC50 evaluation is consistent with this decision.
+
+## Basis
+
+`run_task` in `cyp/scripts/actfound_production_train_v2.py` built observation weights only when `is_training_phase=True`, so screening-validation adaptation ran unweighted (`notes/Tripwire_CYP_006.md` §2). A `use_observation_weights` keyword now exists and the screening-validation call passes `True` (§3–§4); it has had no GPU check.
+
+## Not authorized
+
+- any training, model run, GPU job or SLURM submission;
+- weighting the pIC50 evaluator or introducing a weight source for it;
+- recreating weighting formulas from defaults.
 
