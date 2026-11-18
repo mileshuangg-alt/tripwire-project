@@ -522,7 +522,7 @@ def train_batches(dataset: Any, args: SimpleNamespace, data_epoch: int) -> Itera
         yield indices[start:start + args.meta_batch_size]
 
 
-def task_arrays(dataset: Any, index: int, args: SimpleNamespace, set_name: str, data_epoch: int) -> tuple[Any, Any, Any]:
+def task_arrays(dataset: Any, index: int, args: SimpleNamespace, set_name: str, data_epoch: int):
     seed_base = {
         "train": args.train_seed,
         "val": args.val_seed,
@@ -533,10 +533,11 @@ def task_arrays(dataset: Any, index: int, args: SimpleNamespace, set_name: str, 
         test_sup_num=args.test_sup_num,
         is_test=is_test,
         rand_seed=seed_base + index + data_epoch,
+        include_metadata=True,
     )
 
 
-def per_step_loss_importance(args: SimpleNamespace, current_epoch: int):
+def per_step_loss_importance(args: SimpleNamespace, current_epoch: int, device=None):
     import numpy as np
     import torch
 
@@ -549,17 +550,33 @@ def per_step_loss_importance(args: SimpleNamespace, current_epoch: int):
         loss_weights[-1] + (current_epoch * (args.num_updates - 1) * decay_rate),
         1.0 - ((args.num_updates - 1) * min_value_for_non_final_losses),
     )
-    return torch.Tensor(loss_weights).cuda()
+    return torch.tensor(loss_weights, dtype=torch.float32, device=device if device is not None else "cuda")
 
 
 def run_task(regressor: Any, inner_lrs: Any, arrays: tuple[Any, Any, Any], args: SimpleNamespace, epoch: int, is_training_phase: bool):
     import torch
     from actfound_model_side import actfound_forward_with_regressor, select_actfound_inner_loop_params
 
-    x_np, y_np, split_np = arrays
-    x_task = torch.tensor(x_np).float().cuda()
-    y_task = torch.tensor(y_np).float().cuda()
-    split = torch.tensor(split_np).cuda()
+    if len(arrays) == 3:
+        x_np, y_np, split_np = arrays
+        observation_weights_np = None
+        molecule_ids = None
+    elif len(arrays) == 5:
+        x_np, y_np, split_np, observation_weights_np, molecule_ids = arrays
+    else:
+        raise ValueError("ActFound task arrays must contain 3 legacy or 5 metadata fields")
+
+    device = next(regressor.parameters()).device
+    x_task = torch.tensor(x_np, dtype=torch.float32, device=device)
+    y_task = torch.tensor(y_np, dtype=torch.float32, device=device)
+    split = torch.tensor(split_np, device=device)
+    observation_weights = None
+    if is_training_phase and observation_weights_np is not None:
+        observation_weights = torch.as_tensor(
+            observation_weights_np,
+            dtype=y_task.dtype,
+            device=y_task.device,
+        )
     if args.inverse_ylabel:
         y_task = -y_task
 
@@ -567,7 +584,7 @@ def run_task(regressor: Any, inner_lrs: Any, arrays: tuple[Any, Any, Any], args:
     support_losses = []
     task_losses = []
     use_second_order = bool(args.second_order and epoch > args.first_order_to_second_order_epoch)
-    loss_weights = per_step_loss_importance(args, epoch)
+    loss_weights = per_step_loss_importance(args, epoch, device=device)
     sup_num = torch.sum(split)
     num_steps = args.num_updates if is_training_phase else args.test_num_updates
 
@@ -583,6 +600,8 @@ def run_task(regressor: Any, inner_lrs: Any, arrays: tuple[Any, Any, Any], args:
             training=True,
             backup_running_statistics=True if num_step == 0 else False,
             num_step=num_step,
+            observation_weights=observation_weights,
+            molecule_ids=molecule_ids,
         )
         support_losses.append(float(support_loss.detach().cpu().item()))
         if support_loss >= support_losses[0] * 10 or sup_num <= 5:
@@ -617,6 +636,8 @@ def run_task(regressor: Any, inner_lrs: Any, arrays: tuple[Any, Any, Any], args:
                     training=True,
                     backup_running_statistics=False,
                     num_step=num_step,
+                    observation_weights=observation_weights,
+                    molecule_ids=molecule_ids,
                 )
                 task_losses.append(loss_weights[num_step] * target_loss if is_multi_step else target_loss)
 
@@ -631,6 +652,8 @@ def run_task(regressor: Any, inner_lrs: Any, arrays: tuple[Any, Any, Any], args:
         training=True,
         backup_running_statistics=False,
         num_step=num_steps - 1,
+        observation_weights=observation_weights,
+        molecule_ids=molecule_ids,
     )
     if not is_training_phase:
         task_losses.append(target_loss)
@@ -714,6 +737,44 @@ def save_checkpoint(path: Path, regressor: Any, inner_lrs: Any, optimizer: Any, 
     )
 
 
+
+
+
+ACTFOUND_LR_PENALTY_PARAMETER = "layer_dict.linear.weights"
+
+
+def add_inner_learning_rate_penalty(
+    meta_loss: Any,
+    learned_lr_parameters: Mapping[str, Any],
+    epoch: int,
+    args: SimpleNamespace,
+    *,
+    is_training_phase: bool,
+) -> tuple[Any, Any]:
+    """Apply the upstream penalty to its designated learned-LR entry."""
+    import torch
+
+    if ACTFOUND_LR_PENALTY_PARAMETER not in learned_lr_parameters:
+        raise KeyError(
+            "Missing upstream learned-LR entry: "
+            f"{ACTFOUND_LR_PENALTY_PARAMETER}"
+        )
+
+    if not is_training_phase or epoch < args.begin_lrloss_epoch:
+        penalty = torch.zeros(
+            (),
+            dtype=meta_loss.dtype,
+            device=meta_loss.device,
+        )
+    else:
+        lr_param = learned_lr_parameters[ACTFOUND_LR_PENALTY_PARAMETER]
+        penalty = torch.sum(lr_param * lr_param) * args.lrloss_weight
+
+    result = (meta_loss + penalty, penalty)
+    return result
+
+
+
 def run_training(config: Mapping[str, Any], repo_root: Path, upstream_dir: Path, skip_hash: bool = False) -> None:
     output_dir = Path(config["output_dir"])
     if output_dir.exists():
@@ -782,7 +843,21 @@ def run_training(config: Mapping[str, Any], repo_root: Path, upstream_dir: Path,
                 arrays = task_arrays(dataset, index, args, "train", data_epoch)
                 task_loss, _, _, _, _, _, _ = run_task(regressor, inner_lrs, arrays, args, epoch=epoch, is_training_phase=True)
                 total_losses.append(task_loss)
-            loss = torch.mean(torch.stack(total_losses))
+            meta_loss = torch.mean(torch.stack(total_losses))
+
+            # The current port's inner_lrs tensor is the upstream
+            # layer_dict.linear.weights learned-rate dictionary entry.
+            learned_lr_parameters = {
+                "layer_dict.linear.weights": inner_lrs,
+            }
+
+            loss, inner_lr_penalty = add_inner_learning_rate_penalty(
+                meta_loss,
+                learned_lr_parameters,
+                epoch,
+                args,
+                is_training_phase=True,
+            )
             optimizer.zero_grad()
             regressor.zero_grad()
             loss.backward()
@@ -790,7 +865,17 @@ def run_training(config: Mapping[str, Any], repo_root: Path, upstream_dir: Path,
             optimizer.zero_grad()
             regressor.zero_grad()
             batch_losses.append(float(loss.detach().cpu().item()))
-            append_jsonl(progress_path, {"event": "train_batch", "epoch": epoch, "batch": batch_idx, "loss": batch_losses[-1]})
+            append_jsonl(
+                progress_path,
+                {
+                    "event": "train_batch",
+                    "epoch": epoch,
+                    "batch": batch_idx,
+                    "loss": float(loss.detach().cpu().item()),
+                    "meta_loss": float(meta_loss.detach().cpu().item()),
+                    "inner_lr_penalty": float(inner_lr_penalty.detach().cpu().item()),
+                },
+            )
 
         val = evaluate_validation(regressor, inner_lrs, dataset, args, repeat_cnt=0)
         epoch_checkpoint = output_dir / "checkpoints" / f"model_{epoch}.pt"
@@ -841,3 +926,649 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+
+def transfer_actfound_stage_initialization(
+    checkpoint,
+    regressor,
+    inner_lrs,
+):
+    """Strict stage initialization, not optimizer/scheduler/epoch resume.
+
+    The destination regressor and learned-rate tensor must already have been
+    constructed using the existing architecture. Task-specific normalization
+    belongs to the destination task data and is not imported here.
+    """
+    import torch
+
+    required = {"regressor_state_dict", "inner_lrs"}
+    missing = required - set(checkpoint)
+    if missing:
+        raise ValueError(f"Checkpoint missing required state: {sorted(missing)}")
+
+    source = checkpoint["regressor_state_dict"]
+    destination = regressor.state_dict()
+    if set(source) != set(destination):
+        raise ValueError(
+            "ActFound model-state keys differ: "
+            f"source_only={sorted(set(source) - set(destination))}, "
+            f"destination_only={sorted(set(destination) - set(source))}"
+        )
+
+    incompatible = [
+        key for key in destination
+        if not isinstance(source[key], torch.Tensor)
+        or source[key].shape != destination[key].shape
+        or source[key].dtype != destination[key].dtype
+    ]
+    if incompatible:
+        raise ValueError(f"Incompatible ActFound model state: {incompatible}")
+
+    rates = checkpoint["inner_lrs"]
+    if not isinstance(rates, torch.Tensor):
+        raise ValueError("Expected the existing port's inner_lrs tensor.")
+    if rates.shape != inner_lrs.shape or rates.dtype != inner_lrs.dtype:
+        raise ValueError(
+            "Incompatible learned-rate state; refusing reset or replacement: "
+            f"source={tuple(rates.shape)}/{rates.dtype}, "
+            f"destination={tuple(inner_lrs.shape)}/{inner_lrs.dtype}"
+        )
+    for key, value in source.items():
+        if value.is_floating_point() and not bool(torch.isfinite(value).all()):
+            raise ValueError(f"Non-finite source model state: {key}")
+    if not bool(torch.isfinite(rates).all()):
+        raise ValueError("Non-finite learned-rate state.")
+
+    # All compatibility checks precede mutation. Keep the destination
+    # Parameter object so future optimizer references remain correct.
+    regressor.load_state_dict(source, strict=True)
+    with torch.no_grad():
+        inner_lrs.copy_(rates.to(device=inner_lrs.device))
+
+    for key, value in regressor.state_dict().items():
+        if not torch.equal(value.cpu(), source[key].cpu()):
+            raise ValueError(f"Model transfer verification failed: {key}")
+    if not torch.equal(inner_lrs.detach().cpu(), rates.detach().cpu()):
+        raise ValueError("Learned-rate transfer verification failed.")
+
+    result = {
+        "model_keys": sorted(destination),
+        "learned_rate_entry": ACTFOUND_LR_PENALTY_PARAMETER,
+        "learned_rate_shape": list(inner_lrs.shape),
+        "optimizer_state_transferred": False,
+        "scheduler_state_transferred": False,
+        "epoch_state_transferred": False,
+        "task_normalization_transferred": False,
+        "source_epoch": checkpoint.get("epoch"),
+        "initialization_only": True,
+    }
+    return result
+
+
+def build_fresh_actfound_outer_state(regressor, inner_lrs, args):
+    """Use the existing runner's exact outer optimizer/scheduler construction."""
+    import torch
+
+    optimizer = torch.optim.Adam(
+        list(regressor.parameters()) + [inner_lrs],
+        lr=args.meta_lr,
+        amsgrad=False,
+    )
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+        optimizer=optimizer,
+        T_max=args.metatrain_iterations,
+        eta_min=args.min_learning_rate,
+    )
+    result = {
+        "optimizer": optimizer,
+        "scheduler": scheduler,
+    }
+    return result
+
+
+def prepare_actfound_screen_training_data(
+    *,
+    screen_path,
+    identity_path,
+    similarity_path,
+    contract_path,
+    hyperparameters,
+):
+    """Connect adjudicated screening tasks to the existing training sampler.
+
+    No screening schedule, validation split, checkpoint selection or training
+    execution is introduced here.
+    """
+    import numpy as np
+    from actfound_model_side import (
+        ActFoundFrozenMetaDataset,
+        load_adjudicated_screen_assays,
+    )
+
+    args = make_args(hyperparameters)
+    assays = load_adjudicated_screen_assays(
+        screen_path,
+        identity_path,
+        similarity_path,
+        contract_path,
+        featurize=True,
+    )
+    expected = (
+        "screen:CYP1A2",
+        "screen:CYP2C9",
+        "screen:CYP2D6",
+        "screen:CYP3A4",
+    )
+    if tuple(assay.assay_id for assay in assays) != expected:
+        raise ValueError("Screening enzyme identities/order differ.")
+
+    dataset = ActFoundFrozenMetaDataset(
+        assays,
+        train_assays=set(expected),
+    )
+    if dataset.val_indices or dataset.test_indices:
+        raise ValueError("Unexpected screening validation/test assignment.")
+
+    # Preserve the existing assay repetition and floor-divided meta-batches.
+    batches = list(train_batches(dataset, args, data_epoch=0))
+    if not batches:
+        raise ValueError(
+            "Screening dataset produces zero existing-protocol meta-batches: "
+            f"train_indices={len(dataset.train_indices)}, "
+            f"meta_batch_size={args.meta_batch_size}"
+        )
+
+    by_id = {assay.assay_id: assay for assay in assays}
+    episode_records = []
+    for assay_id in expected:
+        index = dataset.assaes.index(assay_id)
+        arrays = task_arrays(
+            dataset, index, args, set_name="train", data_epoch=0
+        )
+        if len(arrays) != 5:
+            raise ValueError("Training sampler did not return aligned metadata.")
+        x, y, split, weights, molecule_ids = arrays
+        assay = by_id[assay_id]
+        lookup = {
+            molecule_id: i
+            for i, molecule_id in enumerate(assay.molecule_ids)
+        }
+
+        if not (
+            len(x) == len(y) == len(split)
+            == len(weights) == len(molecule_ids)
+        ):
+            raise ValueError(f"Episode metadata length mismatch: {assay_id}")
+        if len(y) != 64:
+            raise ValueError(
+                f"Existing training subsample changed: {assay_id}, n={len(y)}"
+            )
+        for row, molecule_id in enumerate(molecule_ids):
+            original = lookup[molecule_id]
+            np.testing.assert_array_equal(x[row], assay.x[original])
+            np.testing.assert_equal(y[row], assay.y[original])
+            np.testing.assert_equal(
+                weights[row], assay.observation_weights[original]
+            )
+
+        support = int(np.count_nonzero(split))
+        query = len(split) - support
+        if support < 2 or query < 2:
+            raise ValueError(f"Insufficient support/query rows: {assay_id}")
+
+        episode_records.append({
+            "assay_id": assay_id,
+            "observed_rows": len(assay.y),
+            "sampled_rows": len(y),
+            "support_rows": support,
+            "query_rows": query,
+            "alignment": "PASS",
+        })
+
+    result = {
+        "dataset": dataset,
+        "args": args,
+        "report": {
+            "task_ids": list(expected),
+            "training_index_count": len(dataset.train_indices),
+            "meta_batch_size": args.meta_batch_size,
+            "complete_meta_batches_epoch_zero": len(batches),
+            "episode_checks": episode_records,
+            "target_units": "native log2fc",
+            "screen_schedule_assigned": False,
+            "screen_validation_assigned": False,
+            "training_executed": False,
+        },
+    }
+    return result
+
+
+def prepare_actfound_partitioned_screen_stage(
+    *,
+    screen_path,
+    identity_path,
+    similarity_path,
+    contract_path,
+    split_assignments_path,
+    hyperparameters,
+):
+    """Reuse frozen compound assignments and freeze validation episodes.
+
+    No model construction, training, or target normalization is performed.
+    Validation episode membership is fixed using the existing validation
+    sampler and repeat settings.
+    """
+    import csv
+    import hashlib
+    from dataclasses import replace
+    import numpy as np
+    from actfound_model_side import (
+        ActFoundFrozenMetaDataset,
+        load_adjudicated_screen_assays,
+    )
+
+    args = make_args(hyperparameters)
+    args.metatrain_iterations = 80
+    if args.test_repeat_num < 1:
+        raise ValueError("Existing validation repeat count must be positive.")
+
+    assays = load_adjudicated_screen_assays(
+        screen_path, identity_path, similarity_path, contract_path,
+        featurize=True,
+    )
+    with Path(split_assignments_path).open(newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    assignments = {}
+    cluster_partitions = {}
+    for row in rows:
+        name = row["molecule_id"]
+        partition = row["partition"]
+        if name in assignments:
+            raise ValueError(f"Duplicate split identity: {name}")
+        if partition not in {"train", "validation"}:
+            raise ValueError(f"Invalid screening partition: {row}")
+        assignments[name] = partition
+        cluster_partitions.setdefault(row["cluster_id"], set()).add(partition)
+    if any(len(parts) != 1 for parts in cluster_partitions.values()):
+        raise ValueError("A screening structural cluster crosses partitions.")
+
+    universe = {
+        name for assay in assays for name in assay.molecule_ids
+    }
+    if set(assignments) != universe or len(universe) != 6947:
+        raise ValueError("Saved screening assignments differ from eligible universe.")
+
+    partitioned = []
+    train_names, validation_names = set(), set()
+    for assay in assays:
+        for partition in ("train", "validation"):
+            indices = np.array([
+                i for i, name in enumerate(assay.molecule_ids)
+                if assignments[name] == partition
+            ], dtype=int)
+            if not len(indices):
+                raise ValueError(f"Empty {partition} assay: {assay.assay_id}")
+            name = assay.assay_id + ":" + partition
+            subset = replace(
+                assay,
+                assay_id=name,
+                smiles=tuple(assay.smiles[i] for i in indices),
+                y=assay.y[indices].copy(),
+                x=assay.x[indices].copy(),
+                molecule_ids=tuple(assay.molecule_ids[i] for i in indices),
+                observation_weights=assay.observation_weights[indices].copy(),
+                graph_pair_count=None,
+            )
+            partitioned.append(subset)
+            (train_names if partition == "train" else validation_names).add(name)
+
+    dataset = ActFoundFrozenMetaDataset(
+        partitioned,
+        train_assays=train_names,
+        val_assays=validation_names,
+    )
+    batches = list(train_batches(dataset, args, data_epoch=0))
+    if not batches:
+        raise ValueError("Partitioned screening data produces no meta-batches.")
+
+    episodes = []
+    for index in dataset.val_indices:
+        for repeat in range(args.test_repeat_num):
+            arrays = task_arrays(
+                dataset, index, args, set_name="val", data_epoch=repeat
+            )
+            x, y, split, weights, ids = arrays
+            if not (len(x) == len(y) == len(split) == len(weights) == len(ids)):
+                raise ValueError("Validation episode metadata length mismatch.")
+            if any(assignments[name] != "validation" for name in ids):
+                raise ValueError("Training compound entered validation episode.")
+            if not np.any(split != 0) or not np.any(split == 0):
+                raise ValueError("Empty validation support/query partition.")
+            # Own copies prevent later sampler operations from changing episodes.
+            episodes.append({
+                "assay_id": dataset.assaes[index],
+                "repeat": repeat,
+                "arrays": (
+                    x.copy(), y.copy(), split.copy(), weights.copy(), tuple(ids)
+                ),
+            })
+
+    result = {
+        "dataset": dataset,
+        "args": args,
+        "validation_episodes": episodes,
+        "assignments": assignments,
+        "metadata": {
+            "epochs": 80,
+            "compound_counts": {
+                partition: sum(value == partition for value in assignments.values())
+                for partition in ("train", "validation")
+            },
+            "split_sha256": hashlib.sha256(
+                Path(split_assignments_path).read_bytes()
+            ).hexdigest(),
+            "meta_batches_epoch_zero": len(batches),
+            "validation_repeats": args.test_repeat_num,
+            "validation_support_setting": args.test_sup_num,
+            "validation_episode_count": len(episodes),
+            "normalization": "none; native log2fc",
+            "full_screen_refit": False,
+        },
+    }
+    return result
+
+
+def actfound_screen_query_wmse(predictions, targets, split, raw_weights):
+    """Native-unit query WMSE; missing labels retain their existing mask."""
+    import numpy as np
+
+    p = np.asarray(predictions, dtype=np.float64).reshape(-1)
+    y = np.asarray(targets, dtype=np.float64).reshape(-1)
+    s = np.asarray(split).reshape(-1)
+    w = np.asarray(raw_weights, dtype=np.float64).reshape(-1)
+    if not (p.shape == y.shape == s.shape == w.shape):
+        raise ValueError("Screen validation arrays do not align.")
+    observed = (s == 0) & np.isfinite(y)
+    if not observed.any():
+        raise ValueError("No observed screening query labels.")
+    if not np.isfinite(p[observed]).all():
+        raise ValueError("Non-finite screening query predictions.")
+    if not np.isfinite(w[observed]).all() or not (w[observed] > 0).all():
+        raise ValueError("Invalid observed screening query uncertainty.")
+    numerator = np.sum(w[observed] * (p[observed] - y[observed]) ** 2)
+    denominator = np.sum(w[observed])
+    if not np.isfinite(numerator) or not np.isfinite(denominator):
+        raise ValueError("Non-finite screening query metric accumulation.")
+    result = float(numerator / denominator)
+    return result
+
+
+def select_actfound_screen_checkpoint(records):
+    """Minimum screening score; exact ties select earlier zero-based epoch."""
+    import math
+
+    if not records:
+        raise ValueError("No screening checkpoint records.")
+    if len({record["epoch"] for record in records}) != len(records):
+        raise ValueError("Duplicate screening epoch records.")
+    if any(not math.isfinite(record["score"]) for record in records):
+        raise ValueError("Non-finite screening checkpoint score.")
+    result = min(records, key=lambda record: (record["score"], record["epoch"]))
+    return result
+
+
+def evaluate_actfound_screen_stage(regressor, inner_lrs, prepared):
+    """Fixed-episode support adaptation; native-unit query WMSE selection.
+
+    Restore model buffers, modes and RNG state between episodes and on exit.
+    Validation must not update the shared meta-initialization.
+    """
+    import random
+    import numpy as np
+    import torch
+
+    args = prepared["args"]
+    original_state = {
+        key: value.detach().clone()
+        for key, value in regressor.state_dict().items()
+    }
+    original_rates = inner_lrs.detach().clone()
+    original_modes = [(module, module.training) for module in regressor.modules()]
+    python_rng = random.getstate()
+    numpy_rng = np.random.get_state()
+    torch_rng = torch.get_rng_state()
+    cuda_rng = torch.cuda.get_rng_state_all() if torch.cuda.is_available() else None
+
+    expected = {
+        "screen:CYP1A2:validation",
+        "screen:CYP2C9:validation",
+        "screen:CYP2D6:validation",
+        "screen:CYP3A4:validation",
+    }
+    scores = {name: {} for name in expected}
+    try:
+        for episode in prepared["validation_episodes"]:
+            name = episode["assay_id"]
+            repeat = episode["repeat"]
+            if name not in scores or repeat in scores[name]:
+                raise ValueError("Unexpected or duplicate validation episode.")
+
+            regressor.load_state_dict(original_state, strict=True)
+            with torch.no_grad():
+                inner_lrs.copy_(original_rates)
+            regressor.eval()
+
+            # Inner adaptation requires autograd even during validation.
+            with torch.enable_grad():
+                _, _, predictions, split, targets, _, _ = run_task(
+                    regressor,
+                    inner_lrs,
+                    episode["arrays"],
+                    args,
+                    epoch=0,
+                    is_training_phase=False,
+                )
+
+            # run_task returns query-only predictions, but full labels/mask.
+            query = (split == 0)
+            if predictions.numel() != int(query.sum()):
+                raise ValueError("Query prediction count does not match split.")
+            full_predictions = np.full(
+                len(targets), np.nan, dtype=np.float64
+            )
+            full_predictions[query.detach().cpu().numpy()] = (
+                predictions.detach().cpu().numpy().reshape(-1)
+            )
+            score = actfound_screen_query_wmse(
+                full_predictions,
+                targets.detach().cpu().numpy(),
+                split.detach().cpu().numpy(),
+                episode["arrays"][3],
+            )
+            scores[name][repeat] = score
+
+        expected_repeats = set(range(args.test_repeat_num))
+        if any(set(values) != expected_repeats for values in scores.values()):
+            raise ValueError("Incomplete screening validation repeats.")
+
+        per_enzyme = {
+            name: float(np.mean([
+                scores[name][repeat] for repeat in sorted(scores[name])
+            ]))
+            for name in sorted(scores)
+        }
+        result = {
+            "score": float(np.mean(list(per_enzyme.values()))),
+            "per_enzyme": per_enzyme,
+            "per_repeat": {
+                name: {
+                    str(repeat): score
+                    for repeat, score in sorted(values.items())
+                }
+                for name, values in sorted(scores.items())
+            },
+            "metric": "native_log2fc_query_inverse_SE_squared_weighted_MSE",
+        }
+    finally:
+        regressor.load_state_dict(original_state, strict=True)
+        with torch.no_grad():
+            inner_lrs.copy_(original_rates)
+        for module, training in original_modes:
+            module.training = training
+        random.setstate(python_rng)
+        np.random.set_state(numpy_rng)
+        torch.set_rng_state(torch_rng)
+        if cuda_rng is not None:
+            torch.cuda.set_rng_state_all(cuda_rng)
+
+    return result
+
+
+def fit_actfound_screen_stage(
+    *,
+    regressor,
+    inner_lrs,
+    prepared,
+    output_dir,
+    config,
+    authorize_training=False,
+):
+    """Approved 80-epoch screening stage; no early stopping or full-data refit.
+
+    Caller supplies the corrected foundation initialization. This function
+    creates fresh outer state and never resumes a historical optimizer.
+    """
+    import json
+    import math
+    import torch
+
+    if authorize_training is not True:
+        raise RuntimeError("ActFound screening training is not authorized.")
+    args = prepared["args"]
+    if args.metatrain_iterations != 80:
+        raise ValueError("Approved ActFound screening horizon is 80 epochs.")
+    if "config_path" not in config:
+        raise ValueError("Existing checkpoint writer requires config_path.")
+
+    out = Path(output_dir)
+    if out.exists():
+        raise FileExistsError(f"Refusing to reuse screening output: {out}")
+
+    outer = build_fresh_actfound_outer_state(regressor, inner_lrs, args)
+    optimizer = outer["optimizer"]
+    scheduler = outer["scheduler"]
+    if optimizer.state:
+        raise ValueError("Expected fresh screening outer optimizer state.")
+
+    out.mkdir(parents=True)
+    (out / "screen_preparation.json").write_text(
+        json.dumps(prepared["metadata"], indent=2) + "\n"
+    )
+    records = []
+    dataset = prepared["dataset"]
+
+    for epoch in range(80):
+        regressor.train()
+        # Preserve the existing runner's scheduler stepping convention.
+        scheduler.step(epoch=epoch)
+        data_epoch = epoch * args.meta_batch_size
+        batch_count = 0
+
+        for batch_index, indices in enumerate(
+            train_batches(dataset, args, data_epoch)
+        ):
+            task_losses = []
+            for index in indices:
+                arrays = task_arrays(
+                    dataset, index, args, "train", data_epoch
+                )
+                task_loss, _, _, _, _, _, _ = run_task(
+                    regressor, inner_lrs, arrays, args,
+                    epoch=epoch, is_training_phase=True,
+                )
+                task_losses.append(task_loss)
+
+            meta_loss = torch.mean(torch.stack(task_losses))
+            loss, penalty = add_inner_learning_rate_penalty(
+                meta_loss,
+                {ACTFOUND_LR_PENALTY_PARAMETER: inner_lrs},
+                epoch,
+                args,
+                is_training_phase=True,
+            )
+            if not bool(torch.isfinite(loss)):
+                raise ValueError(
+                    f"Non-finite screening loss: epoch={epoch}, batch={batch_index}"
+                )
+
+            optimizer.zero_grad()
+            regressor.zero_grad()
+            loss.backward()
+            parameters = list(regressor.parameters()) + [inner_lrs]
+            if any(
+                parameter.grad is not None
+                and not bool(torch.isfinite(parameter.grad).all())
+                for parameter in parameters
+            ):
+                raise ValueError(
+                    f"Non-finite screening gradient: epoch={epoch}, batch={batch_index}"
+                )
+            optimizer.step()
+            optimizer.zero_grad()
+            regressor.zero_grad()
+            batch_count += 1
+            append_jsonl(out / "progress.jsonl", {
+                "event": "train_batch",
+                "epoch": epoch,
+                "batch": batch_index,
+                "meta_loss": float(meta_loss.detach().cpu()),
+                "inner_lr_penalty": float(penalty.detach().cpu()),
+                "loss": float(loss.detach().cpu()),
+            })
+
+        if batch_count == 0:
+            raise ValueError("Screening epoch produced no training batches.")
+
+        validation = evaluate_actfound_screen_stage(
+            regressor, inner_lrs, prepared
+        )
+        if not math.isfinite(validation["score"]):
+            raise ValueError("Non-finite screening selection score.")
+
+        checkpoint = out / "checkpoints" / f"model_{epoch}.pt"
+        save_checkpoint(
+            checkpoint, regressor, inner_lrs,
+            optimizer, scheduler, epoch, config,
+        )
+        record = {
+            "epoch": epoch,
+            "score": validation["score"],
+            "per_enzyme": validation["per_enzyme"],
+            "checkpoint": str(checkpoint),
+            "sha256": file_sha256(checkpoint),
+        }
+        records.append(record)
+        selection = {
+            "epoch_numbering": "zero_based",
+            "records": records,
+            "selected": select_actfound_screen_checkpoint(records),
+        }
+        (out / "selection.json").write_text(
+            json.dumps(selection, indent=2) + "\n"
+        )
+        append_jsonl(out / "progress.jsonl", {
+            "event": "epoch_complete",
+            "epoch": epoch,
+            "training_batches": batch_count,
+            "validation": validation,
+        })
+
+    result = select_actfound_screen_checkpoint(records)
+    (out / "completion.json").write_text(
+        json.dumps({
+            "epochs_completed": 80,
+            "selected": result,
+            "full_screen_refit": False,
+        }, indent=2) + "\n"
+    )
+    return result

@@ -1,236 +1,609 @@
 # Tripwire-CYP-005 — Session Log
 
-**Session:** Tripwire-CYP-005 · **Status:** OPEN — in progress · **Start date:** UNKNOWN (recovered history imported 2026-11-14)
-**Workstream:** Tripwire — CYP inhibition arm; ActFound ChEMBL32 foundation model under D013
-**Execution target:** CoreHPC, project `/scratch/user/mhuang8/d012_runtime_qualification_20261110/tripwire-project`; pinned ActFound env `/scratch/user/mhuang8/actfound/envs/actfound_c96f055`
-**Archive:** `notes/archive/Tripwire_CYP_005_archive_20261115.md`, a byte-identical copy of this log before compaction (SHA-256 `b70517b8f70614ae6215044a184db93cd870afc1691b6015e02e551da005ce87`, 3,046 lines). `A§N` below means section N of the archive. It holds the exact wording of every approval, decision quote, command and output summarized here. References of the form "Session 005 §N" in `notes/Decisions.md` (D013 and its amendments) mean `A§N`.
+**Session:** Tripwire-CYP-005
+**Date:** start UNKNOWN (recovered history imported 2026-11-14); in progress through 2026-11-17 (Miles calls the 2026-11-17 work "Session 005.5", a continuation of this session, recorded here by topic; there is no separate 005.5 file)
+**Status:** CLOSED — session close declared by Miles 2026-11-17 ("this will close session 5, after this i will start a new session for session 6"); closes with the commit that follows this edit. Open items are carried into Session 006 unresolved (§12).
+**Workstream:** Tripwire — CYP inhibition arm; ActFound-CYP whole-package study
+**Governing decision:** D013 and D013 Amendments 1–4 (`notes/Decisions.md`), all Approved; D015 (2026-11-17 comparison plan; form approved, authorizes no run; whether it supersedes any D013 term is an open question)
+**Execution:** CoreHPC project `/scratch/user/mhuang8/d012_runtime_qualification_20261110/tripwire-project`; pinned ActFound env `/scratch/user/mhuang8/actfound/envs/actfound_c96f055` (Python 3.9.18, torch 1.12.1, RDKit 2023.03.1). Local frozen identity env `tripwire_cyp002` (Python 3.12.14, RDKit 2026.03.6, InChI 1.07.3); scoring in a Python ≥ 3.10 env.
+**Detailed records (never edited):**
+- **A1** = `notes/archive/Tripwire_CYP_005_archive_20261115.md`: the original chronological log, §1–§55. Where `notes/Decisions.md` cites "Session 005 §N", that means A1 §N.
+- **A2** = `notes/archive/Tripwire_CYP_005_archive_20261116.md`: the compact entry log, entries 1–51. Where `notes/Decisions.md` cites "Session 005 entry N", that means A2 entry N.
+
+Exact approval wording, commands, pasted outputs and full hash inventories are in these two files. This report consolidates them by topic.
 
 ---
 
-## Current state
+## 1. Session Objective
 
-*Mutable summary, updated in place. Everything below the next `---` rule is append-only history. Last updated: 2026-11-15 (after entry 36).*
+The session began by reconstructing ActFound and running one production training of it on a ChEMBL32 corpus regenerated from the SQLite release (job 3066823). An identity audit then showed that corpus was not firewalled against OpenADMET structures. The session's objective became the D013 study:
 
-- **Objective:** D013 — ActFound-CYP whole-package study on a firewalled ChEMBL32 foundation corpus (D013 status "Approved design; foundation corpus, retraining and evaluation not yet executed"). The route-C reproduction gate passed under D013 Amendment 2 as amended by Amendment 3 (entries 21–25, 27). Miles authorized the firewalled corpus build (entry 28), and job 3075410 built it (entries 29, 30).
-- **Last completed step:** Miles reran the acceptance check locally with the adjudication file into `acceptance_20261115b`: gate PASS, 0 blocking rows, zero full-key and largest-fragment full-key matches in every scope; the one `train` identity failure (molregno 2336618) passes by adjudication, not by recomputed identity (entry 36). Before that, the assistant implemented the adjudication input in the acceptance check in this checkout (uncommitted): check `537b57e7…`, tests `4d359510…` (23 passed; directory suite 70 passed in `tripwire_cyp002`; five mutation checks, none survived), and the one-row adjudication file `acceptance_adjudications_v1.tsv` `bc4647a5…` (entry 35). Before that, Miles decided to record an adjudication that molregno 2336618 is not a protected structure, on its two keys; scope is that one row's identity failure only (entry 34). Before that, Miles downloaded the firewalled corpus (hash check passed, equals CoreHPC `8b00f349…`) and ran the Amendment 1 Change 2 Acceptance check locally in `tripwire_cyp002`: gate FAIL, 1 blocking row. Zero full-key and zero largest-fragment full-key matches in any scope; the block is one `train` row (activity 2512250, molregno 2336618, a hexafluorophosphate salt) whose SMILES RDKit cannot parse, so its identity cannot be recomputed. Assistant analysis: neither ChEMBL's witness key nor the parsed organic-cation key matches a protected structure (entry 33). Before that, Miles approved building the local acceptance check for D013 Amendment 1 Change 2. The assistant built `check_firewalled_corpus_acceptance.py` `597b7aa4…` and its tests `40d5c0c8…` in this checkout (uncommitted): 15/15 passed, full directory suite 62 passed, in the frozen env `tripwire_cyp002` (entry 32). Before that, Miles ran a read-only probe of the 137 graph-rejected assays. They are 77 upstream `train`, 1 `valid`, 2 `test`, 1 `test_external` and 56 in no split. Present after the firewall: `train` 33,219/33,296 and `valid` 499/500. The 13,399 final-row drop = 9,221 rows in the dropped assays + 4,178 lost inside 2,459 kept assays (entry 31). Before that, firewalled build job 3075410 COMPLETED `0:0` in 00:11:42. Firewall applied with 517 molregnos; 8,626 rows removed; 137 assays rejected by the graph valid-count gate; 47,187 graph-qualified assays, 1,946,000 final rows (entry 30). Miles submitted it himself with the entry 28 command (entry 29). Before that, Miles authorized the build and the CoreHPC firewall list hash was found to match the checkout (entry 28), and reproduction job 3075299 COMPLETED `0:0`, with the reproduction gate PASS under D013 Amendment 3, scope `0ca8f477310cb7f3`, 0 blocking differences (entry 27). Reproduction jobs 3073155 and 3075157 both stay FAILED as recorded (entries 20, 23). The Amendment 3 builder on CoreHPC matches the checkout; whether its tests were run on CoreHPC is UNKNOWN (entry 26).
-- **Next step:** UNKNOWN; not stated after the acceptance PASS (entry 36). Per-assay graph valid-molecule counts were not measured (entry 31).
-- **Pending decisions or approvals:**
-  - Firewalled corpus build: authorized (entry 28); done as job 3075410 (entries 29, 30). That approval covered the build only.
-  - Acceptance check: built (entry 32); first run FAIL (entry 33); molregno 2336618 adjudicated not a protected structure by Miles (entry 34), implemented locally (entry 35); rerun PASS, with that row passing by adjudication (entry 36).
-  - Whether to record the adjudication reading in `notes/Decisions.md`: raised by the bookkeeper, not decided (main conversation of 2026-11-15; entry 34 "Where recorded").
-  - Benchmark, training and evaluation: not authorized (D013 Amendments 1–3; entries 24, 28).
-  - D013 open items 1–4 (seed meaning for a single frozen checkpoint, 150 vs 50 cells; label-scale conversion; large-support handling; the thin target adapter and its tests): open; each needs approval before evaluation (entry 8).
-- **Active constraints:**
-  - Governing: D013 and Amendments 1, 2 and 3, all Approved. Amendment 3 replaces Amendment 2 item 2 only. Firewall mode refuses to run without a PASS reproduction manifest made under the current comparison scope (Amendment 1 gate; entry 22).
-  - Production training and the 150-cell evaluation need D013's qualification, interactive benchmark and runtime extrapolation gates plus Miles's go-ahead (entry 8).
-  - Decisions and progress are recorded when they happen, not reconstructed later (entry 19). This compaction is a reorganization Miles approved on 2026-11-15; the archive keeps the original text.
-  - CoreHPC work goes through the terminal with the established SSH commands, and Miles authenticates (password + Duo) himself (entry 8).
-  - Files in this checkout are not evidence of what a CoreHPC job loaded or produced.
-  - Who runs later CoreHPC jobs: UNKNOWN. Miles paused assistant CoreHPC work for credit cost and ran 3073155, 3075157, 3075299 and 3075410 himself; the assistant ran read-only probes and checks (entries 18, 20–23, 26, 28, 29).
-- **Artifact references:**
-  - Reproduction inputs pinned in Amendment 1, CoreHPC paths and SHA-256: A§45 D; as used by 3075157: A§52 B.
-  - Builder on CoreHPC and in this checkout (checkout copy committed in `877f332`): `qualification/actfound/d013_firewall_20261115/build_firewalled_corpus.py` `9c5d449b37e840e4b49cdb5451c12fe799d21070e36e2f58f262857fbb562457`, scope `0ca8f477310cb7f3` (Amendment 3); tests `d2f6c8c3713721389dc56bf2168535e6a009414fca21465d7836bda9d760ebe8`. Deployed and checkout hashes match (entries 25, 26). The Amendment 2 builder `096951eb…` (scope `a358c320693929d9`) is committed in `3bc0d28` and was what 3075157 ran (entries 22, 23).
-  - Job 3073155 outputs: CoreHPC `/scratch/user/mhuang8/actfound/chembl32/d013_reproduction_20261115` (file list A§47 B). Job 3075157 outputs: `/scratch/user/mhuang8/actfound/chembl32/d013_reproduction_20261115b`, stdout `/scratch/user/mhuang8/d013_repro2_3075157.out`. Output SHA-256 values for both: not reported, UNKNOWN. Job 3075299 outputs: CoreHPC `/scratch/user/mhuang8/actfound/chembl32/d013_reproduction_20261115c`, stdout CoreHPC `/scratch/user/mhuang8/d013_repro3_3075299.out`, 7,245 bytes, modified Nov 15 16:32, SHA-256 `975550f41c78307d08f6f0bafc6025ba67f5172a0cf357ea46a2dbc2284ac281` (assistant read-only check, 2026-11-15; `--output` pattern in entry 26); PASS manifest `corpus_manifest.json` `2e8a6d184380a3c74796b884db8d30ffb5792f12be908385cadaa597599b9306` (the value firewall mode's `--reproduction-manifest-sha256` would require); other output hashes in entry 27.
-  - Committed on `main` as `877f332` "Implement D013 Amendment 3 and record the job 3075299 reproduction PASS": Amendment 3 builder `9c5d449b…` and tests `d2f6c8c3…`, `notes/Decisions.md` Amendment 3, this log through entry 27, the archive `notes/archive/Tripwire_CYP_005_archive_20261115.md`, and `.claude/agents/bookkeeper.md` (git history). Commit `33dfdd9` reconciled this block. `github/main` is at `33dfdd9`. The push to `origin` (UCSF) failed with a publickey error, so `origin/main` is still at `3bc0d28` (entry 28).
-  - Firewall exclusion list v2 (517 molregnos): `qualification/actfound/d013_firewall_20261115/firewall_list_v2/` (entry 15). On CoreHPC, `exclusion_molregnos.tsv` under the project path is `b3f70e56d2960dcd54a318635a250cd509ce84063d786b009b51528896f41223`, equal to the checkout copy (entry 28).
-  - Firewalled build job 3075410: out-dir CoreHPC `/scratch/user/mhuang8/actfound/chembl32/d013_firewalled_20261115`, stdout pattern `/scratch/user/mhuang8/d013_firewall_%j.out` (stdout hash not reported, UNKNOWN). Corpus `actfound_chembl32_d013_firewalled.tsv` `8b00f349726e7cc0d84d25195c3bdf09f76089159a93eed58401932ad0cbdecd` (342,003,044 bytes); `corpus_manifest.json` `c2963ad234d6b80208a9fadd629a01fb22c26d8d61ba8e90eb4edf541c25ff71`; `graph_stage_summary.json` `824bcf4b9a4dadaeebb37dcc343977bb280f3073c72899f117f555d0c6fc9313` (out-dir `SHA256SUMS.txt`, entry 30). Dropped-assay probe: CoreHPC `/scratch/user/mhuang8/d013_dropped_assays_probe.py` (SHA-256 not reported, UNKNOWN). Summary output is in entry 31; the per-assay list is only in the main conversation of 2026-11-15.
-  - Acceptance check (this checkout only, uncommitted): `qualification/actfound/d013_firewall_20261115/check_firewalled_corpus_acceptance.py` `537b57e75fd02c626dae36fa0bce0b6665c54003a8c4946738cb71a262e53bb9`; tests `test_check_firewalled_corpus_acceptance.py` `4d35951096d270092ae5046578dea4ac91f82de6708b9e156ec014eb0efdcea1` (entry 35). The first run used the earlier check `597b7aa4…` and tests `40d5c0c8…` (entries 32, 33).
-  - Adjudication file (this checkout only, uncommitted): `qualification/actfound/d013_firewall_20261115/acceptance_adjudications_v1.tsv` `bc4647a56514efa8606a6a9e728151c816a651ce5507c3b8b86c754b562e0dbb`, one row, molregno 2336618 (entries 34, 35).
-  - Acceptance run outputs (this checkout only, uncommitted): `qualification/actfound/d013_firewall_20261115/acceptance_20261115/`, `summary.json` `2e310610…`, `identity_failures.tsv` `3bf41d39…`, all four hashes in its `SHA256SUMS.txt` (entry 33). Rerun (PASS): `qualification/actfound/d013_firewall_20261115/acceptance_20261115b/`, `summary.json` `e8b22c1a…`, `identity_failures.tsv` `b25233b3…`, all four hashes in its `SHA256SUMS.txt` (entry 36). Local corpus copy `~/Downloads/d013_firewalled_20261115/actfound_chembl32_d013_firewalled.tsv`, hash-checked equal to `8b00f349…` (entry 33).
-  - Job 3066823 (not the study checkpoint; preserved unchanged): outputs under CoreHPC `/scratch/user/mhuang8/actfound/chembl32/production_training_20261113/actfound_chembl32_production_v1` (entry 3).
+1. build a ChEMBL32 foundation corpus firewalled against all OpenADMET structures;
+2. retrain the ActFound foundation model on it once and freeze the checkpoint;
+3. qualify target adaptation on the frozen D007 cells;
+4. evaluate with the unchanged 150-cell comparison against frozen T121.
+
+Only whole-package claims are made.
+
+Comparator: O150(T121) = 0.701212576796 (D013 Amendment 4 item 6). The ST-RAE scorer is the frozen upstream implementation, unchanged.
+
+D012 is project background only. It is not this study's arm definition or interpretation contract (A1 §3, §26 E).
 
 ---
 
-## History
+## 2. Governing Scope
 
-### 1. Recovered history imported (2026-11-14)
-- **What:** Session 005's earlier work was imported from two sources: GPT's exported record [GPT-R] and the corrected mid-session handoff [HO-C]. Miles approved importing this session's history only, with no backfill of other sessions or edits to decisions (A§2).
-- **Why it matters:** entries 2–3 rest partly on these sources. Most of their implementation details are OpenCode reports that neither source re-verified. The retained 2026-11-12 handoff and the decision copy they cite were not accessible (A§2, A§3).
-- **Unresolved:** session start date UNKNOWN; the 2026-11-12 handoff date is source-reported only (A§3).
+| Record | Status | What it fixes | What it does not authorize |
+|---|---|---|---|
+| D013 | Approved 2026-11-15 | Firewall: all 5,655 OpenADMET structures, by full Standard InChIKey. Base corpus: the authors' released `chembl_processed_chembl32.csv`. Molecule-level removal, with assays below 20 usable molecules dropped and logged in every split. Retrain once; checkpoint freeze rule. Adaptation on each D007 cell's training molecules; 150-cell comparison against T121. Job 3066823 is not usable as the study checkpoint. | Production training or evaluation by itself |
+| Amendment 1 | Approved 2026-11-15 | Route-C graph re-qualification behind an exact reproduction gate. Conservative pretraining exclusion of largest-fragment full-key matches, applied to train and validation. Corpus identity acceptance check. | Build, reproduction run, benchmark, training |
+| Amendment 2 | Approved 2026-11-15 | Gate comparison scope: `record_id_unused` and `graph_pair_count` declared non-comparable but reported. Item 2 (`standard_value` at 15 significant figures) was later replaced by Amendment 3. | Build, benchmark, training |
+| Amendment 3 | Approved 2026-11-15 | Replaces Amendment 2 item 2: `standard_value` agrees within a relative tolerance of 1e-14; the tolerance's effect is reported in the manifest | Build, benchmark, training |
+| Amendment 4 | Approved 2026-11-16 | Settles D013 open items 1–4. O150 is computed from 200 unique cell-endpoint adaptations, each recorded into its three seed slots as a replicate. pIC50 with no conversion; complete support, no cap. Thin target adapter as specified by the approved brief. Adaptation and scoring run in separate processes. Comparator citation kept. | Any run; implementation of the thin adapter |
 
-### 2. Pre-D013 ActFound production pipeline, as recovered (2026-11-14)
-- **What:** a ChEMBL32 graph-qualified population was built (54,732 assays, 2,773,995 rows; merged TSV `24d9fd297b735843284d82e7d31b85ccd46038f279931db8d5997fb9a096149e`, hash confirmed in A§28). The model side and production runner were reconstructed. Upstream split IDs were bridged to frozen assay keys through `assay_chembl_id` plus the descriptor (per-ID reconciliation 33,296 train + 500 validation, `7ea5ae080ecc52fb95dd293230bd6225f5e09a73622a9ec0e6dec46a02f74645`), replacing an earlier CHEMBL-prefix mapping that was shown to be wrong (A§5–§10).
-- **Failures:** jobs 3048559 (wrapper path), 3048570 (TSV header `final_assay_size` vs `count_scratch`), 3048576 and 3052606 (no train assays loaded, the latter under the obsolete prefix mapping) failed; 3048574 was cancelled by Miles; an H100 attempt failed on sm_90, so jobs were constrained to L40S (A§7, A§11).
-- **Other:** a gpu-dev1 route was considered and not used. Miles cancelled the obsolete D011 array `2979324_[57-1649]` (A§12, A§13).
-- **Evidence:** A§5–§17. D012 is background only, not this run's interpretation contract (A§3).
+D013 adopts the study Miles stated on 2026-11-15 as established on 2026-11-12 (A1 §26 E). He also said not to reopen the architecture or adaptation-path menu, not to add a published-fidelity pass/fail gate, and not to reselect epochs through extra validation draws.
 
-### 3. Job 3066823 completed and verified (2026-11-15)
-- **What:** production job 3066823 (one L40S, `ggpu1-11`) COMPLETED `0:0` in 12:16:08. 60 epochs; best epoch 58, score `0.977011134486706` (`score = mean_r2 − mean_rmse + 1` on the 500 validation assays). `model_best.pt` equals `model_58.pt`. It ran with the current config's content (`64ea4af5…`). The startup source hashes match the CoreHPC live files for six source files. Runtime: Python 3.9.18, torch 1.12.1, RDKit 2023.03.1 (A§21, A§22, A§25, A§26).
-- **Why it matters:** checkpoint selection and reported metrics use the same validation set, so they are optimistic; no held-out evaluation exists (A§25).
-- **Evidence:** CoreHPC output directory in Current state; `completion.json` `b077c590…`, `progress.jsonl` `92bdd843…`, `model_best.pt` `9eedd74e…` (A§22). Validation trajectory: A§25.
-- **Unresolved:** the executed Slurm wrapper cannot be recovered (`sacct -B` returned `NONE`). The cause of overlap step `3066823.5` (nvidia-smi) `255:0` is UNKNOWN; the batch step was unaffected (A§22).
+---
 
-### 4. Local sync from CoreHPC and test-file fixes (2026-11-15)
-- **What:** 10 CoreHPC files were copied byte-identical into this checkout (bundle `ed2c8c8f…`; Miles approved the copy). Two test files had defects, not the code 3066823 ran. Miles approved fixing them: `test_actfound_production_train.py` → `ef99704a…`, `test_actfound_model_side.py` → `6f5fa3d9…`. Miles reported "all tests pass" on CoreHPC (A§23, A§24).
-- **Unresolved:** CoreHPC pass count and post-upload hashes were not reported; they were later seen matching in A§36 B.
-- **Corrections in passing:** the production config hash `64ea4af5…` and `actfound_reported_unresolved_31_resolution.tsv` `dced5472…`, UNKNOWN in A§8/§9/§18, are now recorded (A§23).
+## 3. Starting Point: Job 3066823 and the Leakage Finding (historical)
 
-### 5. Miles's statement of the intended study (2026-11-15)
-- **What:** Miles stated the study established on 2026-11-12: leakage-clean ChEMBL pretraining; upstream ActFound adaptation using each frozen D007 cell's training molecules only; evaluation on its validation molecules; the unchanged 150-cell comparison against frozen T121; whole-package claims only; D012 as background. He also instructed: don't reopen the architecture or adaptation-path menu, add a published-fidelity gate, or reselect epochs through extra validation draws (A§26 E).
-- **Why it matters:** it became the D013 contract (entry 8). The original 2026-11-12 record is not accessible (A§26 E).
+Before D013, the pipeline was reconstructed from recovered GPT and handoff records (A1 §1–§20):
+- a ChEMBL32 graph-qualified population, 54,732 assays and 2,773,995 rows, merged TSV `24d9fd29…`;
+- the ActFound model side and production runner;
+- a per-ID split reconciliation, 33,296 train + 500 validation assays.
 
-### 6. Job 3066823's corpus was not firewalled: lineage and identity overlap (2026-11-15)
-- **What:** no stage from the ChEMBL32 SQLite projection to the merged TSV `24d9fd29…` applies an identity firewall; the projection and pregraph summaries record `openadmet_firewall_applied: false` (A§26–§29). Two molecules were confirmed by full Standard InChIKey and Standard InChI in the frozen identity env: molregno 1370 (`OCNT-0018684`) and 88100 (`OCNT-0495340`) (A§30; Miles approved that check). A full-corpus audit, approved by Miles, found these in loader-kept training rows: 203 D007 development molecules (2,139 rows / 1,515 assays), 44 internal-test, 7 blinded-challenge (A§31).
-- **Why it matters:** 3066823's checkpoint is not leakage-clean under the 2026-11-12 firewall requirement, which led to entry 7.
-- **Evidence:** this checkout, `qualification/actfound/overlap_audit_20261115/` (scripts; `full_run/`, `SHA256SUMS.txt` verified; `molecule_identities.tsv` is git-ignored). Export bundle `30073d53…` in `~/Downloads/actfound_overlap_export_20261115/` (A§31).
-- **Unresolved:** the sort step from projection output `bd804a6d…` to pregraph input `6d8fe4ac…` has no recorded summary. The projection script bytes that ran at 23:02 are unrecovered (recorded `71161e52…` ≠ deployed `22fca408…`). Bundle-level hash equality for the export is unverified (A§29 C, A§31 B, A§36 B).
+Several early jobs failed on path, header, split-mapping and GPU-architecture problems. The production request was then constrained to L40S (A1 §7, §11).
 
-### 7. Route decided: retrain on a firewalled corpus; sub-choices approved (2026-11-15)
-- **Decision:** Miles chose Option A, retraining the foundation model on a firewalled corpus. Using 3066823 as-is (B) and keeping it as a leaky-vs-clean diagnostic (C) were not chosen (A§32).
-- **Approval:** Miles approved the proposed sub-choices and asked for a D013 draft. Firewall scope is all 5,655 OpenADMET structures (development 4,169 + internal test 736 + blinded 750) by full Standard InChIKey. Base corpus is the authors' released `chembl_processed_chembl32.csv` (`a5b562d4…`). Removal is molecule-level, then assays below 20 usable molecules are dropped and logged, validation included (A§33).
-- **Evidence:** authors' corpus qualification: 1,959,398 rows, 47,324 assays; every (descriptor, molregno) pair is present in the rebuilt corpus (A§33 A).
+Job 3066823 completed `0:0` in 12:16:08: 60 epochs, best epoch 58, validation score 0.9770. Checkpoint selection and the reported metrics use the same 500 validation assays, and no held-out evaluation exists (A1 §21–§26).
 
-### 8. D013 approved; implementation authorized (2026-11-15)
-- **Decision:** D013 is Approved and recorded in `notes/Decisions.md` (heading at line 6135). Miles authorized implementation. Production training and the 150-cell evaluation are not authorized by D013 itself. They need its gates and his go-ahead, and D013 open items 1–4 need separate approval (A§34).
-- **Instruction:** run everything through the terminal; for CoreHPC use the established SSH commands and wait for Miles to authenticate (A§34 D).
+The training corpus had no identity firewall at any stage; the projection and pregraph summaries both record `openadmet_firewall_applied: false` (A1 §26–§29). The full-corpus audit in the frozen identity env found these OpenADMET molecules in loader-kept training rows (A1 §30–§31):
 
-### 9. Implementation answers Q1–Q9 accepted; monitor and alerts declined (2026-11-15)
-- **Approval:** Miles accepted the assistant's answers to Q1–Q9. Those cover: split = upstream train/valid minus firewall-emptied assays, in a v2 config; config-driven runner v2; firewall then graph re-qualification; salt/parent near-matches reported, not removed; no resume or requeue; output-directory guard; pre-submission record; scratch cache paths; value-by-value converter check (A§35 D).
-- **Also:** no live monitor agent; no Slurm mail alerts. An overnight-failure rule was withdrawn and its log entry removed at Miles's request; that removal predates the archive (A§35 B).
+| Protected tier | Molecules | Training rows |
+|---|---:|---:|
+| D007 development | 203 | 2,139 |
+| internal test | 44 | 444 |
+| blinded challenge | 7 | 25 |
 
-### 10. Firewall list v1, runner v2 and builders written and tested (2026-11-15)
-- **What:** firewall list v1 has 337 molregnos (development 263, internal test 61, blinded 13), with near-matches reported only (A§36 C). Runner v2 and wrapper v2 (`ed3e1055…`, `439c8ad1…`) and the route-C builder and split/config builder were written, uploaded with verified hashes, and passed 41 tests in the pinned env (A§36 F, A§37).
-- **Why it matters:** upstream graph eligibility depends on pre-graph assay size, so graph qualification cannot be rerun from the authors' post-graph rows alone. This forced the route-C question (A§36 E).
+Miles chose Option A, retraining on a firewalled corpus (A1 §32). Job 3066823's outputs are preserved unchanged and are not the study checkpoint.
 
-### 11. Route C as proposed repair path; narrow fix and impact count authorized (2026-11-15)
-- **Decision:** Miles said to proceed with route C as the proposed repair path. Amendment 1 stayed Proposed. He authorized only a split-aware stop-rule fix (in-split differences block with no tolerance or normalization, outside-split differences are reported, both behaviours tested) and a read-only impact count of the 180 largest-fragment matches with no graph rebuild. Not authorized: corpus build, reproduction run, benchmark, training. The runner's manifest check is defense-in-depth, not proof of zero overlap. The identity rule was not widened (A§38).
+---
 
-### 12. Stop-rule fix and 180-match impact count (2026-11-15)
-- **What:** the fix passed locally, with mutation checks (A§39 A). The impact count found 180 molecules (development 140, internal test 40) with no overlap with the 337, and 2 more training assays falling below 20. Blinded identities are already in the exclusion list (A§39 B). The count script and output were in the fork session's scratchpad (paths and short hashes in A§39 B); the fork was later deleted (A§46), so whether those files still exist is UNKNOWN.
+## 4. Methods
 
-### 13. Exclusion widened to the 180 largest-fragment matches, validation included (2026-11-15)
-- **Decision:** Miles kept full Standard InChIKey as the identity rule and added largest-fragment full-key matches as a conservative pretraining exclusion. It applies to pretraining validation rows too, because validation selects the checkpoint (A§40 A).
-- **Correction:** one A§40 sentence about the assistant's earlier recommendation was corrected in place twice on Miles's approval. The original fork session was deleted, so the corrected wording was inferred rather than quoted (A§40 Correction).
+### 4.1 Firewall and pretraining exclusion
 
-### 14. Firewall-v2 plan and Amendment 1 exclusion/acceptance wording approved (2026-11-15)
-- **Approval:** Miles approved the proposed plan: list v2, builder manifest counts by exclusion basis, a corpus identity acceptance check, and tests. He also approved the Amendment 1 pretraining-exclusion and acceptance wording. Amendment 1 as a whole stayed Proposed (A§41).
+Identities were computed in the frozen identity env from the corpus SMILES, matched against the 5,655 protected OpenADMET structures (A1 §36, §39–§42):
 
-### 15. Firewall-v2 implemented locally (2026-11-15)
-- **What:** `firewall_list_v2/` has 517 molregnos (337 full-key + 180 largest-fragment), verified to equal v1 ∪ the 180. `check_corpus_identity.py` fails on any full-key or largest-fragment match in train/valid rows. 24 local tests passed (A§42).
+| List | Molregnos | Basis |
+|---|---:|---|
+| Firewall list v1 | 337 | full Standard InChIKey: development 263, internal test 61, blinded 13 |
+| Largest-fragment additions | 180 | largest-fragment full key: development 140, internal test 40 |
+| **Exclusion list v2** | **517** | v1 ∪ the 180, each with its `exclusion_basis` |
 
-### 16. D013 Amendment 1 approved and recorded (2026-11-15)
-- **Approval:** Miles approved the corrected Amendment 1 for recording: route-C graph re-qualification with the exact qualification gate, plus the conservative exclusion. It is recorded in `notes/Decisions.md` (heading at line 6246). It does not authorize the corpus build, reproduction run, benchmark or training, nor the CoreHPC upload or tests (A§43).
+First-block and largest-fragment first-block near-matches are reported only; they are not removed and not declared safe. The identity rule remains the full Standard InChIKey. The largest-fragment exclusion is protective, not an identity claim.
 
-### 17. Fork merged; fork work canonical (2026-11-15)
-- **What:** on Miles's instruction, the fork session's `d013_firewall_20261115/` work and runner v2 files became canonical. 51 local tests passed in the merged state (A§44). The main session's earlier runner v2 versions were overwritten and are unrecoverable. The superseded `qualification/actfound/firewall_corpus_20261115/` is retained because Amendment 1 cites it.
+### 4.2 Route C and the reproduction gate
 
-### 18. D013 deployed; pinned-env tests; reproduction job 3073155 submitted (2026-11-15)
-- **Approval:** Miles authorized the CoreHPC upload, pinned-env tests and reproduction run. He then paused assistant CoreHPC work for credit cost and submitted the job himself (A§45).
-- **What:** deploy bundle `ab2eb4aec5885e0a01b41ab768befb682f37483e5f0d6d6c604d5172ffd24450`, all 18 file hashes equal local. Tests: 49 passed, 9 failed, all 9 from the frozen-identity-env gate (`GetInchiVersion` absent in RDKit 2023.03.1); these are not execution-path defects. Job 3073155: partition `cpu`, 64G, 8 h, reproduction mode (A§45 B–E).
+Upstream graph eligibility depends on pre-graph assay size, so it cannot be recomputed from the authors' post-graph rows (A1 §36 E). Route C therefore works as follows:
+1. Take the authors' assay universe.
+2. Rebuild the pre-graph rows (pregraph `43dfd672…`).
+3. Apply the firewall.
+4. Rerun the unchanged, hash-checked graph stage.
 
-### 19. Working practice: record at the time, no retrospective amendment (2026-11-15)
-- **Instruction:** Miles instructed that decisions and session progress must not be amended or logged retrospectively (A§46).
+Before firewall mode may run, a reproduction-mode run (no firewall) must reproduce the authors' file inside the pinned upstream train/valid split. The output must also give a PASS manifest under the current comparison scope. Outside-split differences are reported but do not block (A1 §38–§39, §43).
 
-### 20. Job 3073155: reproduction gate FAILED; differences characterized (2026-11-15)
-- **What:** exit 3 with 1,525,375 in-split differing rows. A field-level diagnosis of all 1,959,398 rows found three classes. `record_id_unused` differs in every mismatching row; it is a provenance column upstream does not consume. `standard_value` differs in 600 in-split rows, all within about one unit in the last place (15 vs 17 significant-digit text). `graph_pair_count` differs in 69 assays, metadata that reaches no training path. No training-defining field differs (A§47–§49).
-- **Superseded explanation:** a duplicate-row/dedup hypothesis for the `standard_value` rows was refuted (A§49 A).
-- **Correction:** A§49 B's "both directions, 1–2 pairs" for `graph_pair_count` was wrong. The deltas are 1–47 pairs and almost all upward. A§49 B was annotated on Miles's approval (A§49 B annotation, A§50 A).
-- **Evidence:** CoreHPC outputs in Current state; probe scripts were in the assistant's scratchpad, run read-only.
+### 4.3 Acceptance
 
-### 21. `graph_pair_count` cause narrowed; D013 Amendment 2 approved (2026-11-15)
-- **What:** the exact-equality pair rule was refuted as the cause. 5 of the 69 assays have byte-identical inputs and still differ, which leaves Morgan-fingerprint similarity (a different RDKit build) by elimination; similarity was not measured. Byte-identity with the authors' file is not achievable from the pinned env (A§50 A).
-- **Approval:** Miles chose to investigate the cause first (option C), then amend the gate scope (option A). He approved the Amendment 2 wording, recorded in `notes/Decisions.md` (heading at line 6300). It changes only the gate's comparison scope and does not authorize the corpus build, benchmark or training (A§50 B).
+Identities are recomputed from the built corpus file in the frozen env. The check passes only if no train or validation row has a full-key or largest-fragment full-key match, and no train or validation row has an unverifiable identity. It fails closed (A2 entries 32, 35).
 
-### 22. Amendment 2 implemented in the builder (2026-11-15)
-- **What:** on Miles's authorization, `build_firewalled_corpus.py` `c73d6a7c…` → `096951eb…` and its tests `ebb5ed97…` → `617248d9…`. The builder now uses a declared comparison scope `a358c320693929d9`, reports exempt-column differences, and refuses a manifest from another scope. 31 local tests passed, and three mutation checks fail the tests that pin them (A§51). Miles said he would upload and run it himself (A§51).
+### 4.4 Adaptation and scoring
 
-### 23. Job 3075157: reproduction gate FAILED on 4 rounding-boundary rows (2026-11-15)
-- **What:** 3075157 ran the deployed Amendment 2 builder (`096951eb…`, scope `a358c320693929d9`) and exited 3 after 00:12:57 on `gcpu2-05`. Exactly 4 in-split `standard_value` rows blocked; they straddle a 15-significant-figure rounding boundary. This is a correct FAIL under Amendment 2; no code defect (A§52).
-- **Probes (read-only):** max relative `standard_value` difference is 4.35e-15, with none above 5e-15. The 826 outside-split mismatches are 825 `count_scratch` + 1 `standard_value`. 8,657 of the authors' values carry more than 15 significant digits, contradicting Amendment 2's premise (A§53).
-- **Correction:** A§52 E said two of the four authors' values had 16 digits; only `9003570138859.371` does (A§53 C).
+Adaptation runs in the pinned env with the frozen checkpoint and writes a hash-pinned predictions artifact. The frozen scorer runs separately in a Python ≥ 3.10 env (Amendment 4 item 5).
 
-### 24. D013 Amendment 3 approved and recorded (2026-11-15)
-- **Approval:** Miles approved the Amendment 3 wording for recording, in `notes/Decisions.md` lines 6343–6387. It replaces Amendment 2 item 2 with a numerical relative tolerance of 1e-14 on `standard_value` and adds manifest reporting of the tolerance's effect. It does not authorize the builder/test change, a rerun, the corpus build, the benchmark or training (A§54).
+---
 
-### 25. Amendment 3 implemented in the builder, local only (2026-11-15)
-- **What:** on Miles's authorization to implement, `build_firewalled_corpus.py` `096951eb…` → `9c5d449b…` and its tests `617248d9…` → `d2f6c8c3…`. `standard_value` now agrees when the texts are equal or both parse as finite floats within 1e-14 relative; otherwise it is compared exactly as text. The manifest reports the tolerance's effect per scope. The new scope ID `0ca8f477310cb7f3` makes the builder reject Amendment 2 manifests, including 3075157's. 47 local tests passed. Mutation checks: five mutations fail tests; one, removing the finiteness guard, survives, and the assistant judges it an equivalent mutation (A§55).
-- **Why it matters:** a PASS manifest now needs a new reproduction run under the new scope. That run is not authorized and the code is not deployed (A§55).
+## 5. Results
 
-### 26. Amendment 3 builder on CoreHPC; reproduction job 3075299 submitted (2026-11-15)
-- **What:** the assistant asked "Do you authorize the new reproduction-mode run?". Miles submitted the run himself and reported: "Submitted batch job 3075299".
-- **Deployment check (assistant, read-only over the shared SSH connection; nothing written on CoreHPC):** CoreHPC `.../tripwire-project/qualification/actfound/d013_firewall_20261115/build_firewalled_corpus.py` `9c5d449b37e840e4b49cdb5451c12fe799d21070e36e2f58f262857fbb562457` and `test_build_firewalled_corpus.py` `d2f6c8c3713721389dc56bf2168535e6a009414fca21465d7836bda9d760ebe8`, both equal to entry 25's local hashes. Deployed and checkout code match again (Amendment 3, scope `0ca8f477310cb7f3`). Who uploaded them and how: not reported, UNKNOWN. Whether the tests were run on CoreHPC: not reported, UNKNOWN.
-- **Job (sacct, same check):** 3075299 RUNNING on `gcpu2-05`, submitted 2026-11-15T16:19:48, elapsed 00:00:12 at check. Submit line: `sbatch --partition=cpu --cpus-per-task=4 --mem=16G --time=2:00:00 --job-name=d013-repro3 --output=/scratch/user/mhuang8/d013_repro3_%j.out`. Reproduction mode (no firewall list), with the same inputs as 3075157: pregraph `43dfd672…db076`, authors CSV `a5b562d4…5e20`, graph-code dir `/scratch/user/mhuang8`, upstream split `7f3cd598…e3e1`. `--out-dir /scratch/user/mhuang8/actfound/chembl32/d013_reproduction_20261115c`.
-- **Status:** running; result not yet known. Job 3075157 stays FAILED (entry 23). Corpus build, benchmark and training remain unauthorized (entry 24).
+### 5.1 Reproduction gate
 
-### 27. Job 3075299: reproduction gate PASS under Amendment 3; correction to A§53 (2026-11-15)
-- **What (Miles, manifest read on the CoreHPC login node):** `/scratch/user/mhuang8/actfound/chembl32/d013_reproduction_20261115c/corpus_manifest.json`, `reproduction_vs_authors`: gate `PASS`, `blocking_differences` 0, `comparison_scope_id` `0ca8f477310cb7f3`. In split: 1,525,375 identical rows. Outside split: 433,198 identical, 825 `field_mismatch`, 1 `extra_in_rebuilt`. `standard_value_tolerance` (rule "D013 Amendment 3", relative tolerance 1e-14): max relative difference in split `4.351811221356154e-15` (activity 2091754), outside split `1.4095890945413776e-15` (activity 1877390); rows agreeing within tolerance but not as text: 600 in split, 203 outside.
-- **Job and hashes (assistant, read-only over the shared SSH connection; nothing written on CoreHPC):** sacct 3075299 COMPLETED, ExitCode `0:0`, Elapsed 00:13:00; batch step MaxRSS 2184328K (requested 16G, 2:00:00). Out-dir `SHA256SUMS.txt`: `reproduction_corpus.tsv` `ad44ccce633db3cea5dd86b2450d52a3c0a3314dd7a7b13565405b20eac02114`; `corpus_manifest.json` `2e8a6d184380a3c74796b884db8d30ffb5792f12be908385cadaa597599b9306` (direct `sha256sum` agrees); `graph_stage_summary.json` `04c7e6fcfa52204f0996b4ec84ef1cff2e07aea4da88066cfb6800dd576e4305`; `reproduction_differences.tsv` `d416cd92ae1adf00708184a1b51d22a2c9bca7c6a1a92be39ca13a10093f198e`. `exempt_differences_by_assay.tsv` (not in `SHA256SUMS.txt`) `4c23b49287226c60fddd0da847b4b2bb0183f50ee1d5a177069f4a313e76f424`.
-- **Why it matters:** this is the PASS reproduction manifest under the current scope that firewall mode requires (entry 22). Its SHA-256 `2e8a6d18…` is the value firewall mode's `--reproduction-manifest-sha256` would require (assistant). The firewalled build has not been run, and the build, benchmark and training remain unauthorized (entry 24). The Amendment 3 code and these records are still uncommitted in this checkout.
-- **Consistency (assistant analysis):** the 600/203 within-tolerance rows equal Amendment 2 Reason 2's 600/203 `standard_value` counts. The 825 outside-split mismatches match the 825 `count_scratch` rows (entry 23). The in-split maximum `4.351811221356154e-15` equals the overall maximum in the 3075157 probe (A§53).
-- **Correction to A§53 (summarized in entry 23, which does not repeat the error):** A§53 (archive line 2917) recorded activity 2091754's 4.35e-15 difference as "outside split". That was the assistant's error: the probe's `-` meant the row was not in the differences file (it passed at 15 significant figures), not that it was outside the split. 3075299's manifest shows 2091754 is in split. Amendment 3's text does not state that row's scope, so the decision record is unaffected. A§53 and entry 23 are left as written.
+| Job | Builder / comparison scope | Gate | Blocking in-split differences |
+|---|---|---|---|
+| 3073155 | `c73d6a7c…`, exact | FAIL, exit 3 | 1,525,375 rows |
+| 3075157 | `096951eb…`, `a358c320693929d9` (Amendment 2) | FAIL, exit 3 | 4 `standard_value` rows |
+| 3075299 | `9c5d449b…`, `0ca8f477310cb7f3` (Amendment 3) | **PASS, exit 0** | 0 |
 
-### 28. Firewalled corpus build authorized; not yet submitted (2026-11-15)
-- **Approval:** the assistant asked whether Miles authorized the firewalled corpus build, and he authorized it. Scope: the D013 firewalled ChEMBL32 corpus build only, run by the Amendment 3 builder in firewall mode, under the Approved D013 and Amendments 1–3. It does not authorize the benchmark, training or evaluation, and D013 open items 1–4 stay open (entry 8). It is recorded as an approval of a run under existing decisions, not a new decision. The original wording is in the main conversation of 2026-11-15.
-- **Pre-submission check (assistant, read-only over the shared SSH connection; nothing written on CoreHPC):** CoreHPC firewall list `/scratch/user/mhuang8/d012_runtime_qualification_20261110/tripwire-project/qualification/actfound/d013_firewall_20261115/firewall_list_v2/exclusion_molregnos.tsv` SHA-256 `b3f70e56d2960dcd54a318635a250cd509ce84063d786b009b51528896f41223`, equal to the checkout copy. The inputs are the builder `9c5d449b…` (entry 26) and the PASS reproduction manifest `2e8a6d18…` (entry 27).
-- **Proposed command (the assistant gave it to Miles; not submitted):** `sbatch --partition=cpu --cpus-per-task=4 --mem=16G --time=2:00:00 --job-name=d013-firewall --output=/scratch/user/mhuang8/d013_firewall_%j.out`, in firewall mode with the same pregraph (`43dfd672…`), authors CSV (`a5b562d4…`) and graph-code dir `/scratch/user/mhuang8` as 3075299. It passes the firewall list above with its hash, `--reproduction-manifest /scratch/user/mhuang8/actfound/chembl32/d013_reproduction_20261115c/corpus_manifest.json` with hash `2e8a6d184380a3c74796b884db8d30ffb5792f12be908385cadaa597599b9306`, and `--out-dir /scratch/user/mhuang8/actfound/chembl32/d013_firewalled_20261115`. The runtime basis is job 3075299 (same pipeline): 00:13:00 elapsed and 2.2 GB MaxRSS, against 2:00:00 and 16G requested (entry 27). Who will submit it was not stated (UNKNOWN). Miles submitted 3073155, 3075157 and 3075299 himself.
-- **Repository (reported by the main conversation, 2026-11-15):** commit `33dfdd9` reconciled the Current state block with `877f332` and the 3075299 stdout. Pushing to `origin` (UCSF) failed with a publickey error, so `origin/main` is still at `3bc0d28`. `github/main` is at `33dfdd9`.
+What the diagnosis of all 1,959,398 compared rows found (A1 §47–§53):
+- **Fields that define the training data:** no row differs in any of them.
+- **`record_id_unused`:** differs in every mismatching row. It is a provenance column that upstream does not consume.
+- **`standard_value`:** differs by at most 4.35e-15 relative, a text-precision difference. 8,657 of the authors' values carry more than 15 significant digits, so Amendment 2's 15-significant-figure premise was false. Job 3075157's 4 blocking rows sat on the 15-significant-figure rounding boundary; Amendment 3 replaced that rule with a relative tolerance.
+- **`graph_pair_count`:** differs in 69 assays, by 1–47 pairs and almost always upward. It is metadata only. Exact-equality pair exclusion was ruled out as the cause. The remaining explanation, Morgan-fingerprint similarity under a different RDKit build, was reached by elimination; similarity was not measured. Byte-identity with the authors' file is not achievable from the pinned env.
 
-### 29. Firewalled corpus build job 3075410 submitted (2026-11-15)
-- **What:** Miles submitted the build himself and reported: "Submitted batch job 3075410".
-- **Job (assistant, sacct read-only over the shared SSH connection; nothing written on CoreHPC):** 3075410 RUNNING on `gcpu2-05`, submitted 2026-11-15T16:48:27, elapsed 00:00:17 at check. The submit line matches the command in entry 28 exactly: `sbatch --partition=cpu --cpus-per-task=4 --mem=16G --time=2:00:00 --job-name=d013-firewall --output=/scratch/user/mhuang8/d013_firewall_%j.out`. Firewall mode, with pregraph `43dfd672…`, authors CSV `a5b562d4…`, graph-code dir `/scratch/user/mhuang8`, firewall list `.../firewall_list_v2/exclusion_molregnos.tsv` `b3f70e56d2960dcd54a318635a250cd509ce84063d786b009b51528896f41223` (the hash checked in entry 28), reproduction manifest `/scratch/user/mhuang8/actfound/chembl32/d013_reproduction_20261115c/corpus_manifest.json` `2e8a6d184380a3c74796b884db8d30ffb5792f12be908385cadaa597599b9306` (entry 27), `--out-dir /scratch/user/mhuang8/actfound/chembl32/d013_firewalled_20261115`.
-- **Status:** running; result not yet known. The approval in entry 28 covers this build only; benchmark, training and evaluation remain unauthorized, and D013 open items 1–4 stay open (entry 8).
+Job 3075299's PASS manifest is `/scratch/user/mhuang8/actfound/chembl32/d013_reproduction_20261115c/corpus_manifest.json`, SHA-256 `2e8a6d184380a3c74796b884db8d30ffb5792f12be908385cadaa597599b9306`. Within tolerance but not equal as text: 600 rows in split and 203 outside (A2 entry 27).
 
-### 30. Job 3075410: firewalled corpus built (2026-11-15)
-- **What (Miles, manifest read on the CoreHPC login node):** `/scratch/user/mhuang8/actfound/chembl32/d013_firewalled_20261115/corpus_manifest.json`: `openadmet_firewall_applied` true; `firewall_molregnos` 517, by exclusion basis 337 `full_standard_inchikey` + 180 `largest_fragment_full_inchikey`. Filter: `rows_removed_by_firewall` 8,626 (7,870 full-key, 756 largest-fragment), `assays_with_firewall_removals` 5,092, `rows_kept` 2,018,649, `rows_outside_authors_assays` 7,846,001. Graph stage: `processed_assays` 47,324, `processed_rows` 2,018,649, `graph_qualified_assays` 47,187, `graph_valid_count_rejected_assays` 137, `graph_size_rejected_assays` 0, `final_rows` 1,946,000. `output_sha256` `8b00f349726e7cc0d84d25195c3bdf09f76089159a93eed58401932ad0cbdecd`. Runtime: Python 3.9.18, 699.4 s.
-- **Job and hashes (assistant, read-only over the shared SSH connection; nothing written on CoreHPC):** sacct 3075410 COMPLETED, ExitCode `0:0`, Elapsed 00:11:42; batch MaxRSS 1950984K (requested 16G, 2:00:00). Out-dir `SHA256SUMS.txt`: `actfound_chembl32_d013_firewalled.tsv` `8b00f349726e7cc0d84d25195c3bdf09f76089159a93eed58401932ad0cbdecd` (342,003,044 bytes; equals the manifest `output_sha256`); `corpus_manifest.json` `c2963ad234d6b80208a9fadd629a01fb22c26d8d61ba8e90eb4edf541c25ff71`; `graph_stage_summary.json` `824bcf4b9a4dadaeebb37dcc343977bb280f3073c72899f117f555d0c6fc9313`. Also present: `pregraph_authors_assays_filtered.tsv`, `graph_stage_summary.json.SHA256SUMS.txt`. The manifest records the reproduction manifest `.../d013_reproduction_20261115c/corpus_manifest.json` `2e8a6d18…9306` (entry 27), `upstream_split_sha256` `7f3cd5988bfd3d608a8f6c120b54e19d932e0b3c026ec5e43b9798e0d2a6e3e1`, and `inputs.script_sha256` `9c5d449b…` (the Amendment 3 builder, entry 26).
-- **Comparison with 3075299 (assistant, same check):** reproduction filter `rows_kept` 2,027,275, `rows_outside_authors_assays` 7,846,001, 0 removed; graph stage `final_rows` 1,959,399, `graph_qualified_assays` 47,324, valid-count rejected 0, `processed_rows` 2,027,275.
-- **Reconciliation (assistant analysis):** 2,027,275 − 8,626 = 2,018,649 kept; kept + removed + outside = 9,873,276, the pregraph row count. Final rows fall by 13,399 (1,959,399 → 1,946,000): 8,626 removed directly by the firewall; the remaining 4,773 net come from the 137 assays now rejected by the graph valid-count gate and any per-assay graph-stage changes. That split was not measured.
-- **Not checked:** whether any of the 137 rejected assays are upstream train/valid split assays. It bears on the later split reconciliation.
-- **Status:** the build authorized in entry 28 is complete. Benchmark, training and evaluation remain unauthorized, and D013 open items 1–4 stay open (entry 8).
+### 5.2 Firewalled corpus build (job 3075410)
 
-### 31. Read-only probe of the 137 graph-rejected assays; final-row accounting closed (2026-11-15)
-- **What (Miles, CoreHPC):** Miles agreed to a read-only check and ran it himself with commands the assistant gave. Script `/scratch/user/mhuang8/d013_dropped_assays_probe.py` on CoreHPC (text written by the assistant; SHA-256 not reported, UNKNOWN), run with the pinned `python -I`. It reads job 3075299's `reproduction_corpus.tsv`, job 3075410's `actfound_chembl32_d013_firewalled.tsv` and `pregraph_authors_assays_filtered.tsv`, and the upstream `chembl_split.json`, and writes nothing else. Summary output as Miles pasted it:
-  ```
-  assays repro 47324 firewalled 47187 dropped 137 new_in_firewalled 0
-  dropped assays by split part: {'train': 77, 'none': 56, 'test': 2, 'test_external': 1, 'valid': 1}
-  repro rows in dropped assays by split part: {'train': 3094, 'none': 6045, 'test': 41, 'test_external': 21, 'valid': 20} total 9221
-  pregraph rows left after firewall in dropped assays: min/max 13 516
-  row loss inside kept assays: 4178 ; kept assays with changed row count: 2459
-  split train 33296 present repro 33296 present firewalled 33219
-  split valid 500 present repro 500 present firewalled 499
-  split test 500 present repro 500 present firewalled 498
-  split test_external 1348 present repro 1348 present firewalled 1347
-  ```
-  The one dropped `valid` assay is `816768_nM_IC50` (CHEMBL2025880_nM_IC50): 20 reproduction rows, 18 pregraph rows after the firewall. Most of the 77 dropped `train` assays had 20–24 reproduction rows. Four of them, `672658`/`672659`/`672662`/`672663_nM_IC50` (CHEMBL1267245/6/9/50), had 333–409 reproduction rows and 427–495 pregraph rows after the firewall and were still dropped. The full per-assay list exists only in the main conversation of 2026-11-15.
-- **Accounting (assistant analysis):** this closes the split entry 30 left unmeasured. The final-row drop of 13,399 (1,959,399 → 1,946,000) = 9,221 rows in the 137 dropped assays + 4,178 rows lost inside 2,459 kept assays. Entry 30's 4,773 was the net of 8,626 rows removed by the firewall and these 13,399 lost.
-- **Mechanism (assistant, from code; per-assay valid counts not measured):** `postgraph_assay_filter_exact_actfound` in this checkout's `cyp/scripts/actfound_chembl32_projection.py` reproduces upstream `chembl_preprocess.py` lines 160–174. An assay needs at least 20 molecules with graph degree ≥ 2·N^(1/4). Removing molecules also removes their neighbours, so an assay can fall below 20 valid molecules while many rows remain. The assistant states this explains the large dropped assays and that the graph-stage hash `1783c5fe…` matches the pinned one.
-- **Against D013 (assistant analysis):** D013 "Foundation corpus and firewall" item 4 says assays left below the ≥20 requirement "become ineligible and are logged, in every split". These drops are therefore expected, and this entry is that log. The upstream `valid` split loses 1 of its 500 assays; the checkpoint is selected on the firewalled upstream `valid` split (D013 "Checkpoint freeze rule").
-- **Contrast with the earlier estimate (assistant analysis; different stage and scope, not a conflict):** D013 Amendment 1's exclusion-scope table (`notes/Decisions.md` line 6287; A§39 B) estimated, at loader level and for the 180 largest-fragment molregnos only, 2 more training assays falling below 20 kept rows (33,184 → 33,182). The table says graph-stage effects were not established without a rebuild. The graph stage drops 77 `train` and 1 `valid` upstream-split assays for all 517 molregnos.
-- **Still pending:** the Acceptance check in D013 Amendment 1 Change 2 (`notes/Decisions.md` line 6276). It requires recomputing identities from the built file to confirm that no train or validation row has a full-key or largest-fragment full-key match to a protected structure. Not yet done.
-- **Status:** benchmark, training and evaluation remain unauthorized; D013 open items 1–4 stay open (entry 8).
+| Quantity | Reproduction (3075299) | Firewalled (3075410) |
+|---|---:|---:|
+| Pre-graph rows kept | 2,027,275 | 2,018,649 |
+| Rows removed by firewall | 0 | 8,626 (7,870 full-key, 756 largest-fragment) |
+| Graph-qualified assays | 47,324 | 47,187 |
+| Assays rejected by graph valid-count gate | 0 | 137 |
+| Final rows | 1,959,399 | 1,946,000 |
 
-### 32. Acceptance check for D013 Amendment 1 Change 2 approved and built locally (2026-11-15)
-- **Approval:** Miles approved building the proposed local acceptance check for the Amendment 1 Change 2 Acceptance (`notes/Decisions.md` line 6276). Scope: building the check, to run in the frozen identity env `tripwire_cyp002` (Python 3.12.14, RDKit 2026.03.6, InChI 1.07.3) and recompute identities from the built corpus file. It does not authorize the benchmark, training or evaluation. The original wording is in the main conversation of 2026-11-15.
-- **Implemented (assistant, this checkout only; uncommitted):** `qualification/actfound/d013_firewall_20261115/check_firewalled_corpus_acceptance.py` `597b7aa464587e61385555859e6137f4832fe733696f9124d0110f78be7b688e`. It refuses a non-frozen env, an existing out-dir, and any input hash mismatch (corpus; audit `bounded_representation_audit.tsv` `c0881d8f…`; upstream split `7f3cd598…`; firewall list v2 `b3f70e56…`). Protected keys are built the way `build_firewall_list_v2.main` builds them (it imports that module's `largest_fragment_key` and `TIER`). Corpus identities are recomputed from each row's `canonical_smiles` via `identity_overlap.identity` (full key) and `largest_fragment_key`. Nothing is looked up by molregno, except a report-only cross-check against the exclusion list. Gate: PASS only if no `train`/`valid` row has a full-key or largest-fragment full-key match and no `train`/`valid` row has an identity failure (fails closed). Matches and failures in `test`, `test_external` and no split, first-block and largest-fragment first-block near matches, and exclusion-list molregno rows are reported but do not block. Outputs: `summary.json`, `matches.tsv`, `near_matches.tsv`, `identity_failures.tsv`, `SHA256SUMS.txt`. Exit code 3 on FAIL. Identity computation runs in parallel (`--workers`, default CPU count).
-- **Tests (assistant, local, frozen env):** `test_check_firewalled_corpus_acceptance.py` `40d5c0c81ed22f42f1f1ff9a9e627dbfd2e3e55ed4df33302b51458f60dad0a1`, 15 tests, 15 passed. Full directory suite: 62 passed, run in that directory with `/opt/homebrew/Caskroom/miniforge/base/envs/tripwire_cyp002/bin/python -m pytest -q`.
-- **Mutation checks (assistant; each reverted, restored hash `597b7aa4…` verified):** `valid` not blocking → 2 failed; largest-fragment basis removed → 2 failed; identity failures not blocking → 1 failed; protected-side largest fragment removed → 1 failed; every row scoped `train` → 7 failed. One mutation survived: always recomputing the largest fragment, even for single-fragment SMILES. The assistant's analysis is that this mutation is equivalent: a single-fragment molecule's largest fragment is the molecule itself, so its key does not change.
-- **Measured local runtime (assistant, frozen env, first 40,000 SMILES of the local export `~/Downloads/actfound_overlap_export_20261115/export/molecules.tsv.gz`):** 1 worker ≈3,200 SMILES/s; 8 workers ≈16,800 SMILES/s (40,000 in 2.4 s). Assistant extrapolation for ~1M distinct SMILES: about 1 minute of identity computation plus reading ~1.95M rows. This is an estimate, because the sample may be simpler than average.
-- **Not done:** downloading the corpus (`8b00f349…`, 342 MB; entry 30) and running the check. Benchmark, training and evaluation remain unauthorized; D013 open items 1–4 stay open (entry 8).
+The firewalled corpus is `actfound_chembl32_d013_firewalled.tsv`, SHA-256 `8b00f349726e7cc0d84d25195c3bdf09f76089159a93eed58401932ad0cbdecd`. Job 3075410 completed `0:0` in 00:11:42 (A2 entry 30).
 
-### 33. Acceptance check run on the firewalled corpus: gate FAIL on 1 unverifiable train row (2026-11-15)
-- **What (Miles, local Mac, frozen env `tripwire_cyp002`):** Miles downloaded the corpus and ran `check_firewalled_corpus_acceptance.py` `597b7aa4…` (entry 32) himself; that was his go-ahead for the run. Out-dir in this checkout: `qualification/actfound/d013_firewall_20261115/acceptance_20261115/` (uncommitted). Local corpus copy `~/Downloads/d013_firewalled_20261115/actfound_chembl32_d013_firewalled.tsv`; the check's hash check passed against `8b00f349726e7cc0d84d25195c3bdf09f76089159a93eed58401932ad0cbdecd`, so it equals the CoreHPC file (entry 30). Other input hashes it verified: audit `c0881d8f5e2e193b9e87479045934ca41c133d92f92ff3d453b5c28c8e2e9d3b`, split `7f3cd5988bfd3d608a8f6c120b54e19d932e0b3c026ec5e43b9798e0d2a6e3e1`, firewall list `b3f70e56d2960dcd54a318635a250cd509ce84063d786b009b51528896f41223`; identity code `build_firewall_list_v2.py` `625fb1404fa1482502619bdc9a94d4f2f423e94254a635db3bc9363f5734450b`, `identity_overlap.py` `12b0d68b578eb9438d4be8b94afaa68e8941535807df3035255ad68e231534a7`.
-- **Result (Miles, summary as pasted):** gate `FAIL`, `blocking_rows` 1, exit message "ACCEPTANCE FAIL: protected structure or unverified identity in train/valid rows". Rows 1,946,000 (train 1,497,406; valid 21,727; test 20,503; test_external 48,897; none 357,467); 846,299 distinct SMILES; 5,655 protected structures; 50.2 s with 8 workers. Zero full-key and zero largest-fragment full-key matches in every scope (`matches_rows_by_scope_and_basis` `{}`, `matched_molregnos` `{}`); no exclusion-list molregno in the corpus (`exclusion_list_molregno_rows` `{}`). `identity_failures` `{"train|parse_failure": 1}`. Near matches (report-only): train first-block 427, train largest-fragment first-block 74; valid 6 and 1; test 1 and 0; test_external 20 and 0; none 121 and 9.
-- **Outputs (`SHA256SUMS.txt` in the out-dir; the bookkeeper read it and it agrees):** `summary.json` `2e310610b50ec06fb8f7926d12b9bdd006dc6c7879097b8e1ba626053b2e12cb`; `matches.tsv` `398cddff49c203565fd587fa2d035e6c80c19ca7c842ca7869ed12d59da1753d`; `near_matches.tsv` `4a96ca740ea840d1b7b64346d2555a6e7aa51a0ce7068e899fd3a54f6897a634`; `identity_failures.tsv` `3bf41d3928644633b85819b162b63d445e5a5a7cc47a99f9a9db7af369f8943d`.
-- **Blocking row (`identity_failures.tsv`):** activity 2512250, assay `498555_nM_Km`, molregno 2336618, `train`, `parse_failure`, SMILES `F[PH](F)(F)(F)(F)F.N=c1ccc2c(-c3ccccc3)c3ccc(N)cc3sc-2c1` (a hexafluorophosphate salt).
-- **Diagnosis (assistant analysis, local, frozen env, read-only):** RDKit rejects the SMILES with "Explicit valence for atom # 1 P, 7, is greater than permitted" (hexafluorophosphate written as hypervalent neutral `[PH]`). The earlier full overlap run (`qualification/actfound/overlap_audit_20261115/full_run/molecule_identities.tsv`) also lists molregno 2336618 with no `source_key`, state `incomplete`, flag `train_kept`, and ChEMBL32 standard InChIKey witness `NASMLRHAGIXRIG-UHFFFAOYSA-N`, so the identity rule could not check this molecule when exclusion list v2 was built either. Against the protected sets built from the audit: the witness key is not a protected full or largest-fragment key and matches no first block; the organic cation fragment `N=c1ccc2c(-c3ccccc3)c3ccc(N)cc3sc-2c1` parses, and its key `JELBKKMJVYHXBP-UHFFFAOYSA-N` is likewise not a protected full or largest-fragment key nor a first-block match. By both available keys the row is not a protected structure, but the gate's identity, recomputed from the file's SMILES, cannot be computed for it.
-- **Status:** the Acceptance check (D013 Amendment 1 Change 2) FAILED as run; the check fails closed on identity failures by design (entry 32). Nothing was changed. How to resolve the single unverifiable row is Miles's decision, pending. Benchmark, training and evaluation remain unauthorized; D013 open items 1–4 stay open (entry 8).
+The 137 rejected assays (A2 entry 31):
+- By upstream split: 77 `train`, 1 `valid`, 2 `test`, 1 `test_external`, 56 in no split.
+- Cause: removing molecules also removes their graph neighbours, so an assay can fall below 20 valid molecules even with many rows left.
+- These drops are the ineligible assays D013 says are to be logged.
+- Final-row accounting: the loss of 13,399 rows = 9,221 rows in the dropped assays + 4,178 rows lost inside 2,459 kept assays.
 
-### 34. Decision: molregno 2336618 adjudicated not a protected structure (2026-11-15)
-- **Decision (Miles):** asked how the one unverifiable `train` row should be resolved, Miles chose "Record adjudication", the assistant's recommended option. He did not choose removing the row and rebuilding, or relaxing parsing. The option as offered: a recorded decision that molregno 2336618 is not a protected structure, based on the two keys in entry 33; the check gains a hash-pinned adjudication file listing this one row with its evidence; a rerun then passes with the adjudication shown in its summary; the corpus is not touched and the build is not rerun. It follows the precedent of the two adjudicated matches already in `identity_overlap.py` (A§30). The original wording is in the main conversation of 2026-11-15.
-- **What is adjudicated:** ChEMBL32 molregno 2336618 (activity 2512250, assay `498555_nM_Km`, `train`; SMILES `F[PH](F)(F)(F)(F)F.N=c1ccc2c(-c3ccccc3)c3ccc(N)cc3sc-2c1`, rejected by the frozen RDKit for P valence) is NOT a protected OpenADMET structure. Evidence (entry 33): ChEMBL's standard InChIKey `NASMLRHAGIXRIG-UHFFFAOYSA-N` and the organic-cation fragment key `JELBKKMJVYHXBP-UHFFFAOYSA-N` (computed in the frozen env) are neither protected full keys, protected largest-fragment keys, nor first-block matches.
-- **Scope:** this one row's identity failure only. It does not change the identity rule, the corpus or any other row, and it does not authorize the benchmark, training or evaluation. Implementation (a hash-pinned adjudication input to the acceptance check, then a rerun) follows and is not yet done; the Acceptance check stays FAILED as run (entry 33) until a rerun is recorded.
-- **Where recorded:** here only. The A§30 precedent was recorded in the session log, not in `notes/Decisions.md`, and D013 Amendment 1 Change 2's text is unchanged; blocking on identity failures is the check's fail-closed design (entry 32), not D013 wording.
+Per-assay valid-molecule counts were not measured.
 
-### 35. Adjudication input implemented in the acceptance check, local only; not yet rerun (2026-11-15)
-- **What (assistant, this checkout only; uncommitted):** implementing entry 34, `check_firewalled_corpus_acceptance.py` `597b7aa4…` → `537b57e75fd02c626dae36fa0bce0b6665c54003a8c4946738cb71a262e53bb9`. New optional `--adjudications` / `--adjudications-sha256`, which must be given together; the file is hash-checked with the other inputs. A `train`/`valid` identity failure stops blocking only if listed with exact `activity_id`, `molregno`, `canonical_smiles` and `status`; each entry must carry `decision` and `evidence` text. An adjudication never clears a match. A listed entry that matches no failure row counts as a blocking row, so a stale list fails. `identity_failures.tsv` gains an `adjudicated` column; `summary.json` gains an `adjudications` block (`file_sha256`, `listed`, `applied_rows_by_scope_and_status`, `unused_blocking`); the rule string states this.
-- **Adjudication file (new, uncommitted):** `qualification/actfound/d013_firewall_20261115/acceptance_adjudications_v1.tsv` `bc4647a56514efa8606a6a9e728151c816a651ce5507c3b8b86c754b562e0dbb`, one row: activity 2512250, molregno 2336618, the hexafluorophosphate SMILES, `parse_failure`, with decision text citing Miles's 2026-11-15 "Record adjudication" and this log, and evidence citing the RDKit P-valence rejection and keys `NASMLRHAGIXRIG-UHFFFAOYSA-N` and `JELBKKMJVYHXBP-UHFFFAOYSA-N`. The assistant compared it with `acceptance_20261115/identity_failures.tsv` and found the four fields identical; the bookkeeper read both files and agrees.
-- **Tests (assistant, local, frozen env `tripwire_cyp002`, `/opt/homebrew/Caskroom/miniforge/base/envs/tripwire_cyp002/bin/python -m pytest -q`):** `test_check_firewalled_corpus_acceptance.py` `40d5c0c8…` → `4d35951096d270092ae5046578dea4ac91f82de6708b9e156ec014eb0efdcea1`, 8 new tests (adjudicated train failure passes and is shown; exact match required on each of activity, molregno, SMILES and status; unused adjudication fails; adjudication never clears a match; input checks for pairing, hash mismatch and missing evidence). File: 23 passed. Directory suite: 70 passed.
-- **Mutation checks (assistant; each reverted, restored hash `537b57e7…` verified, 70 passed after):** unused adjudications not blocking → 6 failed; status not matched → 3 failed; match on molregno only → 3 failed; no decision/evidence requirement → 1 failed; adjudication file not hash-checked → 1 failed. None survived.
-- **Status:** the first acceptance run stays FAILED as recorded (entry 33). The rerun, into a new out-dir `acceptance_20261115b`, is next and has not been run. Benchmark, training and evaluation remain unauthorized; D013 open items 1–4 stay open (entry 8).
+### 5.3 Acceptance check
 
-### 36. Acceptance check rerun with the adjudication file: gate PASS (2026-11-15)
-- **What (Miles, local Mac, frozen env `tripwire_cyp002`):** Miles reran `check_firewalled_corpus_acceptance.py` `537b57e75fd02c626dae36fa0bce0b6665c54003a8c4946738cb71a262e53bb9` (entry 35) with the adjudication file `acceptance_adjudications_v1.tsv` `bc4647a5…` into `qualification/actfound/d013_firewall_20261115/acceptance_20261115b/` (this checkout, uncommitted), and pasted the summary. Inputs verified by the check are the same as the first run (entry 33): corpus `8b00f349726e7cc0d84d25195c3bdf09f76089159a93eed58401932ad0cbdecd`, audit `c0881d8f…`, split `7f3cd598…`, firewall list `b3f70e56…`, identity code `build_firewall_list_v2.py` `625fb140…` and `identity_overlap.py` `12b0d68b…`.
-- **Result (Miles, summary as pasted; the bookkeeper read `summary.json` and it agrees):** gate `PASS`, `blocking_rows` 0. Adjudications: `file_sha256` `bc4647a56514efa8606a6a9e728151c816a651ce5507c3b8b86c754b562e0dbb`, `listed` 1, applied `{"train|parse_failure": 1}`, `unused_blocking` `[]`. `matches_rows_by_scope_and_basis` `{}` and `matched_molregnos_by_scope` `{}` (zero full-key and zero largest-fragment full-key matches in every scope); `exclusion_list_molregno_rows` `{}`; `identity_failures` `{"train|parse_failure": 1}`, the adjudicated row (molregno 2336618, `adjudicated` `yes`). Rows 1,946,000 (train 1,497,406; valid 21,727; test 20,503; test_external 48,897; none 357,467); 846,299 distinct SMILES; 5,655 protected; near-match counts (report-only) identical to entry 33; 56.6 s with 8 workers.
-- **Outputs (assistant, local; out-dir `SHA256SUMS.txt`, which the bookkeeper read and agrees):** `summary.json` `e8b22c1ab4183fdbda6c915d7a7d052de09d4736b971d0e043a8ef59adfe217a` (direct hash agrees); `matches.tsv` `398cddff49c203565fd587fa2d035e6c80c19ca7c842ca7869ed12d59da1753d`; `near_matches.tsv` `4a96ca740ea840d1b7b64346d2555a6e7aa51a0ce7068e899fd3a54f6897a634`; `identity_failures.tsv` `b25233b34e64fac7980f66c05b34b2e568fd2f9be176166eedc782e64420bb83`. The assistant found `matches.tsv` and `near_matches.tsv` byte-identical to the first run (entry 33), and `identity_failures.tsv`'s first six columns identical, with only the new `adjudicated` column differing.
-- **Why it matters:** the D013 Amendment 1 Change 2 Acceptance passes for corpus `8b00f349…`. One `train` row passes by Miles's adjudication (entry 34), not by a recomputed identity. The first run (entry 33) stays FAILED as recorded.
-- **Status:** benchmark, training and evaluation remain unauthorized; D013 open items 1–4 stay open (entry 8). The check, tests, adjudication file and both out-dirs are local and uncommitted.
+The first run failed on one `train` row (A2 entry 33): molregno 2336618, a hexafluorophosphate salt whose SMILES the frozen RDKit rejects, so its identity could not be recomputed. Two keys were checked against the protected sets: ChEMBL's standard InChIKey `NASMLRHAGIXRIG-UHFFFAOYSA-N` and the organic-cation key `JELBKKMJVYHXBP-UHFFFAOYSA-N`. Neither is a protected key or a first-block match.
+
+Miles adjudicated that row as not a protected structure (§6). The adjudication was added as a hash-pinned input, `acceptance_adjudications_v1.tsv` `bc4647a5…`.
+
+The rerun PASSED: zero full-key and zero largest-fragment full-key matches in every scope, and no exclusion-list molregno in the corpus. All 1,946,000 rows were checked, covering 846,299 distinct SMILES (A2 entry 36).
+
+Caveat: that one row passes by adjudication, not by a recomputed identity.
+
+### 5.4 Split reconciliation and config v2 (job 3076199)
+
+Train: 33,137 of 33,296 upstream IDs retained (159 dropped). Validation: 498 of 500 (2 dropped). Config v2 is `dad741d0b6a3e1f014d47579acec29e9bacdad3ac7b1fb7b0c8b2f69a1984af6`; it was validated by runner v2 and points at the firewalled corpus (A2 entry 37).
+
+The loader drops 82 train and 1 validation assays beyond those the graph stage removed. Its gates are: percent units skipped, `=` relation, 20–10,000 rows, RDKit parse. Per-assay reasons were not measured.
+
+### 5.5 Benchmark and runtime extrapolation
+
+The benchmark was interactive job 3076227: one L40S, running the unchanged production wrapper on a config v2 copy that differs only in `output_dir` (A2 entry 38).
+- Measured: load 506.5 s; epoch 0 932.7 s; max GPU memory 1,747 MiB.
+- Planning estimate: 15.7 h (an epoch-0 lower bound). The estimate scaled from job 3066823 was 12.2 h.
+- The 72 h request was adequate. The actual run took 12:17:02.
+
+### 5.6 Production foundation training (job 3076848)
+
+| | 3066823 (historical, unfirewalled) | 3076848 (D013) |
+|---|---|---|
+| Corpus | `24d9fd29…` | `8b00f349…` |
+| Validation assays | 500 | 498 |
+| Batches per epoch | 2,410 | 2,398 |
+| Elapsed | 12:16:08 | 12:17:02 |
+| Initial validation score | 0.3485 | 0.3546 |
+| Best epoch / score | 58 / 0.9770 | 51 / 0.98231 |
+
+The two runs are not like-for-like: different corpus and validation split. The integrity check passed (A2 entries 39–41):
+- 60 contiguous epochs, no non-finite losses;
+- best epoch equals `completion.json`;
+- `model_best.pt` equals `model_51.pt`, `upstream_commit` `c96f0559…`;
+- the startup source hashes equal the deployed files;
+- the deployed runner v2 and model side equal the reviewed hashes.
+
+**Frozen foundation checkpoint (D013 checkpoint freeze rule):** CoreHPC `/scratch/user/mhuang8/actfound/chembl32/production_training_d013/actfound_chembl32_d013_v2/checkpoints/model_best.pt`, epoch 51, SHA-256 `4db29a04f69ecc1ef6ec2f058aa0335e132394a2a0bbe36c14bd27d54a49de2b`. It was selected on the firewalled upstream `valid` split before any CYP data was used.
+
+### 5.7 Target-adaptation qualification
+
+Cell counts were taken from the frozen D007 manifests, 50 partitions × 4 endpoints. No protected internal-test or blinded molecule is in any cell (A2 entry 43).
+
+| Endpoint | Support per cell | Target per cell |
+|---|---|---|
+| CYP1A2 | 1,062–1,101 | 100–139 |
+| CYP2C9 | 965–1,008 | 85–128 |
+| CYP2D6 | 1,123–1,157 | 112–146 |
+| CYP3A4 | 1,766–1,815 | 171–220 |
+
+**Stage 1, adaptation (CoreHPC, interactive L40S, pinned env; three fixed CYP3A4 partitions; A2 entry 47).** Smoke used synthetic molecules only and passed.
+
+| Partition | Support / target | adapt_total (s) | Peak GPU allocated (MiB) | Peak host RSS (MiB) | Offset max \|Δpred\| |
+|---|---|---:|---:|---:|---:|
+| `rep_01_fold_01` | 1,799 / 187 | 0.782 | 443.9 | 2,660 | 1.19e-5 |
+| `rep_03_fold_05` | 1,793 / 193 | 0.026 | 442.6 | 2,692 | 1.34e-5 |
+| `rep_05_fold_10` | 1,789 / 197 | 0.024 | 442.3 | 2,692 | 1.31e-5 |
+
+- **All checks passed:**
+  - Repeat across two seed values: max |Δpred| exactly 0.0.
+  - Scrambled target labels: exactly 0.0.
+  - pIC50 vs the pretraining scale: 1.19–1.34e-5, against a declared threshold of 1e-3.
+- **Cost:** steady state is about 0.34 s per cell, mostly CPU featurization. The first cell's extra time is attributed to CUDA warm-up; that was not measured directly.
+- **Projection for all 200 adaptations:** 68–228 s, assuming cells run independently and sequentially. Cost scaling with support size was not characterized.
+
+**Stage 2, scoring (local, Python 3.12).** `score_predictions.py` `88e2d400…` ran with the frozen scorer on the checks artifact `adaptation_checks.json` `1be10d32…` (local copy equal to the CoreHPC hash). `all_bounds_hold` is true (A2 entry 49). Output: `qualification/actfound/d013_target_qualification_20261116/strae/strae_scores.json` `2240436d…` (A2 entry 50).
+
+| Partition | ST-RAE, pIC50 (both seeds and scrambled targets identical) | pretraining-scale arm, corrected | uncorrected (expected ~15) |
+|---|---:|---:|---:|
+| `rep_01_fold_01` | 0.72253 | 0.72253 | 15.26 |
+| `rep_03_fold_05` | 0.72195 | 0.72195 | 15.22 |
+| `rep_05_fold_10` | 0.77181 | 0.77181 | 15.98 |
+
+The corrected-offset arm differs from the reference by 1.7e-7 to 8.6e-7 ST-RAE, inside the derived bounds of 5.9e-6 to 6.2e-6.
+
+These are CYP3A4-only diagnostics on 3 of the 50 partitions. They are not O150, are not predictive of it, and select no setting.
+
+### 5.8 Evaluation code (thin target adapter), written for review
+
+The code follows the evaluation and adapter brief Miles approved on 2026-11-16, the brief Amendment 4 item 4 cites. It was written on his instruction to bring the code and test results for review. Location in this checkout: `qualification/actfound/d013_target_qualification_20261116/` (untracked). At the time of review it had not been run or uploaded (A2 entries 50–51); it was subsequently deployed to CoreHPC and run there (§5.9).
+
+| File | Role | SHA-256 |
+|---|---|---|
+| `d013_evaluation_config_v1.json` | Frozen settings: 50 partitions × 4 endpoints × 3 seed slots; pIC50; complete support; comparator block | `c7d9638f…` |
+| `run_evaluation.py` | Stage 1, pinned env: 200 unique adaptations via unchanged `run_task`; writes predictions, labels and bands, no score | `1f0a9408…` |
+| `score_evaluation.py` | Stage 2, Python ≥ 3.10: per-endpoint ST-RAE from the frozen scorer, macro via the frozen `compute_validation_macro_st_rae`, 150 cell values → O150. Emits `comparison_is_final` false while the cited comparator artifact is absent | `bd334499…` |
+| `test_evaluation.py` | 20 tests; directory suite 55 passed in `tripwire_cyp002` | `fdcd27eb…` |
+
+Mutation checks: 14 run, 12 caught at once. The strict comparison rule's `<` vs `<=` gap was closed with a tie-boundary test. The remaining survivor is judged equivalent.
+
+Defect fixed: a cell whose labels all lie inside their bands gives a zero RAE denominator. Stage 2 now refuses such a cell rather than folding NaN into O150.
+
+Two suggestions are recorded and not acted on:
+- a plausible-pIC50-range assertion in stage 1;
+- `cyp/scripts/` as an alternative code location.
+
+### 5.9 Full target evaluation (job 3083113) — complete
+
+Reported by Miles on 2026-11-16 as completed work from another session. He directed that it be recorded as current project state, not as a request to rerun anything.
+
+The evaluation scripts and the necessary artifacts were put onto CoreHPC and the full target evaluation ran as job 3083113: COMPLETED, exit `0:0`, 18 s batch elapsed; the adaptation loop reported 9.9 s. Earlier deployment/path and local dependency problems were superseded by this successful HPC run. No evaluation job is still running, and the Mac scoring environment does not need to be recreated.
+
+Configuration as run: 200 unique endpoint adaptations = 50 partitions × 4 CYP endpoints, complete labelled support per endpoint, five nominal inner steps, pIC50 labels with no conversion. The 50 partition macros were replicated into three seed slots to populate the 150 O150 rows. **These are replicas, not three independent adaptation runs.**
+
+| Quantity | Value |
+|---|---|
+| ActFound-CYP O150 | 0.8699544509650656 |
+| Supplied T121 comparator | 0.701212576796 |
+| Direction | lower is better |
+| `favours_actfound_cyp` | **false** |
+| `comparison_is_final` | **false** (preserved) |
+
+The originally cited `C0_COMPARISON.json` was absent; scoring used the corroborating D009 artifact. The numerical comparison was therefore calculated, but the original comparator-provenance requirement (Amendment 4 item 6) remains unresolved and the comparison is not to be labelled final (§10).
+
+Locations (CoreHPC project root `/scratch/user/mhuang8/d012_runtime_qualification_20261110/tripwire-project`):
+- predictions: `.../qualification/actfound/d013_target_qualification_20261116/eval_predictions_20261116/cyp_adaptation_predictions.json`
+- scores: `.../qualification/actfound/d013_target_qualification_20261116/eval_scores_20261116/cyp_o150_result.json`
+- comparator used: `.../artifacts/d009_closure_workspace/p1_d009_o150_result_20261108.json`
+
+Mean endpoint ST-RAE across the 50 unique partitions, from the saved predictions:
+
+| Endpoint | Mean ST-RAE | Approx. mean within-cell Spearman | Approx. prediction SD | Approx. label SD |
+|---|---:|---:|---:|---:|
+| CYP1A2 | 0.93589602428044 | 0.323 | 0.350 | 1.015 |
+| CYP2C9 | 0.8071864107051999 | 0.476 | 0.348 | 0.767 |
+| CYP2D6 | 1.0087652883375327 | 0.199 | 0.272 | 0.915 |
+| CYP3A4 | 0.7279700805370899 | 0.597 | 0.565 | 1.095 |
+
+### 5.10 Saved-results audit (no retraining)
+
+The audit used the existing saved predictions and the source code only; nothing was retrained.
+
+Verified:
+- the exact supplied frozen ST-RAE reference function reproduced all 200 endpoint scores with zero difference;
+- aggregation and seed-slot replication reproduced O150 exactly;
+- the supplied artifacts matched their recorded hashes;
+- the inspected code preserved support/query membership and target prediction order; tasks start with fresh adaptation weights; updates do not modify the checkpoint head in place; evaluation restores batch-normalization running statistics.
+
+No scoring-arithmetic defect and no cross-cell adaptation-carryover defect was found.
+
+**Characterized behaviour.** The main behaviour is compressed predictions and weak ranking, worst on CYP2D6 (§5.9 table). Within held-out CYP2D6 cells, by actual-potency quartile: lowest quarter actual pIC50 3.747 vs predicted 4.725; highest quarter actual 5.833 vs predicted 4.865. The actual gap of about 2.085 log units becomes only 0.139 in predictions. Near-zero overall bias hides opposing errors at the extremes. A monotone calibration can change scale but cannot repair the weak ranking.
+
+**Stability across splits.** Each labelled molecule appeared in validation five times. Median within-molecule prediction SD across those splits was approximately 0.014–0.020 pIC50 depending on endpoint, so the behaviour is consistent across splits rather than a few failed folds. These overlapping observations are not independent samples.
+
+### 5.11 Training-parity discrepancy (verified omission, not a cause)
+
+Upstream `external/ActFound/learning_system/system_actfound.py` adds `sum(lr_param ** 2) * args.lrloss_weight` from `epoch >= args.begin_lrloss_epoch`. The deployed `cyp/scripts/actfound_production_train_v2.py` carries `begin_lrloss_epoch=50` and `lrloss_weight=35.0` in its configuration but never adds that penalty to its training objective; no equivalent term was found in the called loss or optimizer. The selected epoch-51 checkpoint is after the point where the upstream penalty should have started.
+
+The penalty discourages large learned inner-loop learning rates. **The omission is verified; its effect on accuracy is not.** It is not established that it caused the poor result, nor that restoring it would fix the model. Equally, this is not a clean verdict on a faithful upstream reproduction.
+
+**Hypothesis (not established).** Native target adaptation updates only the final linear head, not the whole encoder; predictions use weighted support-label-anchored pairwise estimates over the most fingerprint-similar half of the support molecules. That averaging could contribute to the compression, but the necessary internal weights/differences were not saved, so the mechanism remains a hypothesis. Five nominal inner steps do not prove five applied updates, because the implementation can skip an update.
+
+### 5.12 Data scope of this study
+
+The ActFound study used the broad authors' curated ChEMBL32 corpus after the OpenADMET identity firewall. It did **not** use only the earlier 175-assay CYP auxiliary collection. The result therefore does not isolate architecture from pretraining-data scope. The corpus and firewall decisions already settled under D013 and its amendments remain settled.
+
+### 5.13 Winning-model research (external review; no method adopted)
+
+An external review of the challenge's public results and reports. Nothing here is an adopted method and nothing here is a result of this project.
+
+- Official direct-inhibition results put whippoorwill/Inductive Bio and preheat-to-450 in the top tier, followed by NVIDIA and Recursion. Public method details were incomplete. Inductive describes consortium ADMET data and Beacon models, but not enough architecture/training detail to reconstruct its winner or identify the decisive component. No shared winning recipe is established.
+- The verified eighth-place rasayan-labs team published a detailed self-report: multiple molecular representations including protonation/tautomer states and pretrained embeddings; boosted trees, kernel models and neural networks; out-of-fold ensembling; measurement-uncertainty weighting; use of single-concentration screening information; and explicit calibration to restore a compressed high-potency tail.
+- Their own internal ablation attributes their largest gain to assay-aware learning that connected screening data to the prediction tasks. That is team-reported evidence on their study, not proof of what would help this project. Their calibration work matches our compression symptom but cannot establish a fix for our weak ranking.
+- Their official blind-test results are not directly comparable to our internal O150. The organizers' reported blind CYP2D6 distribution shift does not explain our internal cross-validation result.
+
+Sources: `https://openadmet.ghost.io/take-me-heme-binding-modes-wrapping-up-the-cyp-inhibition-challenge/`; `https://github.com/whis9/rasayan-cyp`; `https://www.inductive.bio/news/inductive-places-first-in-openadmet-cyp-inhibition-challenge`.
+
+### 5.14 Session 005.5 (2026-11-17): staged ActFound/T121 comparison package — component tests only
+
+Recorded from Miles's report and local verification on 2026-11-17. This section records existing work and the plan Miles stated (§6). It authorizes no run, and no launch readiness is established.
+
+**Plan Miles stated (see §6 for his wording):** compare frozen T121 against updated T121 and ActFound. ActFound is to be started from a fresh seeded foundation initialization with the corrected learning-rate penalty (§5.11), then run as selected foundation, screening, pIC50 adaptation. T121 is screened for 50 epochs.
+
+**Component tests (Miles's report; run on the Mac):**
+
+| Suite | File | Result | Nature |
+|---|---|---|---|
+| ActFound stage controller | `cyp/tests/test_actfound_stage_controller.py` | 11 passed | mock executors |
+| ActFound stage adapters | `cyp/tests/test_actfound_stage_adapters.py` | 8 passed | training and subprocesses mocked |
+
+The package's `PACKAGE_SCOPE.txt` states: not a production launch bundle; no datasets, checkpoints, environments or launch config. These tests do not establish launch readiness. No resume support is established.
+
+**Staged-integration archive** `/Users/mileshuang/Desktop/tripwire-project/actfound_staged_integration_20261117.tar.gz`, SHA-256 `79c4ace8b862d84b8b52be009a082f942ff7d694813e977ec1f2a1d8c33c793b` (uncommitted). Local check on 2026-11-17: the archive's `shasum` matched; the internal `SHA256SUMS.txt` verified with no failures; all 78 packaged files are byte-identical to the current working tree (no drift since packaging).
+
+**CoreHPC transfer and tests (reported done by Miles, 2026-11-17; run by him on the CoreHPC login host `chpc-ucsf-login-vm1.corehpc.ucsf.edu` via the bastion ProxyJump; the output was reported in summary, not pasted):**
+
+| Step | Reported result |
+|---|---|
+| Pre-transfer destination check | "as expected": nothing existed at the destination beforehand |
+| Transfer | "as expected": archive copied to `/scratch/user/mhuang8/tripwire_staging/` |
+| Archive hash on CoreHPC | "hash check okay" against `79c4ace8b862d84b8b52be009a082f942ff7d694813e977ec1f2a1d8c33c793b` |
+| Extraction | into the new isolated directory `/scratch/user/mhuang8/tripwire_staging/actfound_staged_integration_20261117`; its output was not reported separately |
+| Package inner `SHA256SUMS.txt` check (step 5) | "step 5 printed 0" (0 non-OK lines); this check could only run after extraction |
+| Plumbing tests, 19 | "all tests pass", run with `/scratch/user/mhuang8/actfound/envs/actfound_c96f055/bin/python -I`: `cyp/tests/test_actfound_stage_controller.py` (11 tests) and `cyp/tests/test_actfound_stage_adapters.py` (8 tests) |
+
+The "Ran N tests" lines were not pasted; 11 and 8 are the files' defined test counts, not pasted output. These are mock/component tests under the Python 3.9 environment. A pass does not establish launch readiness. The CoreHPC output itself is not in this checkout; the evidence is Miles's report.
+
+**GPU correctness job 3103473 (result pasted by Miles in chat, 2026-11-17):** earlier recorded as pending with result UNKNOWN. The JSON Miles pasted carries no job id; it is the content for the intended result path `/scratch/user/mhuang8/tripwire_staging/actfound_stage_transfer_20261117/results/screen_validation_gpu_check/result.json` (CoreHPC). Miles has since run a read-only check on CoreHPC (2026-11-17, output pasted; see "Job record and hash check" below): the job is COMPLETED 0:0 and the result file's SHA-256 is recorded. The result content in the table below was pasted earlier; its bytes were not received in this checkout.
+
+| Field | Reported value |
+|---|---|
+| status | PASS |
+| scope | GPU fixed-episode validation and checkpoint correctness |
+| optimizer_steps | 0 |
+| model_initialization | random qualification model |
+| validation_episodes | 8 |
+| metric | native_log2fc_query_inverse_SE_squared_weighted_MSE |
+| validation score | 0.9987984361996203 |
+| per-enzyme | 1A2 0.41869687173151704; 2C9 0.3785024889483063; 2D6 0.12972015504120488; 3A4 3.0682742290774527 |
+
+The numbers come from a random, untrained model; they are not performance claims. Checks reported PASS: `shared_state_modes_and_rng_restored` (true), `no_accumulated_parameter_gradients` (true), repeat-then-equal-enzyme aggregation, manual metric and tie rule, checkpoint-writer round trip, authorization gate. Reported not executed: the screening training loop, foundation pretraining, production staged execution.
+
+**Hashes.** `runner_sha256` in the result is `9627ff17c2d0132dea2c8d34eae6cf38a5921479898e91a2eb1f465450534303`. Local check, 2026-11-17: it equals the current working-tree `cyp/scripts/actfound_production_train_v2.py` and that file's copy in the staged-integration archive. This corrects the earlier note that the runner in the stage_transfer archive was the job's runner: that archive's copy is `87d3766a…`, but the job's own result reports `9627ff17…`, so the job ran the current runner. The job result, not the archive, is the evidence. The discrepancy with the stage_transfer archive is unexplained; the staging folder now holds `9627ff17…` (see below), so it was evidently updated after that archive was made (inferred, not verified). `checkpoint_sha256` `095121d8f23ecb861316ff43796c0af1bf3004a3548de2d5326028a4ab5bbd5e` is the test checkpoint; it was not verified locally.
+
+**Job record and hash check (read-only, run by Miles on CoreHPC, output pasted, 2026-11-17):**
+
+| Item | Value |
+|---|---|
+| `sacct` job 3103473 | State COMPLETED, ExitCode 0:0 (also the `.batch` and `.extern` steps); End 2026-11-17T18:57:58 |
+| `results/screen_validation_gpu_check/result.json` (CoreHPC staging folder `/scratch/user/mhuang8/tripwire_staging/actfound_stage_transfer_20261117`) | `4e7ae5520ce764bb2b3ed85fb9c50edede96afa0ce625acdc497f3c23521f0fd` |
+| `cyp/scripts/actfound_model_side.py` (same staging folder) | `86ccf4b135a0388c147d2838e5d12ead2b5aaf5968f7140ec341e7950d3a62fd` |
+| `cyp/scripts/actfound_production_train_v2.py` (same staging folder) | `9627ff17c2d0132dea2c8d34eae6cf38a5921479898e91a2eb1f465450534303` |
+
+Local check (`shasum -a 256`, this checkout, 2026-11-17): current `cyp/scripts/actfound_model_side.py` is `86ccf4b1…` and current `cyp/scripts/actfound_production_train_v2.py` is `9627ff17…`; both full values are identical to the CoreHPC staging values. The result's own `runner_sha256` is also `9627ff17…`. The result file's bytes were not received locally; the `4e7ae552…` hash is for the CoreHPC file only.
+
+Caveats on the binding:
+- The staging hashes were taken after the job ended (18:57:58), so they show the folder's present state. Nothing records that the sources were unchanged during the job, except that the runner hash agrees with the job's own `runner_sha256`. For `actfound_model_side.py` there is no in-job record, so only the post-job hash binds it.
+- The controller still checks only status, scope and `optimizer_steps`; it does not enforce this binding.
+
+**Still open:** the wiring list, support weights at evaluation, and T121 connection to the controller (§10). The job 3103473 "read result and hash source" item is closed.
+
+**Decision record.** The plan above is recorded as D015 in `notes/Decisions.md`. D015 authorizes no run.
+
+---
+
+## 6. Decisions and Approvals
+
+All of the following are Miles's. The exact wording is in the archives.
+
+| Date | Decision or approval | Scope and limits | Record |
+|---|---|---|---|
+| 11-14 | Import Session 005's recovered history | This session only; no backfill, no decision edits | A1 §2 |
+| 11-15 | Option A: retrain on a firewalled corpus | Job 3066823 preserved | A1 §32 |
+| 11-15 | Sub-choices: all 5,655 structures; authors' corpus; molecule-level removal; draft D013 | — | A1 §33 |
+| 11-15 | D013 approved; implementation authorized | Training and evaluation still gated | D013; A1 §34 |
+| 11-15 | Q1–Q9 implementation answers accepted; no live monitor agent; no Slurm alerts; overnight-failure rule withdrawn | Implementation detail | A1 §35 |
+| 11-15 | Route C as the proposed repair path; split-aware stop-rule fix and read-only impact count | Amendment 1 stayed Proposed; no build, run, benchmark or training | A1 §38 |
+| 11-15 | Widen the exclusion to the 180 largest-fragment matches, validation included | Identity rule unchanged | A1 §40 |
+| 11-15 | Firewall-v2 plan and the Amendment 1 exclusion and acceptance wording | Amendment 1 as a whole still Proposed | A1 §41 |
+| 11-15 | Amendment 1 approved for recording | No upload, build, run, benchmark or training | Amendment 1; A1 §43 |
+| 11-15 | Fork session's work made canonical | — | A1 §44 |
+| 11-15 | CoreHPC upload, pinned-env tests, reproduction run | Miles then ran CoreHPC jobs himself, for credit cost | A1 §45 |
+| 11-15 | Record decisions and progress when they happen, not retrospectively | Working practice | A1 §46 |
+| 11-15 | Investigate the `graph_pair_count` cause, then amend the gate scope; Amendment 2 approved | Gate scope only | Amendment 2; A1 §50 |
+| 11-15 | Implement Amendment 2; Amendment 3 approved; implement Amendment 3 | Code changes; no run | Amendments 2–3; A1 §51, §54–§55 |
+| 11-15 | Reproduction run 3075299: Miles submitted it in answer to the authorization question | That run | A2 entry 26 |
+| 11-15 | Firewalled corpus build | Build only | A2 entry 28 |
+| 11-15 | Build the acceptance check | Check only | A2 entry 32 |
+| 11-15 | Adjudicate molregno 2336618 as not a protected structure | That one row's identity failure only | A2 entry 34 |
+| 11-15 | Benchmark plan | Not training | A2 entry 38 |
+| 11-16 | Production foundation training | Not evaluation | A2 entry 39 |
+| 11-16 | Open items 1–4 choices; consolidated qualification brief and harness, including the checks' own ST-RAE diagnostics | Not the full evaluation or the thin adapter | A2 entries 42, 49 |
+| 11-16 | Split adaptation from scoring | How scoring runs only | A2 entry 44 |
+| 11-16 | Consolidated evaluation and thin-adapter brief approved (the brief Amendment 4 item 4 cites); then: bring the evaluation code and test results for review | The brief only; not running the evaluation | A2 entries 50, 51 |
+| 11-16 | Record D013 Amendment 4 | Authorizes no run. The second-seed sweep was dropped, and the original comparator citation was kept | Amendment 4; A2 entry 48 |
+| 11-16 | Miles deployed the evaluation to CoreHPC and ran the full target evaluation himself (job 3083113), then a saved-results audit and the winner research | Those runs and reviews only. He states that no retraining, tuning, architecture change or new experiment was approved by his audit or winner-research requests | Reported by Miles 2026-11-16 in another session; relayed into this session's conversation |
+| 11-16 | Preserve `comparison_is_final=false`: the comparison was computed against the corroborating D009 artifact, and the original comparator-provenance requirement stays unresolved; it is not to be labelled final | Status of the comparison only | Same report; §5.9, §10 |
+| 11-16 | Treat the reported completed work as current project state, not a request to rerun anything or a new implementation plan; settled decisions stay settled | Recording only; authorizes no run | Same report |
+| 11-17 | Comparison: "Frozen T121 vs updated T121 and ActFound; preserve full O150, protected identities and existing scoring/comparator-provenance checks, including nonfinal comparison status if unresolved." | Plan only; runs nothing | Miles, 2026-11-17 conversation (Session 005.5); recorded in `notes/Decisions.md` D015 item 1 (originally written before D015 existed; "not yet in Decisions.md" was true then) |
+| 11-17 | ActFound: "fresh original seeded foundation initialization with corrected penalty, then selected foundation → screening → pIC50. No historical penalty-omitting checkpoint or epoch-49 hunt." | Plan only; runs nothing | Same |
+| 11-17 | ActFound screening: "80 epochs, existing schedule, eight fixed validation episodes, minimum native query WMSE checkpoint, no full-screen refit." | Plan only | Same |
+| 11-17 | T121 screening: "50 epochs; trial-specific warmup 10 verified. Preserve approved validation/selection and transfer rules." | Plan only | Same |
+| 11-17 | "Preserve exact approved uncertainty and harmonic pair weighting from qualified code and session evidence. Do not recreate formulas from defaults." | Plan only | Same |
+| 11-17 | Execution: "I run execution commands. No training, model runs or SLURM submissions are authorized here. Runtime benchmarking is waived only for this CYP comparison, not correctness checks." "No commit/push." | The waiver covers runtime benchmarking only, for this comparison. It does not authorize any run | Same |
+| 11-17 | Bookkeeping: update the session report and decisions log, recording existing decisions and work and keeping unresolved items open; preserve history | Does not authorize implementation edits, execution, commits or pushes | Miles, 2026-11-17 |
+| 11-17 | Form of the decision record: "New D015" (chosen over D013 Amendment 5) | Form only. D015 records the six 2026-11-17 statements above as items 1-6 and authorizes no run. Whether it supersedes D013's foundation-training and checkpoint-freeze terms is not decided (open question in D015) | `notes/Decisions.md` D015; Miles, 2026-11-17 |
+
+Standing operational instruction: run everything through the terminal. For CoreHPC, use the established SSH commands and wait for Miles to authenticate (password + Duo) (A1 §34).
+
+---
+
+## 7. Artifacts
+
+| Artifact | Location | SHA-256 |
+|---|---|---|
+| Exclusion list v2 (517) | `qualification/actfound/d013_firewall_20261115/firewall_list_v2/` | `exclusion_molregnos.tsv` `b3f70e56…` |
+| Amendment 3 builder and tests | `qualification/actfound/d013_firewall_20261115/` (committed; equal on CoreHPC) | `9c5d449b…`, `d2f6c8c3…` |
+| PASS reproduction manifest | CoreHPC `.../chembl32/d013_reproduction_20261115c/` | `2e8a6d18…` |
+| Firewalled corpus and manifest | CoreHPC `.../chembl32/d013_firewalled_20261115/` | corpus `8b00f349…`, manifest `c2963ad2…` |
+| Acceptance check, adjudication file, runs | `qualification/actfound/d013_firewall_20261115/` (`acceptance_20261115/` FAIL, `acceptance_20261115b/` PASS; committed) | check `537b57e7…`, adjudication `bc4647a5…` |
+| Config v2 | CoreHPC `.../tripwire-project/cyp/artifacts/actfound/d013_split_config_v2_20261115/` | `dad741d0…` |
+| Benchmark helpers | `qualification/actfound/d013_benchmark_20261115/` (uncommitted) | in A2 entry 38 |
+| Frozen foundation checkpoint and run outputs | CoreHPC `.../production_training_d013/actfound_chembl32_d013_v2/` | `model_best.pt` `4db29a04…` |
+| Target-qualification harness and counts | `qualification/actfound/d013_target_qualification_20261116/` (uncommitted) | in A2 Current state |
+| Evaluation code (for review) | `qualification/actfound/d013_target_qualification_20261116/` (uncommitted) | §5.8 |
+| Full evaluation predictions (job 3083113) | CoreHPC `.../qualification/actfound/d013_target_qualification_20261116/eval_predictions_20261116/cyp_adaptation_predictions.json` | `c6fbb0b1…` (§7.1) |
+| Full evaluation scores / O150 result | CoreHPC `.../qualification/actfound/d013_target_qualification_20261116/eval_scores_20261116/cyp_o150_result.json` | `dd1e43df…` (§7.1) |
+| Comparator artifact actually used (corroborating D009 result) | CoreHPC `.../artifacts/d009_closure_workspace/p1_d009_o150_result_20261108.json`; local copy `artifacts/d009_closure_workspace/` | `b277f4cc…` (§7.1) |
+| Target-qualification outputs | CoreHPC `/scratch/user/mhuang8/actfound/qualification/d013_target_20261116/`; local copy `~/Downloads/d013_checks/` | `adaptation_checks.json` `1be10d32…` |
+| Frozen ST-RAE scorer (unchanged) | `cyp/scripts/st_rae.py`, `references/cyp_upstream/custom_scoring_functions.py` | `f533a6ef…`, `c0ee287c…` |
+
+**2026-11-17 (Session 005.5) artifacts, all untracked/uncommitted. Hashes were not supplied for these, except the staged-integration archive, the job 3103473 result file and the two staging sources listed in the last rows, and the two modified scripts' current local hashes (§5.14); this list claims nothing about what any of them proves.**
+
+| Artifact | Location in this checkout |
+|---|---|
+| Staged-integration archive (78 files; SHA-256 `79c4ace8…`, locally verified §5.14) | `actfound_staged_integration_20261117.tar.gz` |
+| Other archives | `actfound_adapter_sources_`, `actfound_current_source_`, `actfound_harmonic_complete_`, `actfound_local_upstream_`, `actfound_minimal_architecture_`, `actfound_screen_loader_`, `actfound_screen_partition_`, `actfound_stage_transfer_`, `t121_screen_dependencies_`, `t121_weighting_primitives_` (each `…20261117.tar.gz`) |
+| Patch | `actfound_harmonic_weights_patch.py` |
+| New scripts | `cyp/scripts/actfound_stage_adapters.py`, `actfound_stage_controller.py`, `t121_screen_stage.py`, `t121_weighted_training.py` |
+| Modified (uncommitted; `.bak` copies beside them) | `cyp/scripts/actfound_model_side.py`, `cyp/scripts/actfound_production_train_v2.py`. Note: §7.1 hashes for these two were matched on 2026-11-16; whether the working tree still equals the §7.1 values was not re-compared. On 2026-11-17 the current local hashes were taken: `actfound_model_side.py` `86ccf4b1…`, `actfound_production_train_v2.py` `9627ff17…`, both equal to the CoreHPC staging copies (§5.14) |
+| New tests | under `cyp/tests/`: `test_actfound_stage_controller.py`, `test_actfound_stage_adapters.py`, `test_actfound_stage_transfer.py`, `test_actfound_lr_penalty.py`, `test_actfound_weighting.py`, `test_t121_screen_stage.py`, `test_t121_training_weights.py`, `check_actfound_screen_loader.py` |
+| Qualification folders | `qualification/actfound/d014_lr_penalty_20261117/` (naming collision, §10), `qualification/actfound/screen_loader_20261117/`, `qualification/t121_executor_source_20261117/` |
+| Job 3103473 result file (CoreHPC, not in this checkout) | `/scratch/user/mhuang8/tripwire_staging/actfound_stage_transfer_20261117/results/screen_validation_gpu_check/result.json`; SHA-256 `4e7ae5520ce764bb2b3ed85fb9c50edede96afa0ce625acdc497f3c23521f0fd` (§5.14) |
+| `actfound_model_side.py` in the CoreHPC staging folder (same folder as above, `cyp/scripts/`) | SHA-256 `86ccf4b135a0388c147d2838e5d12ead2b5aaf5968f7140ec341e7950d3a62fd`; equals the current local file (§5.14) |
+
+Further untracked 2026-11-17 items beyond the truncated `git status` snapshot, if any, were not enumerated.
+
+Full 64-character hashes for the completed ActFound-CYP work are in §7.1. The wider inventory, including superseded versions, is in A2's Current state block and the A1 sections cited above. Files in this checkout are not evidence of what a CoreHPC job loaded or produced.
+
+The following are preserved and not to be deleted:
+- job 3066823's outputs;
+- the failed reproduction outputs (3073155, 3075157);
+- the FAIL acceptance run;
+- the superseded converter-route folder `qualification/actfound/firewall_corpus_20261115/`, which Amendment 1 cites;
+- the overlap audit `qualification/actfound/overlap_audit_20261115/`.
+
+### 7.1 SHA-256 inventory for the completed ActFound-CYP work
+
+Supplied by Miles on 2026-11-16 with the instruction to keep each hash paired with its filename. These identify existing artifacts; they are not new runs and not changed files, and the handoff authorizes no repository edit, experiment or retraining. Full 64-character values are below; truncated citations elsewhere in this report are unchanged.
+
+"Local check" = `shasum -a 256` run in this checkout in this session (2026-11-16); that is a local verification, not Miles's claim. Four entries are CoreHPC-side and are recorded from his handoff only.
+
+| File | Location checked | SHA-256 | Local check |
+|---|---|---|---|
+| `model_best.pt` (epoch 51) | CoreHPC `.../production_training_d013/actfound_chembl32_d013_v2/checkpoints/` | `4db29a04f69ecc1ef6ec2f058aa0335e132394a2a0bbe36c14bd27d54a49de2b` | not in this checkout; handoff only (agrees with §5.6) |
+| `eval_predictions_20261116/cyp_adaptation_predictions.json` | CoreHPC (§5.9) | `c6fbb0b13890af91cb6f14fa5d9cda45346a2b35415b0040da9861fd98362271` | not in this checkout; handoff only |
+| `eval_scores_20261116/cyp_o150_result.json` | CoreHPC (§5.9) | `dd1e43df022888b1f53af9b0840c9a8a6db1359efddb6b6dc77b0de1e614465c` | not in this checkout; handoff only |
+| `actfound_chembl32_d013_config_v2.json` | CoreHPC `.../cyp/artifacts/actfound/d013_split_config_v2_20261115/` | `dad741d0b6a3e1f014d47579acec29e9bacdad3ac7b1fb7b0c8b2f69a1984af6` | not in this checkout; handoff only (agrees with §5.4) |
+| `d013_evaluation_config_v1.json` | `qualification/actfound/d013_target_qualification_20261116/` | `c7d9638f2bb1673c10127a9b82513bf5168bc19d1c7014f70faec5dc518b97c4` | matched |
+| `run_evaluation.py` | same directory | `1f0a9408e009db3b7c5cf69c42fb7e14b4ca347ea79d50f94ac752ecea9453cc` | matched |
+| `score_evaluation.py` | same directory | `bd3344995c8713ca69d6b4ad3e9ab477596039f1eb09aab2fcce5ef970143361` | matched |
+| `qualify_adaptation.py` (current reviewed version) | same directory | `a49d0cd2392e0b818d6ce3efc3ae7fdc999e2fa6091d06b611d88cef0e52dc9f` | matched; no earlier version is in the checkout |
+| `count_cells.py` | same directory | `953d8d799ae4c0dc5589ef2c26209c47b06897b2b0be955e12e09b72edebf50b` | matched |
+| `test_evaluation.py` | same directory | `fdcd27ebb76240984ddf1bafe8d47c535261e0b5570c51b67a19cb9a64775bf9` | matched |
+| `d013_target_qualification_config_v1.json` | same directory | `d09239e269ba26b20832ef1f544335acbcfaa28d1d0d00537ccb7207939b6050` | matched |
+| `strae_scores.json` (earlier qualification scoring output, §5.7) | same directory, `strae/` | `2240436d56d632cf9137f4ca608e5f18784cc2a9dc8e2ccadcce52bbc07c3303` | matched |
+| `cell_counts.json` | same directory, `counts/` | `0ebad26f7d66dc020c3b1080da2a8ef0ddaaab3071ae593ce458ddf2a460e92f` | matched |
+| `actfound_production_train_v2.py` | `cyp/scripts/` | `ed3e1055b1a9f5a76fc6b0ddad0df7e4a2df95254e513aca90e7359615db1865` | matched |
+| `actfound_model_side.py` | `cyp/scripts/` | `97c1753512d102e1198bfad2ab4b601749cb1d57b6a1a3a1ad847be83214ee45` | matched |
+| `st_rae.py` (frozen scorer) | `cyp/scripts/` | `f533a6ef1e279bee922e03c3d6a69bae9313d3d1cf14a448041221bc5b274edf` | matched |
+| `cyp002_validation.py` | `cyp/scripts/` | `f0693b9294be0570988f08cc28256bf8ae995ea0cb82b421c45d40acb8bbc81e` | matched |
+| `custom_scoring_functions.py` (frozen upstream scorer) | `references/cyp_upstream/` | `c0ee287c06c0301d4b3bfd74559b90eb1bd85db68b75b7d018ae92280c0e1dd3` | matched |
+| `cyp-challenge-TRAIN_inhibition.csv` | `cyp/data/` | `b8f79addd266fb6f9f4c222c5e4e73d926362328b6a8d2841871a54e46bd2278` | matched |
+| `FREEZE_RECORD.json` | `cyp/artifacts/cyp_007/split_manifests/` | `9c6b292b8ca58ae83057cda157a338c0954b18b6f9253f040b0ca7344d6a2a85` | matched |
+| `p1_d009_o150_result_20261108.json` (corroborating comparator) | `artifacts/d009_closure_workspace/` | `b277f4ccd9138b688ff20bfaf2378ebfcb66bc118ab5943df48027168adc0e2b` | matched |
+
+All 17 locally present files matched the supplied values exactly, byte for byte.
+
+**What these hashes do and do not prove** (Miles's stated source scope): the result, predictions, supplied evaluation scripts/config, tests and qualification scoring output were hashed from the original supplied bytes. The remaining input/comparator hashes are recorded in the completed run artifacts; the training config, runner, model-side code and frozen scorer sources were also checked against their supplied audit copies. The final result JSON hash was computed from that existing audit copy, not a regenerated score. Hashing `test_evaluation.py` does not imply its tests were independently run. The local check establishes byte identity in this checkout only; files in this checkout are not evidence of what a CoreHPC job loaded or produced.
+
+The original cited `C0_COMPARISON.json` is still absent; the D009 comparator is corroborating only, so `comparison_is_final` remains false (§5.9, §10).
+
+---
+
+## 8. Corrections
+
+Each correction keeps its original text in the archive.
+
+- **`graph_pair_count` magnitude:** first recorded as "both directions, 1–2 pairs". It is 1–47 pairs and almost always upward (A1 §49 B annotation, §50 A).
+- **Digit count in job 3075157's analysis:** only one of the two authors' values said to carry 16 digits does (A1 §53 C).
+- **Activity 2091754:** first recorded as outside the split; it is inside (A2 entry 27).
+- **§40 sentence:** corrected in place twice on Miles's approval. Its corrected wording was inferred because the fork session holding the original was deleted (A1 §40). This is what prompted the working-practice instruction in A1 §46.
+- **Thin-adapter brief:** first recorded as not known to have preceded the evaluation code. It did; it is the brief Amendment 4 item 4 cites (A2 entry 51).
+- **Evaluation run status:** the report previously stated that the evaluation code had not been run or uploaded and that the full evaluation was not authorized. That was true as recorded; Miles subsequently ran the full evaluation on CoreHPC as job 3083113 (reported 2026-11-16), so the status lines in §5.8, §9 and §11 were updated. The earlier deployment/path and local dependency problems are superseded by that successful HPC run.
+- **Withdrawn overnight-failure rule:** its log entry was removed at Miles's request before either archive was made (A1 §35).
+
+---
+
+## 9. Current Status (as of 2026-11-17; items dated 2026-11-16 are historical unless re-stated)
+
+- **Session 005.5 (2026-11-17), current:** Miles's settled comparison plan is in §6 (T121 vs updated T121 and ActFound; fresh corrected-penalty ActFound foundation initialization; ActFound 80-epoch and T121 50-epoch screening). Staged package built and archived (`79c4ace8…`, locally verified, uncommitted); 11 controller tests and 8 adapter tests passed on the Mac as component/mock tests (§5.14). Transfer, archive hash check (`79c4ace8…` okay), extraction, package `SHA256SUMS.txt` check (0 non-OK lines) and the 19 plumbing tests on CoreHPC (ActFound env, `-I`) are reported done by Miles on 2026-11-17 (summary report, no pasted output; counts are the files' defined counts); they are mock/component tests under the Python 3.9 environment and do not establish launch readiness (§5.14). GPU correctness job 3103473: COMPLETED 0:0 (`sacct`, End 2026-11-17T18:57:58); result PASS (random-initialized model, 0 optimizer steps; not a performance claim); result file hash `4e7ae552…` recorded; model-side (`86ccf4b1…`) and runner (`9627ff17…`) hashes in the CoreHPC staging folder equal the current local files, taken after the job ended (the runner also matches the result's `runner_sha256`; model-side has no in-job record); the controller does not enforce this binding (§5.14). The plan is recorded as D015 in `notes/Decisions.md` (form chosen by Miles: "New D015"; authorizes no run). Launch readiness not established; no resume support established. **No training, model run or SLURM submission is authorized; no commit or push.**
+
+- **Firewalled foundation corpus:** built, acceptance PASSED.
+- **Foundation checkpoint:** retrained and frozen (epoch 51, `4db29a04…`).
+- **Target-adaptation qualification:** complete. Runtime, memory, all three correctness checks and their stage-2 ST-RAE bound checks all passed.
+- **D013 open items 1–4:** settled and recorded in Amendment 4.
+- **Evaluation code (thin target adapter):** reviewed, then deployed to CoreHPC and run. The earlier status line "not run, not uploaded" and the earlier "Not authorized: running the full evaluation" were true before Miles ran it; both are superseded by job 3083113 (§5.9). No new authorization beyond that run is implied.
+- **Full target evaluation:** complete (job 3083113, exit `0:0`). **ActFound-CYP O150 = 0.8699544509650656 vs supplied T121 = 0.701212576796, lower is better, `favours_actfound_cyp=false`.** This implementation produced weak held-out CYP predictions and did not beat the supplied T121 value.
+- **`comparison_is_final=false`,** preserved: the comparison was computed against the corroborating D009 artifact because the cited `C0_COMPARISON.json` was absent, so the comparator-provenance requirement is still open (§10).
+- **Saved-results audit:** complete. Scoring, aggregation and seed-slot replication reproduce exactly; no scoring-arithmetic or adaptation-carryover defect found. Characterized behaviour: compressed predictions and weak ranking, worst on CYP2D6, consistent across splits (§5.10).
+- **Training parity:** the upstream inner-loop learning-rate penalty is verifiably absent from the deployed trainer's objective while its configuration carries `begin_lrloss_epoch=50`/`lrloss_weight=35.0` (§5.11). No established causal explanation for the weak result and no demonstrated fix.
+- **Data scope:** the study used the broad firewalled ChEMBL32 corpus, not the 175-assay CYP auxiliary collection, so architecture is not isolated from pretraining-data scope (§5.12).
+- **Winner research:** external review done; no method adopted and no decisive component identified (§5.13).
+- **Artifact hashes:** the SHA-256 inventory for the completed ActFound-CYP work is recorded in §7.1. 17 of 21 files matched by a local check in this checkout; the four CoreHPC-side entries (checkpoint, predictions, scores, config v2) rest on Miles's handoff.
+- **No retraining, tuning, architecture change or new experiment is approved.** *(2026-11-16 line; superseded on 2026-11-17 in respect of the plan only: Miles has settled a fresh corrected-penalty ActFound foundation initialization and a T121-vs-updated-T121-and-ActFound comparison as the decided plan (§6). That plan authorizes no execution: no training, model run or SLURM submission is authorized in this session. The earlier line's history is preserved.)*
+- **Repository (per `git status`, 2026-11-16):**
+  - D013 Amendment 4 in `notes/Decisions.md`: uncommitted.
+  - Benchmark-helper and target-qualification folders, including the evaluation code: untracked.
+  - Whether and how the harness was uploaded to CoreHPC before the qualification runs: not recorded, although it was run there. The evaluation itself was deployed and run on CoreHPC (§5.9).
+  - The restructuring into this thematic report, and the matching update to the bookkeeper and `CLAUDE.md` rules, were applied on 2026-11-16. Before the swap, the prior live log was archived byte-identical as A2 (`57cca182…`, verified); A1 (`b70517b8…`) is unchanged. Both archives and the rule changes are uncommitted.
+- **Working setup: model routing (2026-11-17; tooling only, no scientific change).** Project-scoped and uncommitted:
+  - `.claude/agents/bookkeeper.md` gains `model: sonnet`;
+  - new read-only `.claude/agents/lookup.md` (`model: haiku`; Read, Grep and Glob only) for narrow lookups and summaries of existing logs;
+  - new `.claude/settings.json` sets `CLAUDE_CODE_SUBAGENT_MODEL=sonnet` for subagents with no explicit model;
+  - `CLAUDE.md` gains short routing and delegation rules (Opus only on request, with the reason explained first).
+
+  Agent roles, tools, permissions, hooks and the Bedrock setup are unchanged. Checked: the frontmatter of both agents parses, the settings JSON is valid, and installed Claude Code 2.1.325 recognizes `CLAUDE_CODE_SUBAGENT_MODEL`. Not yet confirmed:
+  - that the new models are used, which needs a new session;
+  - that the `sonnet`/`haiku` aliases resolve to models enabled in the Bedrock account;
+  - the main-session switch to Sonnet, which Miles makes in the model picker.
+
+---
+
+## 10. Open Items and Caveats
+
+- **Comparator artifact (open):** `cyp/artifacts/cyp_007/finalist_completion_v1/C0_COMPARISON.json` (`48bd619e…`) is not in this checkout and was absent when the evaluation ran. Amendment 4 item 6 requires a targeted check to locate it or account for it before the final comparison. The D009 O150 result file carries the same value but only corroborates it. The O150 comparison has now been computed against that corroborating artifact, so the number exists but `comparison_is_final` stays false (§5.9).
+- **No causal explanation:** the verified training-parity omission (§5.11) is not established as the cause of the weak result, and no fix is demonstrated. The head-only-adaptation/pairwise-averaging compression mechanism is a hypothesis; the internal weights needed to test it were not saved.
+- **Replica seed slots:** the 150 O150 rows come from 50 unique partition macros replicated into three seed slots, so they carry no seed-variance information.
+- **Non-independent observations:** each labelled molecule appears in validation five times, so the per-molecule stability figures in §5.10 are not independent samples.
+- **Adjudication record:** whether to also record the molregno 2336618 adjudication in `notes/Decisions.md` was raised and not decided (A2 entry 34).
+- **Pre-submission checks:** for jobs 3076199 and 3076848, only runner v2 and the model side are confirmed by later hashing. The other check outputs were not recorded (A2 entries 37, 39, 41).
+- **`graph_pair_count` cause:** attributed by elimination; similarity was not measured. Upstream of the pregraph `43dfd672…`, the sort step from the projection output has no recorded summary (A1 §29). The reproduction gate compares the output against the authors' file instead.
+- **Who submits later CoreHPC jobs:** not stated. Miles has submitted all of them so far. (2026-11-17: Miles states "I run execution commands.")
+- **Session 005.5 wiring still to inspect (open, none done; Miles's list):** pIC50 support weights reaching adaptation; normalization/reset semantics; qualification evidence bound to deployed hashes; real adapter/config/input binding; T121 production/O150 routing and epoch-end checkpoint behavior. Component/mock tests do not establish launch readiness. No resume support established.
+- **Transfer and CoreHPC plumbing tests (reported done 2026-11-17, §5.14):** reported by Miles in summary only; the "Ran N tests" lines were not pasted. They are mock/component tests under the Python 3.9 environment and a pass does not establish launch readiness. Still open alongside them: the wiring list above, support weights at evaluation, and T121 connection to the controller (the job 3103473 read-and-hash item is closed, §5.14).
+- **Job 3103473 (closed item):** COMPLETED 0:0; result PASS; result file hash and the staging model-side and runner hashes recorded 2026-11-17 (§5.14). The "read result and hash source" item is closed. Earlier lines "final result UNKNOWN" and "file not read / hash not supplied" are superseded.
+- **Decisions log (updated 2026-11-17):** the settled 2026-11-17 statements (§6) are now recorded as D015 in `notes/Decisions.md` (appended after the D014 records, in numeric order); Miles chose "New D015" as the form. The earlier "lag / returned for approval" status is superseded. **Open question for Miles:** D015 does not state that it supersedes D013's "retrain once; checkpoint freeze" terms. The epoch-51 checkpoint `4db29a04…` and job 3076848 are preserved unchanged, and whether D015 item 2 supersedes those D013 terms for this comparison is not decided.
+- **Observation from code inspection (not an established defect; nothing edited or run):** `run_task` in `cyp/scripts/actfound_production_train_v2.py` (about line 574) builds observation weights only when `is_training_phase=True`. Screening validation (about line 1363 of the same file) and the pIC50 evaluator (`qualification/actfound/d013_target_qualification_20261116/run_evaluation.py`, about line 155, legacy 3-field arrays) call it with `is_training_phase=False`, so support-loss adaptation at evaluation would be unweighted. Whether that matches the approved weighting rule is not recorded.
+- **Observation from code inspection (not an established defect):** the stage controller and adapters cover only ActFound foundation → screening → pIC50. The T121 production, O150 routing and epoch-end checkpoint wiring is not connected to them (matches the last item of the wiring list above).
+- **Job 3103473 binding (partly addressed):** model-side and runner hashes now bound to the current local files (§5.14), but the staging hashes were taken after the job ended; only the runner hash is corroborated in-job (`runner_sha256`), and model-side has no in-job record. The result records no other source hashes, and the controller checks only status, scope and `optimizer_steps`, so it does not enforce the binding. The earlier note that the stage_transfer archive's runner copy was `87d3766a…` stays unexplained (staging folder evidently updated after the archive; inferred, not verified).
+- **Naming collision:** the folder `qualification/actfound/d014_lr_penalty_20261117/` uses "d014", but D014 in `notes/Decisions.md` is the PXR holdout decision. The ActFound penalty work is not PXR D014 and has no D-number. Nothing renamed.
+- **Comparator provenance:** `comparison_is_final` stays false if unresolved (Miles's 2026-11-17 comparison decision preserves this).
+- **Hashes for the 2026-11-17 artifacts (corrected at close, 2026-11-17):** the earlier line "hashes not supplied for the 2026-11-17 artifacts other than the staged-integration archive" is stale. Hashes were later recorded for the staged-integration archive (`79c4ace8…`), the job 3103473 result file (`4e7ae552…`), the CoreHPC staging `actfound_model_side.py` (`86ccf4b1…`) and `actfound_production_train_v2.py` (`9627ff17…`), and the two modified scripts' current local hashes (§5.14, §7). Hashes were still not supplied for the other 2026-11-17 archives, patch, new scripts, new tests and qualification folders listed in §7.
+
+---
+
+## 11. Next Steps
+
+1. Locate or account for the comparator artifact before the comparison can be called final (Amendment 4 item 6); until then `comparison_is_final` stays false.
+2. (Done 2026-11-16) The job 3083113 predictions and score hashes and the comparator hash are recorded in §7.1, with 17 of the 21 inventory files confirmed by a local check in this checkout.
+
+3. (Session 005.5, 2026-11-17; reported done by Miles, §5.14) Transfer of the staged-integration archive to `/scratch/user/mhuang8/tripwire_staging/`, hash verification, extraction to `actfound_staged_integration_20261117`, package checksum check and the 19 plumbing tests (11 controller + 8 adapter) in the ActFound env. (Done 2026-11-17, §5.14) Job 3103473 COMPLETED 0:0; its result file and the staging model-side and runner sources were hashed on CoreHPC, and the model-side and runner hashes equal the current local files.
+4. Complete the wiring inspection listed in §10 before any launch is considered.
+
+Session closed 2026-11-17; remaining steps are carried into Session 006 (§12). Section 12 follows the training-parity note below.
+
+Training-parity omission (§5.11): Miles has since settled the plan to restart ActFound from a fresh corrected-penalty initialization (§6, 2026-11-17). *(Earlier line, 2026-11-16: "Open questions that follow from the findings but that Miles has not directed any work on: what to do about the verified training-parity omission. No retraining, tuning, architecture change or new experiment is authorized." Superseded in respect of the plan only; see §9. No training, model run or SLURM submission is authorized.)*
+
+---
+
+## 12. Carried into Session 006 (unresolved at close, 2026-11-17)
+
+Session 005 closed on Miles's declaration of 2026-11-17. None of the following was resolved in this session; each is carried forward as it stands in §5.14, §9 and §10. This list adds no Session 006 content and no decision.
+
+1. **Wiring list (Miles's list, none done):** pIC50 support weights reaching adaptation; normalization/reset semantics; qualification evidence bound to deployed hashes; real adapter/config/input binding; T121 production/O150 routing and epoch-end checkpoint behavior. Component/mock tests do not establish launch readiness; no resume support established.
+2. **Support weights at evaluation:** `run_task` builds observation weights only when `is_training_phase=True`; screening validation and the pIC50 evaluator call it with `False`. Whether that matches the approved weighting rule is not recorded (§10).
+3. **T121 connection to the controller:** the stage controller and adapters cover only ActFound foundation → screening → pIC50; T121 is not connected (§10).
+4. **Comparator provenance:** `C0_COMPARISON.json` still absent; the O150 comparison (ActFound-CYP 0.8699544509650656 vs T121 0.701212576796) was computed against the corroborating D009 artifact, so `comparison_is_final=false` (§5.9, §10).
+5. **Open question on D015:** whether D015 supersedes D013's "retrain once; checkpoint freeze" terms is not decided; epoch-51 checkpoint `4db29a04…` and job 3076848 are preserved unchanged (§10, `notes/Decisions.md` D015).
+6. **Naming note:** `qualification/actfound/d014_lr_penalty_20261117/` uses "d014", but D014 is the PXR holdout decision; the ActFound penalty work has no D-number; nothing renamed (§10).
+7. **Job 3103473 binding:** the controller does not enforce the hash binding; model-side has no in-job hash record (§5.14, §10).
+
+Standing at close: launch readiness is not established. No training, model run or SLURM submission is authorized. Corrected at close: the §10 "hashes not supplied" line (see §10).

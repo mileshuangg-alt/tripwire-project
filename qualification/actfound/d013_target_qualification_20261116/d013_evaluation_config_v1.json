@@ -1,0 +1,28 @@
+{
+  "artifact_type": "D013EvaluationConfigV1",
+  "comparator": {
+    "cited_artifact": "cyp/artifacts/cyp_007/finalist_completion_v1/C0_COMPARISON.json",
+    "cited_artifact_sha256": "48bd619ebd42b30b0c8862f915b7696e2156e822f48e220789b1563eb46817a8",
+    "cited_artifact_present_in_checkout": false,
+    "corroborating_artifact": "artifacts/d009_closure_workspace/p1_d009_o150_result_20261108.json",
+    "corroborating_artifact_sha256": "b277f4ccd9138b688ff20bfaf2378ebfcb66bc118ab5943df48027168adc0e2b",
+    "corroboration_note": "corroborating only; a matching number does not establish equivalent provenance (D013 Amendment 4 item 6)",
+    "o150_t121": 0.701212576796,
+    "strict_rule": "the ActFound-CYP package is favoured iff O150 < 0.701212576796"
+  },
+  "endpoint_task_order": [
+    "CYP1A2_pIC50_direct_inhibition",
+    "CYP2C9_pIC50_direct_inhibition",
+    "CYP2D6_pIC50_direct_inhibition",
+    "CYP3A4_pIC50_direct_inhibition"
+  ],
+  "expected_endpoints": 4,
+  "expected_partitions": 50,
+  "expected_seed_slots": 3,
+  "label_scale": "pIC50 = -log10(M); no conversion (D013 Amendment 4 item 2)",
+  "o150_cells": 150,
+  "qualification_config": "d013_target_qualification_config_v1.json",
+  "qualification_config_sha256": "d09239e269ba26b20832ef1f544335acbcfaa28d1d0d00537ccb7207939b6050",
+  "seed_slots_are_replicates": "200 unique cell-endpoint adaptations recorded into three seed slots; execution shortcut, not numerical identity with 150 literal runs (D013 Amendment 4 item 1)",
+  "support_rule": "complete labelled training set per endpoint; no cap, no subsampling, anchor count unchanged (D013 Amendment 4 item 3)"
+}

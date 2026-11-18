@@ -49,6 +49,37 @@ class ActFoundAssay:
     y: np.ndarray
     x: Optional[np.ndarray] = None
     graph_pair_count: Optional[int] = None
+    molecule_ids: Optional[tuple[str, ...]] = None
+    observation_weights: Optional[np.ndarray] = None
+
+    def __post_init__(self) -> None:
+        y = np.asarray(self.y, dtype=np.float32)
+        if len(self.smiles) != len(y):
+            raise ValueError("SMILES must align exactly with assay labels")
+        ids = (
+            tuple(f"{self.assay_id}:{i}" for i in range(len(y)))
+            if self.molecule_ids is None
+            else tuple(str(value) for value in self.molecule_ids)
+        )
+        if len(ids) != len(y):
+            raise ValueError("molecule_ids must align exactly with assay labels")
+        object.__setattr__(self, "y", y)
+        object.__setattr__(self, "molecule_ids", ids)
+        if self.observation_weights is not None:
+            weights = np.asarray(self.observation_weights, dtype=np.float64)
+            if weights.shape != y.shape:
+                raise ValueError("observation_weights must align exactly with assay labels")
+            observed = np.isfinite(y)
+            invalid = observed & (~np.isfinite(weights) | (weights <= 0))
+            if np.any(invalid):
+                rows = [
+                    (ids[i], float(y[i]), float(weights[i]))
+                    for i in np.flatnonzero(invalid)
+                ]
+                raise ValueError(
+                    f"Invalid uncertainty weights for observed ActFound labels: {rows[:50]}"
+                )
+            object.__setattr__(self, "observation_weights", weights)
 
     def with_features(self, x: np.ndarray) -> "ActFoundAssay":
         if len(x) != len(self.y):
@@ -59,6 +90,8 @@ class ActFoundAssay:
             y=self.y,
             x=np.asarray(x, dtype=np.float32),
             graph_pair_count=self.graph_pair_count,
+            molecule_ids=self.molecule_ids,
+            observation_weights=self.observation_weights,
         )
 
 
@@ -88,6 +121,8 @@ class ActFoundFrozenMetaDataset:
         self.val_indices: list[int] = []
         self.test_indices: list[int] = []
         self.graph_pair_counts: list[Optional[int]] = []
+        self.molecule_ids_all: list[tuple[str, ...]] = []
+        self.observation_weights_all: list[Optional[np.ndarray]] = []
 
         train_assays = set(train_assays or ())
         val_assays = set(val_assays or ())
@@ -106,6 +141,8 @@ class ActFoundFrozenMetaDataset:
                         y=assay.y,
                         x=assay.x,
                         graph_pair_count=assay.graph_pair_count,
+                        molecule_ids=assay.molecule_ids,
+                        observation_weights=assay.observation_weights,
                     )
                     self._append_assay(repeated)
                     self.train_indices.append(len(self.assaes) - 1)
@@ -127,6 +164,8 @@ class ActFoundFrozenMetaDataset:
         self.smiles_all.append(assay.smiles)
         self.assaes.append(assay.assay_id)
         self.graph_pair_counts.append(assay.graph_pair_count)
+        self.molecule_ids_all.append(assay.molecule_ids)
+        self.observation_weights_all.append(assay.observation_weights)
 
     @classmethod
     def from_tsv(
@@ -157,17 +196,27 @@ class ActFoundFrozenMetaDataset:
         test_sup_num: Union[float, int],
         is_test: bool,
         rand_seed: int,
-    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+        include_metadata: bool = False,
+    ):
         x = self.Xs[index]
         if x is None:
             raise ValueError("assay has no feature matrix; call from_tsv(..., featurize=True) or with_features")
-        return make_episode_split(
+        x_split, y_split, split, selected = make_episode_split(
             x,
             self.ys[index],
             test_sup_num=test_sup_num,
             is_test=is_test,
             rand_seed=rand_seed,
+            return_indices=True,
         )
+        if not include_metadata:
+            return x_split, y_split, split
+        weights = self.observation_weights_all[index]
+        ids = self.molecule_ids_all[index]
+        selected_weights = None if weights is None else np.asarray(weights)[selected].copy()
+        selected_ids = tuple(ids[i] for i in selected)
+        result = (x_split, y_split, split, selected_weights, selected_ids)
+        return result
 
 
 def _upstream_pic50(standard_value: str) -> float:
@@ -208,6 +257,7 @@ def iter_frozen_graph_qualified_assays(path: Path) -> Iterator[ActFoundAssay]:
             from rdkit import Chem
 
             smiles: list[str] = []
+            molecule_ids: list[str] = []
             y_values: list[float] = []
             pair_counts: set[int] = set()
             descriptor: Optional[str] = None
@@ -224,6 +274,7 @@ def iter_frozen_graph_qualified_assays(path: Path) -> Iterator[ActFoundAssay]:
                 elif descriptor != _upstream_assay_descriptor(row):
                     raise ValueError("frozen assay group contains multiple upstream descriptors")
                 smiles.append(row["canonical_smiles"])
+                molecule_ids.append(str(row["molregno"]))
                 y_values.append(_upstream_pic50(row["standard_value"]))
                 pair_counts.add(int(row["graph_pair_count"]))
 
@@ -240,6 +291,7 @@ def iter_frozen_graph_qualified_assays(path: Path) -> Iterator[ActFoundAssay]:
                 smiles=tuple(smiles),
                 y=y,
                 graph_pair_count=graph_pair_count,
+                molecule_ids=tuple(molecule_ids),
             )
 
         for row in reader:
@@ -286,11 +338,15 @@ def make_episode_split(
     is_test: bool,
     rand_seed: int,
     datasource: str = "chembl",
-) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """Reproduce BaseMetaDataset.get_split for the ActFound ChEMBL path."""
+    return_indices: bool = False,
+):
+    """Reproduce the existing sampler; optionally return selected source indices."""
     rng = np.random.RandomState(seed=rand_seed)
     x = np.asarray(x_in, dtype=np.float32)
     y = np.asarray(y_in, dtype=np.float32)
+    if len(x) != len(y):
+        raise ValueError("episode features and labels must have equal row counts")
+    selected_indices = np.arange(len(x), dtype=np.int64)
 
     if len(x) > 64 and not is_test and datasource != "gdsc":
         subset_num = 64
@@ -299,20 +355,22 @@ def make_episode_split(
         select_idx = np.nonzero(np.asarray(select_idx))[0]
         x = x[select_idx]
         y = y[select_idx]
+        selected_indices = selected_indices[select_idx]
 
     sup_num: Union[float, int] = test_sup_num
     if sup_num <= 1:
         sup_num = sup_num * len(x)
     sup_num = int(sup_num)
-
     if not is_test:
         min_num = math.log10(max(10, int(0.3 * len(x))))
         max_num = math.log10(int(0.85 * len(x)))
         sup_num = math.floor(10 ** random.uniform(min_num, max_num))
-
     split = [1] * int(sup_num) + [0] * (len(x) - int(sup_num))
     rng.shuffle(split)
-    return x, y, np.asarray(split, dtype=np.int64)
+    split_array = np.asarray(split, dtype=np.int64)
+    if return_indices:
+        return x, y, split_array, selected_indices
+    return x, y, split_array
 
 
 def jaccard_count_sim_matrix(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
@@ -330,14 +388,166 @@ def cossim_matrix(a: torch.Tensor, b: torch.Tensor, eps: float = 1e-8) -> torch.
     return torch.mm(a_norm, b_norm.transpose(0, 1))
 
 
-def robust_square_error(a: torch.Tensor, b: torch.Tensor, topk_idx: torch.Tensor) -> torch.Tensor:
-    abs_diff = torch.abs(a - b)
-    square_mask = (abs_diff <= 2).float()
+def curve_fit_observation_weights(
+    conf_low,
+    conf_high,
+    observed_mask,
+    molecule_ids,
+) -> np.ndarray:
+    """Raw bounded inverse-width weights: 1 / (conf_high - conf_low + 0.25)."""
+    low = np.asarray(conf_low, dtype=np.float64)
+    high = np.asarray(conf_high, dtype=np.float64)
+    mask = np.asarray(observed_mask, dtype=bool)
+    ids = tuple(str(value) for value in molecule_ids)
+    if low.ndim != 1 or high.shape != low.shape or mask.shape != low.shape:
+        raise ValueError("curve-fit CI bounds and observed mask must be aligned vectors")
+    if len(ids) != len(low):
+        raise ValueError("molecule_ids must align with curve-fit observations")
+    result = np.full(low.shape, np.nan, dtype=np.float64)
+    bad = []
+    for i in np.flatnonzero(mask):
+        if not np.isfinite(low[i]) or not np.isfinite(high[i]):
+            bad.append((ids[i], "missing/non-finite CI bound"))
+            continue
+        width = high[i] - low[i]
+        if not np.isfinite(width) or width <= 0:
+            bad.append((ids[i], "non-positive/non-finite CI width"))
+            continue
+        result[i] = 1.0 / (width + 0.25)
+    if bad:
+        raise ValueError(f"Invalid observed curve-fit uncertainty rows: {bad[:50]}")
+    return result
+
+
+def screen_observation_weights(
+    log2fc_std_error,
+    observed_mask,
+    molecule_ids,
+) -> np.ndarray:
+    """Raw inverse reported-variance weights: 1 / log2fc_std_error squared."""
+    se = np.asarray(log2fc_std_error, dtype=np.float64)
+    mask = np.asarray(observed_mask, dtype=bool)
+    ids = tuple(str(value) for value in molecule_ids)
+    if se.ndim != 1 or mask.shape != se.shape:
+        raise ValueError("screen SE and observed mask must be aligned vectors")
+    if len(ids) != len(se):
+        raise ValueError("molecule_ids must align with screen observations")
+    result = np.full(se.shape, np.nan, dtype=np.float64)
+    bad = []
+    for i in np.flatnonzero(mask):
+        if not np.isfinite(se[i]) or se[i] <= 0:
+            bad.append((ids[i], "missing/non-finite/non-positive SE"))
+            continue
+        result[i] = 1.0 / (se[i] ** 2)
+        if not np.isfinite(result[i]) or result[i] <= 0:
+            bad.append((ids[i], "inverse-SE-squared weight is non-finite/non-positive"))
+    if bad:
+        raise ValueError(f"Invalid observed screening uncertainty rows: {bad[:50]}")
+    return result
+
+
+def harmonic_pair_weights(weights_a: torch.Tensor, weights_b: torch.Tensor) -> torch.Tensor:
+    """Raw pair weights (w_i * w_j) / (w_i + w_j); no partition normalization."""
+    if weights_a.ndim != 1 or weights_b.ndim != 1:
+        raise ValueError("pair endpoint weights must be vectors")
+    wa = weights_a.unsqueeze(1)
+    wb = weights_b.unsqueeze(0)
+    return (wa * wb) / (wa + wb)
+
+
+def _weighted_direct_mse(predictions, targets, raw_weights):
+    observed = torch.isfinite(targets)
+    if not bool(observed.any()):
+        raise ValueError("ActFound direct loss has no observed labels")
+    errors = (predictions[observed] - targets[observed]) ** 2
+    if raw_weights is None:
+        result = torch.mean(errors)
+        return result
+    selected = raw_weights[observed]
+    if not bool(torch.isfinite(selected).all()) or not bool((selected > 0).all()):
+        raise ValueError("Observed direct-loss weights must be finite and positive")
+    normalized = selected / selected.mean()
+    result = torch.mean(errors * normalized)
+    return result
+
+
+def _selected_neighbor_prediction(preds_all, embed_sim, topk_idx, source_observed):
+    selected_predictions = torch.gather(preds_all, 0, topk_idx)
+    selected_similarity = torch.gather(embed_sim, 0, topk_idx)
+    source_mask = source_observed.to(torch.bool).unsqueeze(1).expand_as(preds_all)
+    selected_observed = torch.gather(source_mask, 0, topk_idx)
+    if not bool(selected_observed.any(dim=0).all()):
+        raise ValueError("An ActFound prediction has no observed selected source neighbour")
+    logits = torch.where(
+        selected_observed,
+        selected_similarity,
+        torch.full_like(selected_similarity, -1e9),
+    )
+    probabilities = torch.softmax(logits, dim=0)
+    selected_predictions = torch.where(
+        selected_observed,
+        selected_predictions,
+        torch.zeros_like(selected_predictions),
+    )
+    result = torch.sum(selected_predictions * probabilities, dim=0)
+    return result
+
+
+def robust_square_error(
+    a: torch.Tensor,
+    b: torch.Tensor,
+    topk_idx: torch.Tensor,
+    *,
+    observation_weights_a: Optional[torch.Tensor] = None,
+    observation_weights_b: Optional[torch.Tensor] = None,
+    observed_a: Optional[torch.Tensor] = None,
+    observed_b: Optional[torch.Tensor] = None,
+) -> torch.Tensor:
+    """Original robust error; optional harmonic weights are gathered after top-k."""
+    rows, columns = a.shape
+    if observed_a is None:
+        observed_a = torch.ones(rows, dtype=torch.bool, device=a.device)
+    if observed_b is None:
+        observed_b = torch.ones(columns, dtype=torch.bool, device=a.device)
+    pair_mask = observed_a.to(torch.bool).unsqueeze(1) & observed_b.to(torch.bool).unsqueeze(0)
+
+    # Avoid NaN arithmetic for genuinely missing labels before applying the mask.
+    difference = torch.where(pair_mask, a - b, torch.zeros_like(a))
+    abs_diff = torch.abs(difference)
+    square_mask = (abs_diff <= 2).to(dtype=a.dtype)
     linear_mask = 1.0 - square_mask
-    square_error = (a - b) ** 2
+    square_error = difference ** 2
     linear_error = 1.0 * (abs_diff - 2) + 4
     loss = square_error * square_mask + linear_error * linear_mask
-    return torch.mean(torch.gather(loss, 0, topk_idx))
+
+    selected_loss = torch.gather(loss, 0, topk_idx)
+    selected_mask = torch.gather(pair_mask, 0, topk_idx)
+    if not bool(selected_mask.any()):
+        raise ValueError("ActFound pairwise reduction has no observed selected pairs")
+
+    weighted = observation_weights_a is not None or observation_weights_b is not None
+    if not weighted:
+        if bool(selected_mask.all()):
+            return torch.mean(selected_loss)
+        result = torch.mean(selected_loss[selected_mask])
+        return result
+
+    if observation_weights_a is None:
+        observation_weights_a = torch.ones(rows, dtype=a.dtype, device=a.device)
+    if observation_weights_b is None:
+        observation_weights_b = torch.ones(columns, dtype=a.dtype, device=a.device)
+    if observation_weights_a.shape != (rows,) or observation_weights_b.shape != (columns,):
+        raise ValueError("pair endpoint weights do not match pair-error axes")
+
+    # Crucially, combine RAW endpoint weights first; only selected pairs are normalized.
+    pair_raw = harmonic_pair_weights(observation_weights_a, observation_weights_b)
+    selected_raw = torch.gather(pair_raw, 0, topk_idx)
+    valid_raw = selected_raw[selected_mask]
+    if not bool(torch.isfinite(valid_raw).all()) or not bool((valid_raw > 0).all()):
+        raise ValueError("selected raw harmonic pair weights must be finite and positive")
+    normalized = valid_raw / valid_raw.mean()
+    result = torch.mean(selected_loss[selected_mask] * normalized)
+    return result
 
 
 @dataclass(frozen=True)
@@ -398,8 +608,10 @@ def actfound_loss_and_preds(
     is_support: bool,
     is_training_phase: bool,
     temp: float = 0.2,
+    observation_weights: Optional[torch.Tensor] = None,
+    molecule_ids: Optional[Sequence[str]] = None,
 ) -> tuple[torch.Tensor, torch.Tensor]:
-    """Reproduce ActFoundRegressor.net_forward after model forward."""
+    """ActFound loss with optional raw observation weights; pair topology is unchanged."""
     split = split.to(dtype=torch.float32, device=x.device)
     sup_idx = torch.nonzero(split)[:, 0]
     tgt_idx = torch.nonzero(1.0 - split)[:, 0]
@@ -413,8 +625,36 @@ def actfound_loss_and_preds(
     query_features = embeddings[tgt_idx]
     sup_num = int(sup_idx.shape[0])
     tgt_num = int(tgt_idx.shape[0])
+    if sup_num < 2 or tgt_num < 2:
+        raise ValueError("ActFound pair construction requires at least two support and two target rows")
+
+    all_observed = torch.isfinite(y)
+    raw_all = None
+    if observation_weights is not None:
+        raw_all = torch.as_tensor(observation_weights, dtype=y.dtype, device=y.device)
+        if raw_all.shape != y.shape:
+            raise ValueError("observation_weights must align with the full ActFound episode")
+        ids = tuple(str(v) for v in molecule_ids) if molecule_ids is not None else tuple(str(i) for i in range(len(y)))
+        if len(ids) != len(y):
+            raise ValueError("molecule_ids must align with ActFound episode labels")
+        invalid = all_observed & (~torch.isfinite(raw_all) | (raw_all <= 0))
+        if bool(invalid.any()):
+            rows = [
+                (ids[i], float(y[i].detach().cpu()), float(raw_all[i].detach().cpu()))
+                for i in torch.nonzero(invalid).flatten().tolist()
+            ]
+            raise ValueError(f"Invalid uncertainty for observed ActFound labels: {rows[:50]}")
+
+    sup_observed = torch.isfinite(sup_y)
+    tgt_observed = torch.isfinite(tgt_y)
+    if int(sup_observed.sum()) < 2 or int(tgt_observed.sum()) < 2:
+        raise ValueError("ActFound requires at least two observed support and query labels")
+    sup_weights = None if raw_all is None else raw_all[sup_idx]
+    tgt_weights = None if raw_all is None else raw_all[tgt_idx]
+
     softmax = torch.nn.Softmax(dim=0)
-    rescale = 1.0 if is_training_phase else max(0.2, sup_y.std())
+    observed_sup_y = sup_y[sup_observed]
+    rescale = 1.0 if is_training_phase else max(0.2, float(observed_sup_y.std().detach().cpu()))
 
     if is_support:
         ddg_pred = (support_value.unsqueeze(-1) - support_value.unsqueeze(0)) * rescale
@@ -422,10 +662,13 @@ def actfound_loss_and_preds(
         _, topk_idx = torch.topk(sup_sim, dim=0, k=sup_sim.shape[0] // 2)
         embed_sim = cossim_matrix(support_features, support_features) / temp
         embed_sim = embed_sim - 1e9 * torch.eye(support_features.shape[0], device=x.device)
-        embed_select = softmax(torch.gather(embed_sim, 0, topk_idx))
         preds_all = sup_y.unsqueeze(-1).repeat(1, sup_num) - ddg_pred
-        preds = torch.sum(torch.gather(preds_all, 0, topk_idx) * embed_select, dim=0)
-        loss = torch.mean((preds - sup_y) ** 2) / rescale ** 2
+        if bool(sup_observed.all()):
+            embed_select = softmax(torch.gather(embed_sim, 0, topk_idx))
+            preds = torch.sum(torch.gather(preds_all, 0, topk_idx) * embed_select, dim=0)
+        else:
+            preds = _selected_neighbor_prediction(preds_all, embed_sim, topk_idx, sup_observed)
+        loss = _weighted_direct_mse(preds, sup_y, sup_weights) / rescale ** 2
         return torch.sqrt(loss), preds
 
     ddg_pred_1 = support_value.unsqueeze(-1) - tgt_value.unsqueeze(0)
@@ -436,16 +679,44 @@ def actfound_loss_and_preds(
     _, topk_idx = torch.topk(cross_sim, dim=0, k=int(cross_sim.shape[0] * 0.5))
     embed_sim = cossim_matrix(support_features, query_features) / temp
     preds_all = sup_y.unsqueeze(-1).repeat(1, tgt_num) - ddg_pred_1 * rescale
-    preds = torch.sum(
-        torch.gather(preds_all, 0, topk_idx) * softmax(torch.gather(embed_sim, 0, topk_idx)),
-        dim=0,
-    )
+    if bool(sup_observed.all()):
+        preds = torch.sum(
+            torch.gather(preds_all, 0, topk_idx)
+            * softmax(torch.gather(embed_sim, 0, topk_idx)),
+            dim=0,
+        )
+    else:
+        preds = _selected_neighbor_prediction(preds_all, embed_sim, topk_idx, sup_observed)
+
     tgt_sim = jaccard_count_sim_matrix(tgt_x, tgt_x) - torch.eye(tgt_num, device=x.device)
     _, tgt_topk_idx = torch.topk(tgt_sim, dim=0, k=tgt_sim.shape[0] // 2)
-    loss_2 = robust_square_error(ddg_pred_2, ddg_real_2, tgt_topk_idx)
-    loss_1 = robust_square_error(ddg_pred_1, ddg_real_1, topk_idx)
-    loss_dg = torch.mean((preds - tgt_y) ** 2)
-    return torch.sqrt(loss_2 * 0.25 + loss_1 * 0.5 + loss_dg), preds
+
+    if raw_all is None and bool(all_observed.all()):
+        # Preserve the exact original unweighted ActFound objective.
+        loss_2 = robust_square_error(ddg_pred_2, ddg_real_2, tgt_topk_idx)
+        loss_1 = robust_square_error(ddg_pred_1, ddg_real_1, topk_idx)
+    else:
+        loss_2 = robust_square_error(
+            ddg_pred_2,
+            ddg_real_2,
+            tgt_topk_idx,
+            observation_weights_a=tgt_weights,
+            observation_weights_b=tgt_weights,
+            observed_a=tgt_observed,
+            observed_b=tgt_observed,
+        )
+        loss_1 = robust_square_error(
+            ddg_pred_1,
+            ddg_real_1,
+            topk_idx,
+            observation_weights_a=sup_weights,
+            observation_weights_b=tgt_weights,
+            observed_a=sup_observed,
+            observed_b=tgt_observed,
+        )
+    loss_dg = _weighted_direct_mse(preds, tgt_y, tgt_weights)
+    result = torch.sqrt(loss_2 * 0.25 + loss_1 * 0.5 + loss_dg)
+    return result, preds
 
 
 def select_actfound_inner_loop_params(
@@ -482,6 +753,8 @@ def actfound_forward_with_regressor(
     training: bool = True,
     backup_running_statistics: bool = False,
     num_step: int = 0,
+    observation_weights: Optional[torch.Tensor] = None,
+    molecule_ids: Optional[Sequence[str]] = None,
 ) -> tuple[torch.Tensor, torch.Tensor]:
     """Minimal adapter for the real upstream FCNReLUNormNetworkQSAR forward path."""
     embeddings, values = regressor.forward(
@@ -499,6 +772,8 @@ def actfound_forward_with_regressor(
         values,
         is_support=is_support,
         is_training_phase=is_training_phase,
+        observation_weights=observation_weights,
+        molecule_ids=molecule_ids,
     )
 
 
@@ -649,3 +924,186 @@ PROVENANCE = {
         "qualification_test": "cyp/tests/test_actfound_model_side.py::test_inference_output_semantics",
     },
 }
+
+
+def load_adjudicated_screen_assays(
+    screen_path,
+    identity_path,
+    similarity_path,
+    contract_path,
+    *,
+    featurize=False,
+):
+    """Load exact adjudicated screen observations as four enzyme-specific tasks."""
+    import hashlib
+    import json
+
+    contract = json.loads(Path(contract_path).read_text())
+    paths = {
+        "screen": Path(screen_path),
+        "identity": Path(identity_path),
+        "similarity": Path(similarity_path),
+    }
+    for kind, path in paths.items():
+        actual = hashlib.sha256(path.read_bytes()).hexdigest()
+        expected = contract["sha256"][kind]
+        if actual != expected:
+            raise ValueError(
+                f"{kind} input hash mismatch: {path}; "
+                f"expected={expected}, actual={actual}"
+            )
+
+    def read_rows(path, delimiter):
+        with path.open(newline="") as handle:
+            return list(csv.DictReader(handle, delimiter=delimiter))
+
+    def unique_adjudications(records):
+        table = {}
+        for row in records:
+            name = row["molecule_name"]
+            if name in table:
+                raise ValueError(f"Duplicate adjudication identity: {name}")
+            table[name] = row
+        return table
+
+    identity = unique_adjudications(read_rows(paths["identity"], "\t"))
+    similarity = unique_adjudications(read_rows(paths["similarity"], "\t"))
+    enzymes = tuple(contract["enzymes"])
+    groups = {enzyme: [] for enzyme in enzymes}
+    source_names = set()
+    population = set()
+    seen_pairs = set()
+
+    for row_number, row in enumerate(read_rows(paths["screen"], ","), start=2):
+        name = row["Molecule_Name"]
+        smiles = row["SMILES"]
+        enzyme = row["enzyme"]
+        source_names.add(name)
+
+        if name not in identity:
+            raise ValueError(
+                f"Missing identity adjudication: row={row_number}, molecule={name}"
+            )
+        adjudication = identity[name]
+        if smiles != adjudication["smiles"]:
+            raise ValueError(
+                f"Source/adjudication SMILES mismatch: row={row_number}, molecule={name}"
+            )
+
+        identity_class = adjudication["class"]
+        if identity_class in ("full_key_match", "largest_fragment_match"):
+            continue
+        if identity_class not in ("no_identity_link", "first_block_near_match_only"):
+            raise ValueError(
+                f"Unresolved identity adjudication: {name}, {identity_class}"
+            )
+
+        if name not in similarity:
+            raise ValueError(f"Missing similarity adjudication: {name}")
+        neighbor = similarity[name]
+        if neighbor["identity_class"] != identity_class:
+            raise ValueError(f"Identity/similarity adjudication mismatch: {name}")
+
+        verdict = neighbor["cluster_verdict"]
+        if verdict == "bridges_protected":
+            continue
+        if verdict != "cluster_clear":
+            raise ValueError(f"Unresolved similarity adjudication: {name}, {verdict}")
+
+        if enzyme not in groups:
+            raise ValueError(
+                f"Unexpected screen enzyme: row={row_number}, molecule={name}, enzyme={enzyme}"
+            )
+        pair = (name, enzyme)
+        if pair in seen_pairs:
+            raise ValueError(f"Duplicate eligible compound/enzyme observation: {pair}")
+        seen_pairs.add(pair)
+        population.add(name)
+
+        label_text = row["log2fc_estimate"].strip()
+        if label_text.lower() in ("", "nan", "na", "null"):
+            continue
+
+        try:
+            label = float(label_text)
+        except (ValueError, TypeError) as exc:
+            raise ValueError(
+                f"Invalid screen label: row={row_number}, molecule={name}, enzyme={enzyme}"
+            ) from exc
+        if not np.isfinite(label):
+            raise ValueError(
+                f"Non-finite screen label: row={row_number}, molecule={name}, enzyme={enzyme}"
+            )
+
+        try:
+            se = float(row["log2fc_std_error"])
+        except (ValueError, TypeError) as exc:
+            raise ValueError(
+                f"Invalid observed SE: row={row_number}, molecule={name}, enzyme={enzyme}"
+            ) from exc
+
+        raw_weight = screen_observation_weights(
+            [se],
+            [True],
+            [f"{name}:{enzyme}:row{row_number}"],
+        )[0]
+        groups[enzyme].append((name, smiles, label, raw_weight))
+
+    if len(source_names) != contract["source_compounds"]:
+        raise ValueError(
+            f"Screen source compound count mismatch: {len(source_names)}"
+        )
+    missing_adjudications = source_names - set(identity)
+    if missing_adjudications:
+        raise ValueError(
+            "Screen compounds missing from identity adjudications: "
+            f"{sorted(missing_adjudications)}"
+        )
+    if len(population) != contract["eligible_compounds"]:
+        raise ValueError(
+            f"Eligible compound count mismatch: {len(population)}"
+        )
+
+    assays = []
+    labelled_population = set()
+    for enzyme in enzymes:
+        records = groups[enzyme]
+        if len(records) < 4:
+            raise ValueError(
+                f"Insufficient observed screening data for {enzyme}: n={len(records)}"
+            )
+        ids = tuple(record[0] for record in records)
+        labelled_population.update(ids)
+        assay = ActFoundAssay(
+            assay_id=f"screen:{enzyme}",
+            smiles=tuple(record[1] for record in records),
+            y=np.asarray([record[2] for record in records], dtype=np.float32),
+            molecule_ids=ids,
+            observation_weights=np.asarray(
+                [record[3] for record in records],
+                dtype=np.float64,
+            ),
+        )
+        if featurize:
+            from rdkit import Chem
+
+            bad = [
+                name
+                for name, smiles in zip(ids, assay.smiles)
+                if Chem.MolFromSmiles(smiles) is None
+            ]
+            if bad:
+                raise ValueError(f"Screen feature parse failures: {bad}")
+            assay = assay.with_features(
+                upstream_count_morgan_features(assay.smiles)
+            )
+        assays.append(assay)
+
+    if labelled_population != population:
+        raise ValueError(
+            "Eligible compounds without any observed screening label: "
+            f"{sorted(population - labelled_population)}"
+        )
+
+    result = tuple(assays)
+    return result

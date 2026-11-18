@@ -1,0 +1,44 @@
+{
+  "artifact_type": "D013TargetQualificationConfigV1",
+  "endpoints": [
+    {
+      "name": "CYP1A2",
+      "label": "CYP1A2_pIC50_direct_inhibition",
+      "conf_low": "CYP1A2_pIC50_direct_inhibition_conf_low",
+      "conf_high": "CYP1A2_pIC50_direct_inhibition_conf_high"
+    },
+    {
+      "name": "CYP2C9",
+      "label": "CYP2C9_pIC50_direct_inhibition",
+      "conf_low": "CYP2C9_pIC50_direct_inhibition_conf_low",
+      "conf_high": "CYP2C9_pIC50_direct_inhibition_conf_high"
+    },
+    {
+      "name": "CYP2D6",
+      "label": "CYP2D6_pIC50_direct_inhibition",
+      "conf_low": "CYP2D6_pIC50_direct_inhibition_conf_low",
+      "conf_high": "CYP2D6_pIC50_direct_inhibition_conf_high"
+    },
+    {
+      "name": "CYP3A4",
+      "label": "CYP3A4_pIC50_direct_inhibition",
+      "conf_low": "CYP3A4_pIC50_direct_inhibition_conf_low",
+      "conf_high": "CYP3A4_pIC50_direct_inhibition_conf_high"
+    }
+  ],
+  "label_scale": "pIC50 = -log10(M)",
+  "pretraining_scale_offset": -9.0,
+  "protected_splits": ["test"],
+  "qualification_partitions": [
+    "rep_01_fold_01",
+    "rep_03_fold_05",
+    "rep_05_fold_10"
+  ],
+  "required_rdkit": "2023.03.1",
+  "seed_values": [20261101, 20261102],
+  "tolerances": {
+    "offset_max_abs_pred_pic50": 0.001,
+    "repeat_max_abs_pred_pic50": 1e-06,
+    "scramble_max_abs_pred_pic50": 0.0
+  }
+}

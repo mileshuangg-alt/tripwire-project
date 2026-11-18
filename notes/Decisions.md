@@ -6386,6 +6386,24 @@ Everything else in D013, Amendment 1 and Amendment 2 is unchanged.
 
 Rounding at fewer significant figures (same boundary problem); ULP counting (authors' text is already rounded, so a ULP count is not meaningful); an exception list of the 4 activity_ids (hand-made carve-out, breaks on any rerun with different straddles); a tolerance on −log10(value) (equivalent here, adds a transform).
 
+## D013 Amendment 4 — Open items 1-4 settled; O150 execution; adaptation/scoring split (2026-11-16)
+
+**Status:** Approved (2026-11-16).
+
+This amendment authorizes no run. The architecture, the checkpoint, T121 and the 150-cell design are unchanged.
+
+1. **Seeds.** The 150-cell design is kept. Adaptation performs no per-cell training and consumes no seed: the seed's only per-task consumer, `make_episode_split`, is replaced by the frozen cell, and the adaptation path contains no other RNG call and no dropout. Predictions were bit-identical across two seed values in all three qualification cells (Session 005 entry 47). O150 is therefore computed from 200 unique cell-endpoint adaptations (50 partitions x 4 endpoints), each recorded into its three seed slots, giving 600 results and 150 cell values. This is an execution shortcut, not a claim of numerical identity with 150 literal runs and not a claim that 150 independent adaptations were performed; each recorded row is marked as a replicate. The three-cell repeat check is the agreed evidence; no further seed sweep is added.
+
+2. **Label scale.** pIC50 is kept, with no conversion. The learned quantity is a label difference and predictions are anchored on the support labels supplied, so the 9-unit offset between pIC50 and the pretraining scale cancels throughout, including the inner-loop support loss. Measured agreement between the two scales was 1.19e-5 to 1.34e-5 pIC50 against a pre-declared threshold of 1e-3, with a derived ST-RAE consequence of at most 6.2e-6 (entry 47).
+
+3. **Support size.** The complete support set is kept: every molecule in the cell's frozen training set carrying an observed label for that endpoint. No cap, no subsampling, and no change to the anchor count. Supports are 965 to 1,815 molecules per cell because endpoint labels are sparse (entry 43), and peak GPU use was 444 MiB of 46,068 (entry 47). The mismatch with ActFound's few-shot pretraining regime was known when complete support was chosen and is not reopened.
+
+4. **Thin target adapter.** Specified by the implementation brief approved on 2026-11-16: two stages, frozen settings in a hashed config, the upstream adaptation path unchanged, and that brief's scientific unit tests. Implementation is not authorized by this amendment.
+
+5. **Adaptation and scoring run in separate processes.** `references/cyp_upstream/custom_scoring_functions.py` (`c0ee287c...`) declares PEP 604 annotations with no `from __future__ import annotations`, so it requires Python 3.10 or later and cannot be imported in the pinned ActFound environment (Python 3.9.18), where the checkpoint, torch 1.12.1 and the version-sensitive RDKit 2023.03.1 featuriser live. Adaptation therefore runs in the pinned environment and writes a hash-pinned predictions artifact; the frozen scorer consumes it in a Python 3.10+ environment. The scorer is unchanged: only where it runs changes. "Target adaptation and evaluation" is amended to this extent only.
+
+6. **Comparator.** O150(T121) = 0.701212576796 stands, and so does its citation `cyp/artifacts/cyp_007/finalist_completion_v1/C0_COMPARISON.json` (`48bd619e...`). That file is **not present in this checkout**. `artifacts/d009_closure_workspace/p1_d009_o150_result_20261108.json` (SHA-256 `b277f4ccd9138b688ff20bfaf2378ebfcb66bc118ab5943df48027168adc0e2b`) records the same value and the strict advancement rule, and is **corroborating only**: a matching number does not establish equivalent provenance. A targeted check must locate or account for the cited artifact before the final comparison.
+
 # D014 — PXR Primary Internal Evaluation Holdout: Bemis-Murcko Scaffold Holdout
 
 **Thread:** Tripwire-PXR (PXR induction arm), session PXR-001. This is the first decision record for the PXR arm; before it, no PXR entry existed in this file or in `notes/project_log.md`.
@@ -6670,4 +6688,50 @@ Six files, parent `fdd5573` ("Add the PXR-001 read-only data audit and its artif
 The commit is **local only**. Nothing has been pushed; Miles handles pushes himself, so this is not recorded as present on any remote.
 
 Only `notes/Decisions.md` and the four `pxr/` paths were staged. The concurrent CYP/ActFound working-tree changes — the modification to `notes/Tripwire_CYP_005.md` and the untracked `qualification/actfound/d013_benchmark_20261115/` — were deliberately left out and remain uncommitted.
+
+# D015 — Updated T121 and ActFound comparison plan; fresh corrected-penalty ActFound foundation (2026-11-17)
+
+**Thread:** Tripwire-CYP, Session 005.5 (recorded in `notes/Tripwire_CYP_005.md`, §5.14 and §6).
+
+**Decision date:** 2026-11-17
+
+**Status:** Form approved. On 2026-11-17 Miles chose a new decision record over a D013 Amendment 5, in answer to the form question: "New D015". The six items below are Miles's own statements of 2026-11-17 and are recorded verbatim as his decisions. **This record authorizes no run: no training, model run or SLURM submission is authorized.** There is no commit or push.
+
+## Decision (Miles, 2026-11-17, in his own words)
+
+1. **Comparison.** "Frozen T121 vs updated T121 and ActFound; preserve full O150, protected identities and existing scoring/comparator-provenance checks, including nonfinal comparison status if unresolved."
+2. **ActFound foundation.** "fresh original seeded foundation initialization with corrected penalty, then selected foundation → screening → pIC50. No historical penalty-omitting checkpoint or epoch-49 hunt."
+3. **ActFound screening.** "80 epochs, existing schedule, eight fixed validation episodes, minimum native query WMSE checkpoint, no full-screen refit."
+4. **T121 screening.** "50 epochs; trial-specific warmup 10 verified. Preserve approved validation/selection and transfer rules."
+5. **Weighting.** "Preserve exact approved uncertainty and harmonic pair weighting from qualified code and session evidence. Do not recreate formulas from defaults."
+6. **Execution.** "I run execution commands. No training, model runs or SLURM submissions are authorized here. Runtime benchmarking is waived only for this CYP comparison, not correctness checks." "No commit/push." The waiver covers runtime benchmarking only, for this comparison. It does not authorize any run.
+
+"Corrected penalty" refers to the inner-loop learning-rate penalty found absent from the deployed trainer's objective (session report §5.11).
+
+## Relationship to D013 — open question for Miles
+
+D013 and Amendments 1-4 remain in force as recorded. This record does **not** state that it supersedes any D013 term. In particular:
+
+- The epoch-51 checkpoint `model_best.pt` (SHA-256 `4db29a04f69ecc1ef6ec2f058aa0335e132394a2a0bbe36c14bd27d54a49de2b`) and job 3076848 are preserved unchanged.
+- Whether item 2 supersedes D013's "Foundation training" and "Checkpoint freeze rule" terms (and the frozen epoch-51 checkpoint) for this comparison **is not decided**. Miles has not said so. It is an open question for him.
+
+## Open items (Miles's wiring list, verbatim as open; none done)
+
+- pIC50 support weights reaching adaptation;
+- normalization/reset semantics;
+- qualification evidence bound to deployed hashes;
+- real adapter/config/input binding;
+- T121 production/O150 routing and epoch-end checkpoint behavior.
+
+Component and mock tests do not establish launch readiness. No resume support is established.
+
+## Not authorized by this record
+
+- any training, model run, GPU job or SLURM submission;
+- any implementation edit, commit or push;
+- calling the comparison final while the comparator-provenance requirement (D013 Amendment 4 item 6) is unresolved.
+
+## Naming note
+
+The folder `qualification/actfound/d014_lr_penalty_20261117/` has no relation to D014 (the PXR holdout decision above). Nothing was renamed.
 

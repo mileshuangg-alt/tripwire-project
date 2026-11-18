@@ -1,0 +1,114 @@
+{
+  "all_bounds_hold": true,
+  "artifact_type": "D013_target_adaptation_strae_v1",
+  "cells": [
+    {
+      "bound_checks": [
+        {
+          "arm": "pretraining_scale_corrected",
+          "bound_holds": true,
+          "derived_upper_bound": 5.8522667839501585e-06,
+          "observed_strae_difference": 1.7239591865170212e-07,
+          "pair": "offset",
+          "reference_arm": "pic50_seed_20261101"
+        },
+        {
+          "arm": "pic50_seed_20261102",
+          "bound_holds": true,
+          "derived_upper_bound": 0.0,
+          "observed_strae_difference": 0.0,
+          "pair": "repeat",
+          "reference_arm": "pic50_seed_20261101"
+        }
+      ],
+      "endpoint": "CYP3A4",
+      "partition": "rep_01_fold_01",
+      "reference_arm": "pic50_seed_20261101",
+      "strae_by_arm": {
+        "pic50_seed_20261101": 0.7225269879837438,
+        "pic50_seed_20261102": 0.7225269879837438,
+        "pretraining_scale": 15.259351960914268,
+        "pretraining_scale_corrected": 0.7225268155878252,
+        "target_labels_scrambled": 0.7225269879837438
+      },
+      "support_count": 1799,
+      "target_count": 187
+    },
+    {
+      "bound_checks": [
+        {
+          "arm": "pretraining_scale_corrected",
+          "bound_holds": true,
+          "derived_upper_bound": 5.9263057962053485e-06,
+          "observed_strae_difference": 5.769548258038881e-07,
+          "pair": "offset",
+          "reference_arm": "pic50_seed_20261101"
+        },
+        {
+          "arm": "pic50_seed_20261102",
+          "bound_holds": true,
+          "derived_upper_bound": 0.0,
+          "observed_strae_difference": 0.0,
+          "pair": "repeat",
+          "reference_arm": "pic50_seed_20261101"
+        }
+      ],
+      "endpoint": "CYP3A4",
+      "partition": "rep_03_fold_05",
+      "reference_arm": "pic50_seed_20261101",
+      "strae_by_arm": {
+        "pic50_seed_20261101": 0.7219534501543067,
+        "pic50_seed_20261102": 0.7219534501543067,
+        "pretraining_scale": 15.222191063121548,
+        "pretraining_scale_corrected": 0.7219540271091325,
+        "target_labels_scrambled": 0.7219534501543067
+      },
+      "support_count": 1793,
+      "target_count": 193
+    },
+    {
+      "bound_checks": [
+        {
+          "arm": "pretraining_scale_corrected",
+          "bound_holds": true,
+          "derived_upper_bound": 6.183349140366894e-06,
+          "observed_strae_difference": 8.579228050198395e-07,
+          "pair": "offset",
+          "reference_arm": "pic50_seed_20261101"
+        },
+        {
+          "arm": "pic50_seed_20261102",
+          "bound_holds": true,
+          "derived_upper_bound": 0.0,
+          "observed_strae_difference": 0.0,
+          "pair": "repeat",
+          "reference_arm": "pic50_seed_20261101"
+        }
+      ],
+      "endpoint": "CYP3A4",
+      "partition": "rep_05_fold_10",
+      "reference_arm": "pic50_seed_20261101",
+      "strae_by_arm": {
+        "pic50_seed_20261101": 0.7718068289836139,
+        "pic50_seed_20261102": 0.7718068289836139,
+        "pretraining_scale": 15.984754444935785,
+        "pretraining_scale_corrected": 0.7718059710608088,
+        "target_labels_scrambled": 0.7718068289836139
+      },
+      "support_count": 1789,
+      "target_count": 197
+    }
+  ],
+  "endpoint": "CYP3A4",
+  "frozen_scorer": {
+    "custom_scoring_functions_sha256": "c0ee287c06c0301d4b3bfd74559b90eb1bd85db68b75b7d018ae92280c0e1dd3",
+    "st_rae_py_sha256": "f533a6ef1e279bee922e03c3d6a69bae9313d3d1cf14a448041221bc5b274edf"
+  },
+  "scored_artifact": "/Users/mileshuang/Downloads/d013_checks/adaptation_checks.json",
+  "scored_artifact_sha256": "1be10d32530e5c73d8f74aa5b4b789d7a8aea3a571394ddcfb2d3114dd929352",
+  "scored_artifact_type": "D013_target_adaptation_checks_v1",
+  "scoring_environment": {
+    "python": "3.12"
+  },
+  "script_sha256": "88e2d4005a88be08d0c93cbd011054563c797c838eccc92df637af4aa015f28f"
+}
