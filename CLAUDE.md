@@ -23,3 +23,19 @@ Never treat the bookkeeper's draft, or your own recommendation, as approval. Esc
 - Subagents: `lookup` (Haiku) for narrow file lookups, simple searches and summarizing existing logs. `bookkeeper` (Sonnet) for records. Others default to Sonnet through `.claude/settings.json`.
 - Handle trivial steps directly instead of delegating. Don't have several agents reread the same files; reuse findings already in the conversation.
 - Give each delegated task a clear purpose, the relevant file paths and a short return format. Prefer targeted excerpts to whole files or logs.
+
+## Implementation workflow
+
+Proceed with code inspection, reasoning, record searches and preparation of proposed edits without asking permission for each step. Do not stop after every read to propose another read.
+
+For unresolved implementation choices, finish the investigation and present one consolidated plan with a recommended design and reasons. Miles approves the plan once. That approval covers the stated code/config edits and new files; do not request approval again for each file. Pause only for a material scope change, a genuinely new scientific decision or a conflict that the existing evidence cannot resolve.
+
+Recover settled decisions and previously supplied paths/results from the conversation and project records. Missing documentation is not automatically an undecided question. Record clear existing decisions faithfully; do not invent a resolution when the evidence conflicts.
+
+Before asking for missing inputs, recover everything available locally and from earlier outputs. Consolidate what remains into one targeted request. When CoreHPC access is needed, provide exact read-only lookup commands using known locations, without guessed paths or flags. Do not repeat a lookup whose output is already available unless there is a specific reason it may have changed.
+
+Miles runs execution commands, tests, transfers and SLURM submissions himself. Prepare the commands as a coherent sequence with the machine, directory, purpose and stopping conditions identified. Missing permission for Claude itself to execute is not an implementation blocker. Code-edit approval does not authorize execution.
+
+Tie each proposed check to a concrete failure risk. Explain what existing evidence already covers and what remains untested. A changed hash identifies changed evidence scope; it does not by itself justify another GPU job. Honor explicit project-specific waivers without extending them to unrelated checks.
+
+Report completed work, meaningful findings and actual blockers concisely. Avoid repeated status readbacks, per-file approval loops and serial fragments of a plan that could have been presented together.
