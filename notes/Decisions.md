@@ -5556,3 +5556,95 @@ D013 and Amendments 1–4 are unchanged; D013's unweighted pIC50 evaluation is c
 - weighting the pIC50 evaluator or introducing a weight source for it;
 - recreating weighting formulas from defaults.
 
+# D017 — PXR Modeling Direction: Multitask Chemprop with Auxiliary log2FC Heads
+
+**Decision date:** 2026-11-17
+
+**Status:** Approved as a modeling direction only. **This record authorizes no run, code or configuration edit, package installation or training.**
+
+## Decision and scope
+
+The PXR modeling direction is a multitask Chemprop model with one primary pEC50 head and auxiliary heads for the four single-concentration log2FC readouts, informed by component 1 of the winning matcha-croissant entry in the openadmet_pxr_model_report (a sign-in-gated Google Doc, not a repository artifact). It is not a reproduction of that entry's full ensemble.
+
+The ECFP4 gradient-boosting/random-forest tree-baseline ladder and a stock-Chemprop-first run are skipped. This supersedes the mandatory ECFP4 + gradient-boosting-first baseline sequence of Rev 3 line 90 as carried in `notes/Tripwire_PXR_001.md` ("Next step"). `Tripwire_Project_Proposal_Rev3.md` is not a repository artifact and is not amended by this record.
+
+The D014 holdout (`pxr/artifacts/pxr001_split/pxr001_split_assignments.csv`, SHA-256 `c6028f1b7216ab2ea4bab96616fc02b95ce011be20b1b96f807d1e7d582ece46`), the metrics (MAE of predicted pEC50 primary, Spearman correlation) and the evaluation discipline are preserved. CYP's staged-training and uncertainty-weighting recipe is not transferred automatically.
+
+## Pending, not decided
+
+- auxiliary-data eligibility and leakage rules;
+- inputs and descriptors;
+- loss and task weighting;
+- tuning plan and budget;
+- standardization;
+- the numerical improvement bar (Rev 3 line 129).
+
+## Not authorized
+
+- any training, tuning, evaluation, model run, GPU job or SLURM submission;
+- any code or configuration edit or package installation;
+- reproducing the full matcha-croissant ensemble;
+- treating any item under "Pending, not decided" as approved.
+
+## Amendments
+
+**Amendment 1 (2026-11-17) — Head count.** The reference to four single-concentration log2FC auxiliary heads is an error carried from the handoff. The data contain three library concentrations (8.25, 33 and 99 µM). The model has one primary pEC50 head and three auxiliary log2FC heads, four outputs in total. Positive-control rows (27 rows at 0.98 µM, compound_class Positive Control) are excluded. The 99 µM readout occurs only in experiment OPA_PXR-030, so concentration and experiment effects cannot be disentangled for that head. Items listed as pending above are resolved or left pending as set out in D018.
+
+# D018 — PXR Multitask Chemprop Design: Eligibility, Weighting, Inputs and Tuning
+
+**Decision date:** 2026-11-17
+
+**Status:** Approved as a design only. **This record authorizes no run, code or configuration edit, package installation, training or job submission.**
+
+## Decision and scope
+
+This record resolves the auxiliary-data eligibility and leakage rules, inputs, loss and task weighting, and tuning plan left pending in D017, under D017 Amendment 1 (one primary pEC50 head, three auxiliary log2FC heads at 8.25, 33 and 99 µM; positive-control rows excluded).
+
+1. **Eligibility and evaluation.** Auxiliary labels are the released library-compound single-concentration measurements (`single_concentration_TRAIN.csv`, `log2_fc_estimate`, keyed on OCNT_ID). Counter-assay, crude HT-chem and semi-pure data are left out of this recipe. Auxiliary labels on primary validation and holdout molecules are kept out of training. Auxiliary-only molecules are included only if they pass the existing D014 scaffold and connectivity-group exclusions against validation, holdout and official-test structures. The frozen D014 split and grouping are preserved and no new similarity cutoff is introduced. Checkpoints are selected on primary-head validation MAE, not pooled multitask loss. The holdout is untouched until final evaluation, and official-test labels are not used for selection.
+2. **Weighting.** The nominal primary : combined-auxiliary allocation is fixed at 65:35 and is not tuned. The three auxiliary heads carry equal coefficients, giving count-proportional nominal allocation among them. The auxiliary coefficient is calibrated relative to the primary from verified eligible label counts and the actual loss reduction of Chemprop 2.3.1 (sum(L × task_weight × mask) / sum(mask), with task weights scaling only the numerator); raw weights 0.65 and 0.35 are not entered directly. These are nominal coefficient allocations, not guaranteed shares of loss values or gradients. Train-only target scaling is preserved.
+3. **Inputs.** Molecular graph plus `v1_rdkit_2d_normalized` descriptors. This is the descriptor-set choice for this model and is not a claim that it matches the descriptor set of the winning entry, which is undocumented.
+4. **Tuning.** Full grid of hidden size {300, 600} × message-passing depth {3, 4, 5} × FFN layers {1, 2} × dropout {0, 0.1, 0.2}, 36 configurations, with one common seed. The top three configurations are compared across three seeds and selected by mean primary-head validation MAE. Maximum 100 epochs; early stopping with patience 20 on primary-head validation MAE.
+
+## Pending, not decided
+
+- the auxiliary-off ablation and its interpretation rule;
+- final ensemble size (an earlier suggested five-seed ensemble is not adopted);
+- any statistical improvement threshold;
+- the numerical improvement bar (Rev 3 line 129);
+- standardization, which remains unchanged (released SMILES).
+
+## Not authorized
+
+- any training, tuning, evaluation, model run, GPU job or SLURM submission;
+- any code or configuration edit or package installation;
+- reproducing the full matcha-croissant ensemble;
+- changing the D014 split, grouping or similarity rules;
+- treating any item under "Pending, not decided" as approved.
+
+## Amendments
+
+**Amendment 1 (2026-11-18) — One-molecule descriptor-eligibility exclusion.** Approved as design and preparation only; authorizes no training, tuning, GPU job or SLURM submission.
+
+Molecule OADMET-0003727 (primary_train; SMILES containing Au, P and S) has non-finite values in four RDKit descriptors (MaxAbsPartialCharge, MaxPartialCharge, MinAbsPartialCharge, MinPartialCharge; positions 39, 41, 43, 45 of `v1_rdkit_2d_normalized`). The raw `v1_rdkit_2d` values are already non-finite, so the failure originates in the raw descriptor and not in the normalization transform. No other training or validation molecule has a non-finite descriptor. The `v1_rdkit_2d_normalized` input of item 3 cannot be computed for this molecule, and imputation is not adopted.
+
+1. OADMET-0003727 is excluded from the descriptor-based training cohort. A versioned one-row eligibility amendment records the exclusion; no other molecule is moved.
+2. The frozen artifact `pxr/artifacts/pxr002_aux` and the D014 split are unchanged.
+3. The same eligible cohort is used in any comparison intended to isolate auxiliary-data effects. Any future auxiliary-off ablation, which remains pending and unapproved, uses this cohort.
+4. The auxiliary coefficient of item 2 is recalculated from the amended eligible label counts, preserving the nominal 65:35 allocation. The previously computed value (0.0826099) is superseded by the recalculation.
+5. Fixed descriptors are computed and cached once, before learned scaling. Learned preprocessing (target scaling and descriptor scaling) remains training-only.
+6. The runtime pilot is rerun before any production training.
+
+Not authorized by this amendment: any training, tuning or evaluation; imputation of descriptor values; any change to the D014 split or grouping; any other cohort change; treating any item under "Pending, not decided" as approved.
+
+**Amendment 2 (2026-11-18) — Stage A launch.** The "Not authorized" bar on training, GPU jobs and SLURM submission is lifted for stage A only.
+
+Stage A is a single serial job running all 36 configurations of the item 4 grid on the amended cohort (Amendment 1), with one common seed, selection on primary-head validation MAE, a maximum of 100 epochs, early stopping with patience 20 on primary-head validation MAE, and an 8 h wall-time request, through the L40S wrapper `pxr/scripts/pxr002_stage_a.slurm`. Execution record: `notes/Tripwire_PXR_002.md`, section 5c.
+
+Not authorized by this amendment: stage B (comparison of the top three configurations across three seeds); the auxiliary-off ablation and its interpretation rule; final ensemble size; any holdout or official-test evaluation; any statistical improvement threshold or the Rev 3 line 129 bar; any other training or job; treating any item under "Pending, not decided" as approved. The remaining "Not authorized" items of this record stay in force.
+
+**Amendment 3 (2026-11-18) — Stage B launch.** The "Not authorized" bar on training, GPU jobs and SLURM submission is lifted for stage B only.
+
+Stage B compares the three best stage A configurations, ranked by primary-head validation MAE, across three seeds each: the stage A common seed 20261117, 20261118 and 20261119, giving six new runs (the two new seed values are fixed by this approval). The three configurations are selected by `pxr/scripts/pxr002_stage_b_runner.py` from the stage A `metrics.json` files. Configurations are ranked by mean primary-head validation MAE across the three seeds (item 4). The artifact, features, loss weights, 100-epoch maximum and patience 20 are those of stage A. The wall-time request is 1 h, through `pxr/scripts/pxr002_stage_b.slurm`, which requires `AUTHORIZE_STAGE_B=yes`. Execution record: `notes/Tripwire_PXR_002.md`, section 5e.
+
+Not authorized by this amendment: the auxiliary-off ablation and its interpretation rule; final ensemble size; any holdout or official-test evaluation; retraining on train plus validation; any statistical improvement threshold or the Rev 3 line 129 bar; any other training or job; treating any item under "Pending, not decided" as approved. The remaining "Not authorized" items of this record stay in force.
+

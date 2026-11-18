@@ -1,0 +1,2 @@
+row_id,role,SMILES,action,non_finite_descriptors,reason
+OADMET-0003727,primary_train,CC[P](CC)(CC)=[Au][S][C@@H]1O[C@H](COC(C)=O)[C@@H](OC(C)=O)[C@H](OC(C)=O)[C@H]1OC(C)=O,exclude_from_descriptor_training_cohort,MaxAbsPartialCharge;MaxPartialCharge;MinAbsPartialCharge;MinPartialCharge,raw RDKit partial-charge descriptors are NaN (not a normalization artifact); excluded from the descriptor-based training cohort; imputation not approved

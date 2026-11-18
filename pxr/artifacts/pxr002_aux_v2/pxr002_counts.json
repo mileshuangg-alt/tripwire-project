@@ -1,0 +1,30 @@
+{
+  "cohort_version": "v2",
+  "descriptor_count": 200,
+  "descriptor_set": "v1_rdkit_2d_normalized",
+  "excluded_row_labels": {
+    "log2fc_33uM": null,
+    "log2fc_8p25uM": null,
+    "log2fc_99uM": null,
+    "pEC50": 2.54
+  },
+  "excluded_rows": [
+    "OADMET-0003727"
+  ],
+  "parent_SHA256SUMS_sha256": "29e6bd3495a3bb50354ec1d0fc969ad2957e422aafc966b2055e39a144a81c3a",
+  "parent_artifact": "pxr/artifacts/pxr002_aux",
+  "train_label_counts": {
+    "log2fc_33uM": 8540,
+    "log2fc_8p25uM": 9737,
+    "log2fc_99uM": 606,
+    "pEC50": 2896
+  },
+  "train_label_counts_v1": {
+    "log2fc_33uM": 8540,
+    "log2fc_8p25uM": 9737,
+    "log2fc_99uM": 606,
+    "pEC50": 2897
+  },
+  "train_molecules": 10818,
+  "validation_molecules": 621
+}
