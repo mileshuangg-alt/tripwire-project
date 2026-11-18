@@ -553,7 +553,9 @@ def per_step_loss_importance(args: SimpleNamespace, current_epoch: int, device=N
     return torch.tensor(loss_weights, dtype=torch.float32, device=device if device is not None else "cuda")
 
 
-def run_task(regressor: Any, inner_lrs: Any, arrays: tuple[Any, Any, Any], args: SimpleNamespace, epoch: int, is_training_phase: bool):
+def run_task(regressor: Any, inner_lrs: Any, arrays: tuple[Any, Any, Any], args: SimpleNamespace, epoch: int, is_training_phase: bool, use_observation_weights: Optional[bool] = None):
+    # use_observation_weights=None keeps the original rule: weights only in the training phase.
+    # True applies the weights carried by 5-field arrays outside the training phase.
     import torch
     from actfound_model_side import actfound_forward_with_regressor, select_actfound_inner_loop_params
 
@@ -571,7 +573,8 @@ def run_task(regressor: Any, inner_lrs: Any, arrays: tuple[Any, Any, Any], args:
     y_task = torch.tensor(y_np, dtype=torch.float32, device=device)
     split = torch.tensor(split_np, device=device)
     observation_weights = None
-    if is_training_phase and observation_weights_np is not None:
+    apply_weights = is_training_phase if use_observation_weights is None else use_observation_weights
+    if apply_weights and observation_weights_np is not None:
         observation_weights = torch.as_tensor(
             observation_weights_np,
             dtype=y_task.dtype,
@@ -1367,6 +1370,7 @@ def evaluate_actfound_screen_stage(regressor, inner_lrs, prepared):
                     args,
                     epoch=0,
                     is_training_phase=False,
+                    use_observation_weights=True,
                 )
 
             # run_task returns query-only predictions, but full labels/mask.

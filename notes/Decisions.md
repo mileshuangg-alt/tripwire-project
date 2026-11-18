@@ -5530,6 +5530,10 @@ D013 and Amendments 1–4 remain in force. The epoch-51 checkpoint (SHA-256 `4db
 - any training, model run, GPU job or SLURM submission;
 - calling the comparison final while the comparator-provenance requirement (D013 Amendment 4 item 6) is unresolved.
 
+## Amendments
+
+**Amendment 1 (2026-11-17) — Item 2 and D013 artifacts.** Item 2's fresh, corrected-penalty ActFound foundation initialization is permitted for this comparison and writes new, separate artifacts. The D013 epoch-51 checkpoint (SHA-256 `4db29a04f69ecc1ef6ec2f058aa0335e132394a2a0bbe36c14bd27d54a49de2b`), job 3076848 and the D013 results remain frozen and unmodified; nothing historical is modified or replaced. This settles the question left open in the final paragraph of Decision and scope, to that extent. It authorizes no training, model run, GPU job or SLURM submission.
+
 # D016 — Evaluation-Phase Adaptation Weighting: Screening Validation Only
 
 **Decision date:** 2026-11-17
@@ -5544,7 +5548,7 @@ D013 and Amendments 1–4 are unchanged; D013's unweighted pIC50 evaluation is c
 
 ## Basis
 
-`run_task` in `cyp/scripts/actfound_production_train_v2.py` built observation weights only when `is_training_phase=True`, so screening-validation adaptation ran unweighted (`notes/Tripwire_CYP_006.md` §2). A `use_observation_weights` keyword now exists and the screening-validation call passes `True` (§3–§4); it has had no GPU check.
+`run_task` in `cyp/scripts/actfound_production_train_v2.py` built observation weights only when `is_training_phase=True`, so screening-validation adaptation ran unweighted (`notes/Tripwire_CYP_006.md` §2). A `use_observation_weights` keyword now exists and the screening-validation call passes `True` (§3); it has had no GPU check.
 
 ## Not authorized
 

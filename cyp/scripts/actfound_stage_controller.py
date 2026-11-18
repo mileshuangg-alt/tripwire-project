@@ -38,11 +38,48 @@ def write_new_json(path, payload):
         handle.write("\n")
 
 
+def verify_bound_evidence(evidence_path, evidence, pins):
+    """Require qualification evidence to be the reviewed file and to name the
+    exact deployed sources.
+
+    pins = {"evidence_sha256": str, "bound_fields": {field: sha256, ...}}
+    The evidence file must hash to evidence_sha256, and every bound field must
+    be present in the evidence and equal its pinned value. No field is bound
+    by default; an empty bound_fields is rejected.
+    """
+    if not isinstance(pins, dict) or set(pins) != {"evidence_sha256", "bound_fields"}:
+        raise ValueError(
+            "evidence_pins must contain exactly evidence_sha256 and bound_fields."
+        )
+    bound = pins["bound_fields"]
+    if not isinstance(bound, dict) or not bound:
+        raise ValueError("evidence_pins.bound_fields must be a non-empty mapping.")
+    actual_file = checkpoint_record(evidence_path)["sha256"]
+    if actual_file != pins["evidence_sha256"]:
+        raise ValueError(
+            "Qualification evidence file does not match its pinned SHA-256."
+        )
+    for field, expected in bound.items():
+        if field not in evidence:
+            raise ValueError(f"Qualification evidence lacks bound field: {field}")
+        if evidence[field] != expected:
+            raise ValueError(
+                f"Qualification evidence {field} does not match the deployed "
+                f"value (evidence {evidence[field]}, pinned {expected})."
+            )
+    result = {
+        "evidence_sha256": actual_file,
+        "bound_fields": dict(bound),
+    }
+    return result
+
+
 def run_actfound_stage_chain(
     *,
     output_dir,
     executors,
     qualification_result_path,
+    evidence_pins,
     authorize_training=False,
 ):
     """Route foundation -> screening -> pIC50 with explicit artifact lineage.
@@ -73,6 +110,7 @@ def run_actfound_stage_chain(
         or evidence.get("optimizer_steps") != 0
     ):
         raise ValueError("Required GPU validation qualification has not passed.")
+    binding = verify_bound_evidence(evidence_path, evidence, evidence_pins)
 
     root = Path(output_dir).resolve()
     if root.exists():
@@ -83,7 +121,8 @@ def run_actfound_stage_chain(
     root.mkdir(parents=True)
     write_new_json(root / "qualification_reference.json", {
         "path": str(evidence_path),
-        "sha256": checkpoint_record(evidence_path)["sha256"],
+        "sha256": binding["evidence_sha256"],
+        "bound_fields": binding["bound_fields"],
     })
 
     completed = {}

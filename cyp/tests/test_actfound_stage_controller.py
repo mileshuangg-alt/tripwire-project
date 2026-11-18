@@ -1,5 +1,6 @@
 
 from pathlib import Path
+import hashlib
 import json
 import sys
 import tempfile
@@ -19,9 +20,21 @@ class ControllerTests(unittest.TestCase):
             "status": "PASS",
             "scope": "GPU fixed-episode validation and checkpoint correctness",
             "optimizer_steps": 0,
+            "runner_sha256": "a" * 64,
+            "model_side_sha256": "b" * 64,
             "fixture_only": True,
         }))
         self.calls = []
+
+    def pins(self, **fields):
+        bound = {"runner_sha256": "a" * 64, "model_side_sha256": "b" * 64}
+        bound.update(fields)
+        return {
+            "evidence_sha256": hashlib.sha256(
+                self.evidence.read_bytes()
+            ).hexdigest(),
+            "bound_fields": bound,
+        }
 
     def executor(self, name):
         def execute(*, output_dir, initialization):
@@ -52,10 +65,51 @@ class ControllerTests(unittest.TestCase):
             output_dir=self.root / "run",
             executors=self.executors() if executors is None else executors,
             qualification_result_path=self.evidence,
+            evidence_pins=self.pins(),
             authorize_training=True,
         )
         arguments.update(overrides)
         return run_actfound_stage_chain(**arguments)
+
+    def assert_blocked_before_run(self):
+        self.assertEqual(self.calls, [])
+        self.assertFalse((self.root / "run").exists())
+
+    def test_evidence_for_other_runner_is_rejected(self):
+        with self.assertRaisesRegex(ValueError, "runner_sha256"):
+            self.run_chain(evidence_pins=self.pins(runner_sha256="c" * 64))
+        self.assert_blocked_before_run()
+
+    def test_evidence_file_changed_after_pinning_is_rejected(self):
+        pins = self.pins()
+        evidence = json.loads(self.evidence.read_text())
+        evidence["fixture_only"] = False
+        self.evidence.write_text(json.dumps(evidence))
+        with self.assertRaisesRegex(ValueError, "pinned SHA-256"):
+            self.run_chain(evidence_pins=pins)
+        self.assert_blocked_before_run()
+
+    def test_evidence_missing_bound_field_is_rejected(self):
+        with self.assertRaisesRegex(ValueError, "lacks bound field"):
+            self.run_chain(evidence_pins=self.pins(unrecorded_sha256="d" * 64))
+        self.assert_blocked_before_run()
+
+    def test_empty_or_malformed_pins_are_rejected(self):
+        for pins in (
+            {"evidence_sha256": self.pins()["evidence_sha256"], "bound_fields": {}},
+            {"bound_fields": {"runner_sha256": "a" * 64}},
+            None,
+        ):
+            with self.assertRaises(ValueError):
+                self.run_chain(evidence_pins=pins)
+        self.assert_blocked_before_run()
+
+    def test_bound_fields_are_recorded_in_the_run(self):
+        self.run_chain()
+        reference = json.loads(
+            (self.root / "run" / "qualification_reference.json").read_text()
+        )
+        self.assertEqual(reference["bound_fields"], self.pins()["bound_fields"])
 
     def test_stage_order_and_checkpoint_lineage(self):
         result = self.run_chain()

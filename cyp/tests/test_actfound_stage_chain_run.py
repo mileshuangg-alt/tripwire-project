@@ -1,0 +1,97 @@
+from pathlib import Path
+import copy
+import hashlib
+import json
+import sys
+import tempfile
+import unittest
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+import actfound_stage_chain_run as launcher
+
+
+def digest(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+class LauncherTests(unittest.TestCase):
+    def setUp(self):
+        self.temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temporary.cleanup)
+        self.root = Path(self.temporary.name)
+        pinned = {}
+        for role in ("runner", "model_side", "stage_adapters", "stage_controller"):
+            path = self.root / f"{role}.py"
+            path.write_text(f"# {role}\n")
+            pinned[role] = {"path": str(path), "sha256": digest(path)}
+        evidence = self.root / "evidence.json"
+        evidence.write_text("{}")
+        self.manifest = {
+            "output_dir": str(self.root / "run"),
+            "pinned_files": pinned,
+            "evidence": {
+                "path": str(evidence),
+                "sha256": digest(evidence),
+                "bound_fields": {"runner_sha256": pinned["runner"]["sha256"]},
+            },
+            "foundation": {k: "x" for k in launcher.FOUNDATION_KEYS},
+            "screening": {
+                "frozen_config_path": "x",
+                "upstream_dir": "x",
+                "screen_inputs": {k: "x" for k in launcher.SCREEN_INPUT_KEYS},
+            },
+            "pic50": {k: "x" for k in launcher.PIC50_KEYS},
+        }
+
+    def write_manifest(self, manifest):
+        path = self.root / "manifest.json"
+        path.write_text(json.dumps(manifest))
+        return path
+
+    def test_complete_manifest_validates_and_files_verify(self):
+        launcher.validate_manifest(self.manifest)
+        verified = launcher.verify_pinned_files(self.manifest["pinned_files"])
+        self.assertEqual(set(verified), set(self.manifest["pinned_files"]))
+
+    def test_missing_or_extra_key_is_rejected(self):
+        for section, key in (("pic50", "label_table"), ("foundation", "repo_root")):
+            broken = copy.deepcopy(self.manifest)
+            del broken[section][key]
+            with self.assertRaises(ValueError):
+                launcher.validate_manifest(broken)
+        broken = copy.deepcopy(self.manifest)
+        broken["unexpected_default"] = 1
+        with self.assertRaises(ValueError):
+            launcher.validate_manifest(broken)
+
+    def test_required_pinned_role_is_enforced(self):
+        broken = copy.deepcopy(self.manifest)
+        del broken["pinned_files"]["model_side"]
+        with self.assertRaises(ValueError):
+            launcher.validate_manifest(broken)
+
+    def test_changed_pinned_file_is_rejected(self):
+        Path(self.manifest["pinned_files"]["runner"]["path"]).write_text("# edited\n")
+        with self.assertRaisesRegex(ValueError, "Pinned file changed: runner"):
+            launcher.verify_pinned_files(self.manifest["pinned_files"])
+
+    def test_missing_pinned_file_is_rejected(self):
+        Path(self.manifest["pinned_files"]["model_side"]["path"]).unlink()
+        with self.assertRaisesRegex(ValueError, "Pinned file missing"):
+            launcher.verify_pinned_files(self.manifest["pinned_files"])
+
+    def test_without_authorize_flag_nothing_is_imported_or_run(self):
+        path = self.write_manifest(self.manifest)
+        before = set(sys.modules)
+        self.assertEqual(launcher.main(["--manifest", str(path)]), 0)
+        self.assertEqual(set(sys.modules) - before, set())
+        self.assertFalse((self.root / "run").exists())
+
+    def test_evidence_pins_pass_through_unchanged(self):
+        pins = launcher.evidence_pins(self.manifest)
+        self.assertEqual(pins["evidence_sha256"], self.manifest["evidence"]["sha256"])
+        self.assertEqual(pins["bound_fields"], self.manifest["evidence"]["bound_fields"])
+
+
+if __name__ == "__main__":
+    unittest.main()

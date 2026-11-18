@@ -123,8 +123,10 @@ def test_runner_applies_penalty_once_in_training_only():
     call = training_calls[0]
     keywords = {item.arg: item.value for item in call.keywords}
 
-    assert isinstance(keywords["epoch"], ast.Name)
-    assert keywords["epoch"].id == "epoch"
+    # Signature: (meta_loss, learned_lr_parameters, epoch, args, *, is_training_phase)
+    assert "epoch" not in keywords
+    assert isinstance(call.args[2], ast.Name)
+    assert call.args[2].id == "epoch"
     assert isinstance(keywords["is_training_phase"], ast.Constant)
     assert keywords["is_training_phase"].value is True
 
