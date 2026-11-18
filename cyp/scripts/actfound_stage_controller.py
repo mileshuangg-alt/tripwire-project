@@ -74,6 +74,64 @@ def verify_bound_evidence(evidence_path, evidence, pins):
     return result
 
 
+COMPLETED_FOUNDATION_KEYS = {"run_dir", "completion_sha256", "checkpoint_sha256"}
+
+
+def verify_completed_foundation(pins, evidence_sha256):
+    """Verify a foundation stage finished by an earlier chain run.
+
+    pins = {"run_dir", "completion_sha256", "checkpoint_sha256"}. The earlier
+    run's foundation/completion.json must hash to completion_sha256, say the
+    foundation completed, and name a selected checkpoint that exists, whose
+    SHA-256 equals checkpoint_sha256. That run must also have been bound to the
+    same qualification evidence. Returns the verified checkpoint record and a
+    lineage record. Nothing is resumed: the checkpoint is used as a stage
+    transfer source only.
+    """
+    if not isinstance(pins, dict) or set(pins) != COMPLETED_FOUNDATION_KEYS:
+        raise ValueError(
+            "completed_foundation must contain exactly "
+            f"{sorted(COMPLETED_FOUNDATION_KEYS)}."
+        )
+    run_dir = Path(pins["run_dir"]).resolve()
+    completion_path = run_dir / "foundation" / "completion.json"
+    reference_path = run_dir / "qualification_reference.json"
+    for path in (completion_path, reference_path):
+        if not path.is_file():
+            raise ValueError(f"Earlier foundation run lacks {path}")
+    completion_record = checkpoint_record(completion_path)
+    if completion_record["sha256"] != pins["completion_sha256"]:
+        raise ValueError(
+            "Earlier foundation completion.json does not match its pinned SHA-256."
+        )
+    completion = json.loads(completion_path.read_text())
+    if completion.get("stage") != "foundation" or completion.get("status") != "completed":
+        raise ValueError("Earlier foundation did not complete.")
+    selected = completion.get("selected_checkpoint")
+    if not isinstance(selected, dict) or set(selected) != {"path", "sha256"}:
+        raise ValueError("Earlier foundation completion lacks a selected checkpoint record.")
+    if selected["sha256"] != pins["checkpoint_sha256"]:
+        raise ValueError(
+            "Earlier foundation checkpoint SHA-256 differs from the pinned value."
+        )
+    verified = verify_checkpoint(selected)
+    if (run_dir / "foundation") not in Path(verified["path"]).parents:
+        raise ValueError("Foundation checkpoint is outside the earlier foundation output.")
+    reference = json.loads(reference_path.read_text())
+    if reference.get("sha256") != evidence_sha256:
+        raise ValueError(
+            "Earlier foundation run was bound to different qualification evidence."
+        )
+    lineage = {
+        "foundation_run_dir": str(run_dir),
+        "foundation_completion": completion_record,
+        "foundation_checkpoint": verified,
+        "foundation_qualification_reference": checkpoint_record(reference_path),
+        "mode": "continue_from_completed_foundation",
+    }
+    return verified, lineage
+
+
 def run_actfound_stage_chain(
     *,
     output_dir,
@@ -81,6 +139,7 @@ def run_actfound_stage_chain(
     qualification_result_path,
     evidence_pins,
     authorize_training=False,
+    completed_foundation=None,
 ):
     """Route foundation -> screening -> pIC50 with explicit artifact lineage.
 
@@ -96,9 +155,10 @@ def run_actfound_stage_chain(
     """
     if authorize_training is not True:
         raise RuntimeError("ActFound training is not authorized.")
-    if set(executors) != set(STAGES):
-        raise ValueError("Exactly foundation, screening and pic50 executors required.")
-    if not all(callable(executors[name]) for name in STAGES):
+    stages = STAGES if completed_foundation is None else STAGES[1:]
+    if set(executors) != set(stages):
+        raise ValueError(f"Exactly {', '.join(stages)} executors required.")
+    if not all(callable(executors[name]) for name in stages):
         raise ValueError("All stage executors must be callable.")
 
     evidence_path = Path(qualification_result_path).resolve()
@@ -111,6 +171,13 @@ def run_actfound_stage_chain(
     ):
         raise ValueError("Required GPU validation qualification has not passed.")
     binding = verify_bound_evidence(evidence_path, evidence, evidence_pins)
+
+    previous = None
+    lineage = None
+    if completed_foundation is not None:
+        previous, lineage = verify_completed_foundation(
+            completed_foundation, binding["evidence_sha256"]
+        )
 
     root = Path(output_dir).resolve()
     if root.exists():
@@ -125,10 +192,12 @@ def run_actfound_stage_chain(
         "bound_fields": binding["bound_fields"],
     })
 
-    completed = {}
-    previous = None
+    if lineage is not None:
+        write_new_json(root / "foundation_lineage.json", lineage)
 
-    for name in STAGES:
+    completed = {}
+
+    for name in stages:
         stage_dir = root / name
         stage_dir.mkdir()
 

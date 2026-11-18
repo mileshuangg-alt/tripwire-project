@@ -176,5 +176,37 @@ class AdapterTests(unittest.TestCase):
         self.assertTrue((self.output / "failure.log").is_file())
 
 
+    def test_screening_config_serializes_the_real_make_args_namespace(self):
+        # Regression: vars(make_args(...)) holds a live numpy RandomState, which
+        # JSON cannot encode; job 3105596 failed on it after the foundation.
+        import actfound_production_train_v2 as runner
+        config = json.loads((
+            Path(__file__).resolve().parents[1]
+            / "artifacts/actfound/actfound_chembl32_production_config_v1.json"
+        ).read_text())
+        args = runner.make_args(dict(config["hyperparameters"]))
+        self.assertTrue(hasattr(args, "rng"))
+        effective = a.effective_screening_config(
+            args, self.initialization, {"copied": 1}, {"screen": "fixture"}
+        )
+        self.assertNotIn("rng", effective["hyperparameters"])
+        self.assertIn("torch_seed_source_seed", effective["hyperparameters"])
+        a.write_new_json(self.output / "effective_screening_config.json", effective)
+        self.assertEqual(
+            json.loads((self.output / "effective_screening_config.json").read_text())[
+                "source_checkpoint"
+            ],
+            self.initialization["source_checkpoint"],
+        )
+
+    def test_unserializable_value_leaves_no_partial_file(self):
+        target = self.output / "config.json"
+        with self.assertRaises(TypeError):
+            a.write_new_json(target, {"ok": 1, "bad": object()})
+        self.assertFalse(target.exists())
+        a.write_new_json(target, {"ok": 1})
+        self.assertTrue(target.is_file())
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

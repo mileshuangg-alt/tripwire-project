@@ -26,9 +26,11 @@ def read_json(path):
 
 
 def write_new_json(path, value):
+    # Serialize first: a value that cannot be encoded must not leave a partial
+    # file behind (it would also block the exclusive-create retry).
+    text = json.dumps(value, indent=2, allow_nan=False) + "\n"
     with Path(path).open("x") as handle:
-        json.dump(value, handle, indent=2, allow_nan=False)
-        handle.write("\n")
+        handle.write(text)
 
 
 def verify_source(initialization):
@@ -84,6 +86,22 @@ def foundation_adapter(
     return execute
 
 
+def effective_screening_config(args, initialization, transfer, metadata):
+    """The JSON-serializable record of the effective screening configuration.
+
+    args.rng is a live numpy RandomState (made by the runner's make_args); its
+    seed is already recorded as torch_seed_source_seed, so it is not recorded.
+    """
+    return {
+        "hyperparameters": {
+            key: value for key, value in vars(args).items() if key != "rng"
+        },
+        "source_checkpoint": initialization["source_checkpoint"],
+        "transfer": transfer,
+        "screen_metadata": metadata,
+    }
+
+
 def screening_adapter(
     *, runner, frozen_config_path, upstream_dir, screen_inputs
 ):
@@ -127,12 +145,9 @@ def screening_adapter(
         )
 
         output_dir = Path(output_dir)
-        effective = {
-            "hyperparameters": vars(args),
-            "source_checkpoint": initialization["source_checkpoint"],
-            "transfer": transfer,
-            "screen_metadata": prepared["metadata"],
-        }
+        effective = effective_screening_config(
+            args, initialization, transfer, prepared["metadata"]
+        )
         config_path = output_dir / "effective_screening_config.json"
         write_new_json(config_path, effective)
         write_new_json(output_dir / "transfer.json", transfer)

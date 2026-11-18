@@ -231,5 +231,118 @@ class ControllerTests(unittest.TestCase):
         self.assertFalse((self.root / "run/completion.json").exists())
 
 
+class ContinuationTests(ControllerTests):
+    """Continue screening + pIC50 from a foundation finished by an earlier run."""
+
+    def setUp(self):
+        super().setUp()
+        self.run_chain(output_dir=self.root / "first")
+        self.calls.clear()
+        self.first = self.root / "first"
+
+    def foundation_pins(self, **overrides):
+        completion = self.first / "foundation" / "completion.json"
+        selected = json.loads(completion.read_text())["selected_checkpoint"]
+        pins = {
+            "run_dir": str(self.first),
+            "completion_sha256": hashlib.sha256(completion.read_bytes()).hexdigest(),
+            "checkpoint_sha256": selected["sha256"],
+        }
+        pins.update(overrides)
+        return pins
+
+    def continue_chain(self, **overrides):
+        arguments = dict(
+            output_dir=self.root / "second",
+            executors={n: self.executor(n) for n in ("screening", "pic50")},
+            qualification_result_path=self.evidence,
+            evidence_pins=self.pins(),
+            authorize_training=True,
+            completed_foundation=self.foundation_pins(),
+        )
+        arguments.update(overrides)
+        return run_actfound_stage_chain(**arguments)
+
+    def assert_blocked(self):
+        self.assertEqual(self.calls, [])
+        self.assertFalse((self.root / "second").exists())
+
+    def test_runs_only_screening_and_pic50_from_the_verified_checkpoint(self):
+        result = self.continue_chain()
+        self.assertEqual([c[0] for c in self.calls], ["screening", "pic50"])
+        self.assertEqual(set(result["stages"]), {"screening", "pic50"})
+        recorded = json.loads(
+            (self.first / "foundation" / "completion.json").read_text()
+        )["selected_checkpoint"]
+        source = self.calls[0][1]["source_checkpoint"]
+        self.assertEqual(source, recorded)
+        self.assertEqual(self.calls[0][1]["mode"], "stage_transfer_not_resume")
+        self.assertFalse(self.calls[0][1]["import_optimizer_state"])
+        lineage = json.loads((self.root / "second" / "foundation_lineage.json").read_text())
+        self.assertEqual(lineage["mode"], "continue_from_completed_foundation")
+        self.assertEqual(lineage["foundation_checkpoint"], recorded)
+        self.assertFalse((self.root / "second" / "foundation").exists())
+
+    def test_foundation_executor_is_not_accepted_in_continuation(self):
+        with self.assertRaises(ValueError):
+            self.continue_chain(executors=self.executors())
+        self.assert_blocked()
+
+    def test_wrong_checkpoint_pin_is_rejected(self):
+        with self.assertRaisesRegex(ValueError, "checkpoint SHA-256"):
+            self.continue_chain(completed_foundation=self.foundation_pins(
+                checkpoint_sha256="0" * 64
+            ))
+        self.assert_blocked()
+
+    def test_changed_completion_record_is_rejected(self):
+        pins = self.foundation_pins()
+        path = self.first / "foundation" / "completion.json"
+        record = json.loads(path.read_text())
+        record["note"] = "edited"
+        path.write_text(json.dumps(record))
+        with self.assertRaisesRegex(ValueError, "completion.json does not match"):
+            self.continue_chain(completed_foundation=pins)
+        self.assert_blocked()
+
+    def test_checkpoint_changed_after_recording_is_rejected(self):
+        pins = self.foundation_pins()
+        (self.first / "foundation" / "selected.pt").write_bytes(b"tampered")
+        with self.assertRaisesRegex(ValueError, "changed after it was recorded|differs"):
+            self.continue_chain(completed_foundation=pins)
+        self.assert_blocked()
+
+    def test_incomplete_foundation_is_rejected(self):
+        path = self.first / "foundation" / "completion.json"
+        record = json.loads(path.read_text())
+        record["status"] = "failed"
+        path.write_text(json.dumps(record))
+        with self.assertRaisesRegex(ValueError, "did not complete"):
+            self.continue_chain(completed_foundation=self.foundation_pins())
+        self.assert_blocked()
+
+    def test_foundation_bound_to_other_evidence_is_rejected(self):
+        path = self.first / "qualification_reference.json"
+        record = json.loads(path.read_text())
+        record["sha256"] = "f" * 64
+        path.write_text(json.dumps(record))
+        with self.assertRaisesRegex(ValueError, "different qualification evidence"):
+            self.continue_chain()
+        self.assert_blocked()
+
+    def test_malformed_pins_are_rejected(self):
+        for pins in ({}, {"run_dir": str(self.first)}, dict(self.foundation_pins(), extra=1)):
+            with self.assertRaisesRegex(ValueError, "completed_foundation must contain"):
+                self.continue_chain(completed_foundation=pins)
+        self.assert_blocked()
+
+    def test_existing_continuation_directory_is_not_reused(self):
+        self.continue_chain()
+        self.calls.clear()
+        with self.assertRaises(FileExistsError):
+            self.continue_chain()
+        self.assertEqual(self.calls, [])
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

@@ -22,6 +22,10 @@ MANIFEST_KEYS = {
     "output_dir", "pinned_files", "evidence",
     "foundation", "screening", "pic50",
 }
+# Continuation: screening + pIC50 only, from a foundation finished by an earlier
+# run of this chain (verified by hash in the controller). No foundation section.
+CONTINUATION_MANIFEST_KEYS = (MANIFEST_KEYS - {"foundation"}) | {"completed_foundation"}
+COMPLETED_FOUNDATION_KEYS = {"run_dir", "completion_sha256", "checkpoint_sha256"}
 EVIDENCE_KEYS = {"path", "sha256", "bound_fields"}
 FOUNDATION_KEYS = {"frozen_config_path", "repo_root", "upstream_dir"}
 SCREENING_KEYS = {"frozen_config_path", "upstream_dir", "screen_inputs"}
@@ -56,10 +60,21 @@ def require_keys(name, mapping, expected):
         )
 
 
+def is_continuation(manifest):
+    return isinstance(manifest, dict) and "completed_foundation" in manifest
+
+
 def validate_manifest(manifest):
-    require_keys("manifest", manifest, MANIFEST_KEYS)
+    if is_continuation(manifest):
+        require_keys("manifest", manifest, CONTINUATION_MANIFEST_KEYS)
+        require_keys(
+            "completed_foundation", manifest["completed_foundation"],
+            COMPLETED_FOUNDATION_KEYS,
+        )
+    else:
+        require_keys("manifest", manifest, MANIFEST_KEYS)
+        require_keys("foundation", manifest["foundation"], FOUNDATION_KEYS)
     require_keys("evidence", manifest["evidence"], EVIDENCE_KEYS)
-    require_keys("foundation", manifest["foundation"], FOUNDATION_KEYS)
     require_keys("screening", manifest["screening"], SCREENING_KEYS)
     require_keys(
         "screening.screen_inputs",
@@ -121,16 +136,9 @@ def import_pinned_modules(verified):
 
 
 def build_executors(manifest, runner, adapters):
-    foundation = manifest["foundation"]
     screening = manifest["screening"]
     pic50 = manifest["pic50"]
-    return {
-        "foundation": adapters.foundation_adapter(
-            runner=runner,
-            frozen_config_path=foundation["frozen_config_path"],
-            repo_root=foundation["repo_root"],
-            upstream_dir=foundation["upstream_dir"],
-        ),
+    executors = {
         "screening": adapters.screening_adapter(
             runner=runner,
             frozen_config_path=screening["frozen_config_path"],
@@ -152,6 +160,15 @@ def build_executors(manifest, runner, adapters):
             upstream_dir=pic50["upstream_dir"],
         ),
     }
+    if not is_continuation(manifest):
+        foundation = manifest["foundation"]
+        executors["foundation"] = adapters.foundation_adapter(
+            runner=runner,
+            frozen_config_path=foundation["frozen_config_path"],
+            repo_root=foundation["repo_root"],
+            upstream_dir=foundation["upstream_dir"],
+        )
+    return executors
 
 
 def main(argv=None):
@@ -179,6 +196,7 @@ def main(argv=None):
         qualification_result_path=manifest["evidence"]["path"],
         evidence_pins=evidence_pins(manifest),
         authorize_training=True,
+        completed_foundation=manifest.get("completed_foundation"),
     )
     print(json.dumps({"status": result["status"]}), flush=True)
     return 0

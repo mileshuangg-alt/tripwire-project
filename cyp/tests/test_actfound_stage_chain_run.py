@@ -93,5 +93,48 @@ class LauncherTests(unittest.TestCase):
         self.assertEqual(pins["bound_fields"], self.manifest["evidence"]["bound_fields"])
 
 
+class ContinuationManifestTests(unittest.TestCase):
+    def setUp(self):
+        base = LauncherTests()
+        base.setUp()
+        self.addCleanup(base.temporary.cleanup)
+        self.manifest = copy.deepcopy(base.manifest)
+        del self.manifest["foundation"]
+        self.manifest["completed_foundation"] = {
+            "run_dir": "x", "completion_sha256": "a" * 64, "checkpoint_sha256": "b" * 64,
+        }
+
+    def test_continuation_manifest_validates_without_foundation_section(self):
+        self.assertTrue(launcher.is_continuation(self.manifest))
+        launcher.validate_manifest(self.manifest)
+
+    def test_continuation_rejects_foundation_section_and_missing_pins(self):
+        broken = copy.deepcopy(self.manifest)
+        broken["foundation"] = {k: "x" for k in launcher.FOUNDATION_KEYS}
+        with self.assertRaises(ValueError):
+            launcher.validate_manifest(broken)
+        broken = copy.deepcopy(self.manifest)
+        del broken["completed_foundation"]["checkpoint_sha256"]
+        with self.assertRaises(ValueError):
+            launcher.validate_manifest(broken)
+
+    def test_continuation_builds_no_foundation_executor(self):
+        made = []
+        adapters = type("A", (), {
+            "foundation_adapter": staticmethod(lambda **k: made.append("f")),
+            "screening_adapter": staticmethod(lambda **k: "s"),
+            "pic50_adapter": staticmethod(lambda **k: "p"),
+        })
+        executors = launcher.build_executors(self.manifest, object(), adapters)
+        self.assertEqual(set(executors), {"screening", "pic50"})
+        self.assertEqual(made, [])
+        full = launcher.build_executors(
+            {k: v for k, v in self.manifest.items() if k != "completed_foundation"}
+            | {"foundation": {k: "x" for k in launcher.FOUNDATION_KEYS}},
+            object(), adapters,
+        )
+        self.assertEqual(set(full), {"foundation", "screening", "pic50"})
+
+
 if __name__ == "__main__":
     unittest.main()
