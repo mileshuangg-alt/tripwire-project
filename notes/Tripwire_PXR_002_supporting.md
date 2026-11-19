@@ -145,6 +145,18 @@ Report section: 5i; decision D018 Amendment 6. New files (local, uncommitted, ha
 
 Report section: 5j. Node ggpu1-07 (L40S 46068 MiB, driver 595.91.07), 2026-11-18T16:23:17 to 16:46:15, elapsed 00:22:58, COMPLETED 0:0. 27 listed files (r6 package incl. holdout artifact) passed `sha256sum -c`; chemprop 2.3.1; h600_d4_f2_p0.2; "10 ok, 0 failed". Best validation MAE (epochs), seeds 20261120 / 21 / 22 / 23 / 24: multitask 0.54910 (28) / 0.54084 (24) / 0.55170 (23) / 0.54996 (30) / 0.53744 (27); aux_off 0.56271 (29) / 0.54129 (23) / 0.54213 (23) / 0.56134 (29) / 0.54211 (25). Claude's arithmetic: means 0.5458 (range 0.5374-0.5517) and 0.5499 (range 0.5412-0.5627), difference +0.0041. Replication gate: all ten replicated validation MAE to six decimals (tolerance 1e-3). Output: `/scratch/user/mhuang8/pxr002_final_20261118/predictions/holdout_predictions.csv`, predictions_sha256 45c84c925b9dfc1c5c959e3a95c6b01961667dd19e2338470e8ae26655aa07aa. No holdout labels read on CoreHPC; holdout evaluation not run. Source: Miles's report of CoreHPC output; logs not in this checkout.
 
+## Evaluation-artifact hashes and commits (final, 2026-11-18)
+
+SHA-256 computed locally by Claude Code on 2026-11-18, before commit aca631d (not by Miles):
+
+| File | SHA-256 |
+|---|---|
+| pxr/artifacts/pxr002_final_20261118/holdout_predictions.csv | 45c84c925b9dfc1c5c959e3a95c6b01961667dd19e2338470e8ae26655aa07aa |
+| pxr/artifacts/pxr002_final_20261118/final_predict_manifest.json | 60bfd167639a7e15e797d29e42954a6e7242db60dc7e45b1d7a85c8584cdacca |
+| pxr/artifacts/pxr002_final_20261118/evaluation/final_evaluation.json | f41ed0bfb3343e7578165894ba7194bf34e0811c058c619867edf88c6ad209b9 |
+
+Commits 59fe1c0, fa31dab and aca631d are local and not pushed. The individual hashes of the r2-r6 packages were never recorded.
+
 ## Holdout evaluation (2026-11-18, local)
 
 Report section: 5l. `pxr/scripts/pxr002_final_eval.py` with `--authorize-holdout-evaluation`; output `pxr/artifacts/pxr002_final_20261118/evaluation/final_evaluation.json` (SHA-256 not reported). Predictions SHA-256 45c84c925b9dfc1c5c959e3a95c6b01961667dd19e2338470e8ae26655aa07aa matched the evaluator's gate. n_holdout 621. Constant predictor (mean 4.32822): MAE 0.92372. Multitask ensemble: MAE 0.48427, Spearman 0.73567, mean per-model MAE 0.51357, per-model 0.52899 / 0.49491 / 0.51685 / 0.49694 / 0.53019, minus floor -0.43945. Aux-off ensemble: MAE 0.48469, Spearman 0.73675, mean per-model MAE 0.51034, per-model 0.51236 / 0.50360 / 0.51022 / 0.50821 / 0.51733, minus floor -0.43902. Aux-off minus multitask ensemble MAE +0.00042. First and only holdout label read. Source: Miles's report, relayed in the call; result file is in the local checkout but was not re-read by the bookkeeper.
