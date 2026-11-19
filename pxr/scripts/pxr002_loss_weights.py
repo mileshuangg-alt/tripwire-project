@@ -42,6 +42,16 @@ def task_weight_vector(n_primary: int, n_aux_by_head: dict[str, int]) -> list[fl
     return [1.0] + [w_aux] * len(n_aux_by_head)
 
 
+def aux_off_weight_vector(n_aux_heads: int = 3) -> list[float]:
+    """Auxiliary-off ablation: primary coefficient 1, every auxiliary coefficient 0.
+
+    Cohort, batches and descriptors stay identical; only the loss changes. Note that
+    Chemprop still divides by the count of all observed labels, so the primary loss is
+    scaled by n_primary / n_observed relative to a primary-only dataset.
+    """
+    return [1.0] + [0.0] * n_aux_heads
+
+
 def nominal_allocation(task_weights, counts) -> list[float]:
     """Coefficient x label-count mass per head, normalized to sum to 1."""
     mass = [w * c for w, c in zip(task_weights, counts)]

@@ -474,3 +474,197 @@ def test_stage_b_refuses_an_existing_output_root(tmp_path):
     (tmp_path / "out").mkdir()
     with pytest.raises(FileExistsError):
         sb.run_stage_b(Path("art"), tmp_path / "a", tmp_path / "out", "gpu")
+
+
+# ------------------------------------------------------------- auxiliary-off ablation
+
+def test_aux_off_weight_vector_zeroes_only_the_auxiliary_coefficients():
+    assert lw.aux_off_weight_vector(3) == [1.0, 0.0, 0.0, 0.0]
+
+
+def test_aux_off_loss_equals_primary_term_over_all_observed_labels():
+    torch = pytest.importorskip("torch")
+    nn = pytest.importorskip("chemprop.nn")
+    n = 12
+    mask = torch.ones(n, 4, dtype=torch.bool)
+    preds = torch.zeros(n, 4)
+    targets = torch.stack([torch.full((n,), 2.0), torch.full((n,), 5.0), torch.full((n,), 7.0), torch.full((n,), 9.0)], dim=1)
+    metric = nn.MSE(task_weights=lw.aux_off_weight_vector(3))
+    metric.update(preds, targets, mask)
+    # only the primary squared error (4.0 per label) counts, divided by ALL observed labels (4n)
+    assert float(metric.compute()) == pytest.approx(4.0 * n / (4 * n))
+
+
+def test_ablation_command_sets_aux_off_and_summary_rule():
+    from pxr.scripts import pxr002_ablation_runner as ab
+
+    cfg = grid.build_grid()[0]
+    cmd = ab.build_command(cfg, 1, Path("art"), Path("out"), "gpu")
+    assert "--aux-off" in cmd and cmd[cmd.index("--seed") + 1] == "1"
+
+    s = grid.COMMON_SEED
+    seeds = [s, s + 1, s + 2]
+    multi = dict(zip(seeds, [0.530, 0.539, 0.544]))
+
+    supported = ab.summarize(multi, dict(zip(seeds, [0.560, 0.565, 0.570])))
+    assert supported["outcome"] == "multitask_supported" and not supported["ranges_overlap"]
+
+    overlapping = ab.summarize(multi, dict(zip(seeds, [0.535, 0.545, 0.550])))
+    assert overlapping["multitask_mean_lower"] and overlapping["ranges_overlap"]
+    assert overlapping["outcome"] == "not_distinguishable"
+
+    worse = ab.summarize(multi, dict(zip(seeds, [0.500, 0.505, 0.510])))
+    assert worse["outcome"] == "ablation_better_ranges_disjoint"
+
+    fresh = overlapping["fresh_seed_comparison"]
+    assert fresh["seeds"] == [s + 1, s + 2]
+    assert fresh["multitask_mean"] == pytest.approx((0.539 + 0.544) / 2)
+    with pytest.raises(ValueError):
+        ab.summarize(multi, {s: 0.5})
+
+
+def test_ablation_selects_stage_b_winner_and_refuses_existing_output_root(tmp_path):
+    import json
+
+    from pxr.scripts import pxr002_ablation_runner as ab
+
+    names = [c.name for c in grid.build_grid()]
+    (tmp_path / "b").mkdir()
+    (tmp_path / "b" / "stage_b_ranking.json").write_text(json.dumps(
+        {"ranking_by_mean_primary_validation_mae": [[names[4], 0.5375], [names[9], 0.541]]}))
+    assert ab.selected_configuration(tmp_path / "b") == names[4]
+
+    _write_stage_a(tmp_path / "a", {n: 0.6 + i / 1000 for i, n in enumerate(names)})
+    for seed, mae in zip(grid.STAGE_B_SEEDS[1:], (0.539, 0.544)):
+        d = tmp_path / "b" / f"{names[4]}_seed{seed}"
+        d.mkdir()
+        (d / "metrics.json").write_text(json.dumps({"best_primary_validation_mae": mae}))
+    got = ab.multitask_mae_by_seed(names[4], tmp_path / "a", tmp_path / "b")
+    assert got[grid.COMMON_SEED] == pytest.approx(0.6 + 4 / 1000) and got[grid.STAGE_B_SEEDS[1]] == 0.539
+
+    (tmp_path / "out").mkdir()
+    with pytest.raises(FileExistsError):
+        ab.run_ablation(Path("art"), tmp_path / "a", tmp_path / "b", tmp_path / "out", "gpu")
+
+
+# ------------------------------------------------------------- final protocol: holdout artifact, runner, prediction, evaluation
+
+def test_holdout_frame_is_structure_only_and_holdout_only():
+    from pxr.scripts import pxr002_holdout_artifact as ho
+
+    assignments = pd.DataFrame({"Molecule Name": ["b", "a", "c", "d"], "split": ["holdout", "holdout", "train", "validation"]})
+    structures = pd.DataFrame({"Molecule Name": ["a", "b", "c", "d"], "SMILES": ["CC", "CCC", "CCCC", "CCCCC"]})
+    frame = ho.build_holdout_frame(assignments, structures)
+    assert list(frame.columns) == ["row_id", "SMILES"]
+    assert frame["row_id"].tolist() == ["a", "b"], "holdout molecules only, sorted"
+    with pytest.raises(ValueError, match="label columns"):
+        ho.build_holdout_frame(assignments, structures.assign(pEC50=1.0))
+
+
+def test_holdout_artifact_roundtrip_and_label_column_refusal(tmp_path):
+    from pxr.scripts import pxr002_holdout_artifact as ho
+
+    frame = pd.DataFrame({"row_id": ["a", "b"], "SMILES": ["CC", "CCC"]})
+    x = np.ones((2, dset.N_DESCRIPTORS))
+    out = tmp_path / "h"
+    out.mkdir()
+    frame.to_csv(out / ho.HOLDOUT_FRAME, index=False)
+    np.save(out / ho.HOLDOUT_DESCRIPTORS, x, allow_pickle=False)
+    (out / "SHA256SUMS").write_text("".join(f"{dset.sha256(out / n)}  {n}\n" for n in (ho.HOLDOUT_FRAME, ho.HOLDOUT_DESCRIPTORS)))
+    got_frame, got_x, _ = ho.load_holdout_artifact(out)
+    assert got_frame["row_id"].tolist() == ["a", "b"] and got_x.shape == (2, dset.N_DESCRIPTORS)
+
+    frame.assign(pEC50=1.0).to_csv(out / ho.HOLDOUT_FRAME, index=False)
+    (out / "SHA256SUMS").write_text("".join(f"{dset.sha256(out / n)}  {n}\n" for n in (ho.HOLDOUT_FRAME, ho.HOLDOUT_DESCRIPTORS)))
+    with pytest.raises(ValueError, match="only row_id and SMILES"):
+        ho.load_holdout_artifact(out)
+
+
+def test_final_runner_plans_two_variants_five_seeds_and_refuses_existing_root(tmp_path):
+    import json
+
+    from pxr.scripts import pxr002_final_runner as fr
+
+    cfg = grid.build_grid()[0]
+    multi = fr.build_command(cfg, fr.FINAL_SEEDS[0], "multitask", Path("art"), Path("out"), "gpu")
+    off = fr.build_command(cfg, fr.FINAL_SEEDS[0], "aux_off", Path("art"), Path("out"), "gpu")
+    assert "--aux-off" not in multi and "--aux-off" in off
+    assert len(fr.FINAL_SEEDS) == 5 and fr.FINAL_SEEDS == (20261120, 20261121, 20261122, 20261123, 20261124)
+    assert not set(fr.FINAL_SEEDS) & set(grid.STAGE_B_SEEDS), "final seeds are fresh"
+    with pytest.raises(ValueError):
+        fr.build_command(cfg, 1, "other", Path("art"), Path("out"), "gpu")
+
+    (tmp_path / "b").mkdir()
+    (tmp_path / "b" / "stage_b_ranking.json").write_text(json.dumps(
+        {"ranking_by_mean_primary_validation_mae": [[cfg.name, 0.5]]}))
+    (tmp_path / "out").mkdir()
+    with pytest.raises(FileExistsError):
+        fr.run_final(Path("art"), tmp_path / "b", tmp_path / "out", "gpu")
+
+
+def test_final_eval_metrics_ensemble_floor_and_coverage():
+    from pxr.scripts import pxr002_final_eval as fe
+
+    ids = ["a", "b", "c", "d"]
+    labels = pd.Series([4.0, 5.0, 6.0, 7.0], index=ids)
+    rows = []
+    for variant, offsets in (("multitask", (-0.2, 0.2)), ("aux_off", (-0.4, 0.4))):
+        for seed, off in zip((1, 2), offsets):
+            rows += [{"row_id": i, "variant": variant, "seed": seed, "prediction": t + off} for i, t in zip(ids, labels)]
+    result = fe.evaluate(pd.DataFrame(rows), labels, constant=5.5)
+    mt, ao = result["variants"]["multitask"], result["variants"]["aux_off"]
+    assert mt["ensemble_mae"] == pytest.approx(0.0), "opposite-sign errors cancel in the ensemble mean"
+    assert mt["mean_per_model_mae"] == pytest.approx(0.2) and ao["mean_per_model_mae"] == pytest.approx(0.4)
+    assert mt["ensemble_spearman"] == pytest.approx(1.0)
+    assert result["constant_predictor_mae"] == pytest.approx((1.5 + 0.5 + 0.5 + 1.5) / 4)
+    assert result["aux_off_minus_multitask_ensemble_mae"] == pytest.approx(0.0)
+    assert fe.constant_floor(pd.DataFrame({"role": ["primary_train", "primary_train", "aux_only"], "pEC50": [4.0, 6.0, np.nan]})) == 5.0
+    with pytest.raises(ValueError, match="exactly the holdout"):
+        fe.evaluate(pd.DataFrame(rows).query("row_id != 'a'"), labels, 5.5)
+
+
+def test_final_eval_refuses_without_authorization_or_wrong_hash(tmp_path, monkeypatch):
+    from pxr.scripts import pxr002_final_eval as fe
+
+    pred = tmp_path / "p.csv"
+    pred.write_text("row_id,variant,seed,prediction\n")
+    base = ["x", "--predictions", str(pred), "--train-csv", "unused", "--assignments", "unused",
+            "--artifact-dir", "unused", "--out-dir", str(tmp_path / "out")]
+    monkeypatch.setattr(sys, "argv", base + ["--predictions-sha256", "0" * 64])
+    with pytest.raises(SystemExit, match="without --authorize-holdout-evaluation"):
+        fe.main()
+    monkeypatch.setattr(sys, "argv", base + ["--predictions-sha256", "0" * 64, "--authorize-holdout-evaluation"])
+    with pytest.raises(SystemExit, match="does not match"):
+        fe.main()
+    assert not (tmp_path / "out").exists(), "no output directory is created before the gates pass"
+
+
+def test_final_model_reload_reproduces_predictions_from_raw_descriptors(tmp_path):
+    """The prediction path (raw descriptors + checkpoint-held scalers) must reload exactly."""
+    pytest.importorskip("chemprop")
+    pytest.importorskip("descriptastorus")
+    torch = pytest.importorskip("torch")
+    from pxr.scripts import pxr002_final_predict as fp
+    from pxr.scripts.pxr002_dataset import build_datasets, compute_descriptors
+    from pxr.scripts.pxr002_train import PXR002Config, build_model
+
+    smiles = ["CCOc1ccccc1", "CCNc1ccncc1", "CCCCO", "c1ccsc1C", "CCOC(C)=O", "CC(C)Cc1ccccc1", "CCN(CC)CC", "c1ccc2ccccc2c1"]
+    rng = np.random.default_rng(1)
+    train = pd.DataFrame({"row_id": [f"t{i}" for i in range(8)], "role": "primary_train", "SMILES": smiles,
+                          "pEC50": 4.0 + rng.normal(0, 1.0, 8), "log2fc_8p25uM": rng.normal(0, 1, 8),
+                          "log2fc_33uM": rng.normal(0, 1, 8), "log2fc_99uM": rng.normal(0, 1, 8)})
+    val = train.iloc[:4].copy()
+    val["role"], val["row_id"] = "primary_validation", [f"v{i}" for i in range(4)]
+    for t in ("log2fc_8p25uM", "log2fc_33uM", "log2fc_99uM"):
+        val[t] = np.nan
+    train_x, val_x = compute_descriptors(train["SMILES"].tolist()), compute_descriptors(val["SMILES"].tolist())
+    sets = build_datasets(train, val, train_x, val_x)
+    cfg = PXR002Config(300, 2, 1, 0.0)
+    model = build_model(cfg, [1.0, 0.1, 0.1, 0.1], sets["y_scaler"], sets["xd_scaler"], sets["xd_dim"]).eval()
+    ckpt = tmp_path / "best.ckpt"
+    torch.save({"state_dict": model.state_dict()}, ckpt)
+
+    original = fp.predict_primary(model, val["SMILES"].tolist(), val_x, "cpu")
+    reloaded = fp.predict_primary(fp.load_final_model(ckpt, cfg, sets["xd_dim"]), val["SMILES"].tolist(), val_x, "cpu")
+    np.testing.assert_allclose(reloaded, original, rtol=0, atol=1e-6)
+    assert np.isfinite(original).all()

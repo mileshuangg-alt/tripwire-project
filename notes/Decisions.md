@@ -18,24 +18,24 @@ Tripwire-CYP-002 will proceed as a two-variant experiment within the Chemprop/D-
 
 - Identical Chemprop/D-MPNN architecture, data, preprocessing, frozen splits, tuning protocol, seed policy, and evaluation procedure as Variant 1.
 - The only experimental change is the training objective.
-- For each CYP task \(t\) within batch \(b\):
+- For each CYP task `t` within batch `b`:
 
-\[
+```latex
 L_{b,t}
 =
 \operatorname{mean}_{i:m_{it}=1}
 \ell_{it}
-\]
+```
 
 - Overall batch objective:
 
-\[
+```latex
 L_b
 =
 \frac{1}{4}
 \sum_{t=1}^{4}
 L_{b,t}
-\]
+```
 
 - A task with zero observed labels in a batch contributes zero loss and zero gradient; the batch loss is **not renormalized over the tasks present**.
 - Zero-label task/batches are explicitly detected, counted, and flagged in diagnostics.
@@ -64,7 +64,7 @@ After both variant configurations are frozen, each variant is evaluated once on 
 
 Primary adjudication metric:
 
-\[
+```latex
 \operatorname{Macro\ ST\text{-}RAE}
 =
 \frac{
@@ -76,7 +76,7 @@ Primary adjudication metric:
 +
 \operatorname{ST\text{-}RAE}_{3A4}
 }{4}
-\]
+```
 
 Variant 2 replaces Variant 1 only if Variant 2 has the lower macro-averaged held-out test ST-RAE.
 
@@ -158,7 +158,7 @@ The frozen CYP-002 contract remains unchanged:
 - Variant 2 is task-balanced masked multitask Chemprop.
 - The full eight-configuration grid, C0-C7, is run for **both variants** under the same seed and controls.
 - The sensitivity grid is judged using validation macro ST-RAE only.
-- The primary sensitivity statistic is \(k/8\), where \(k\) is the number of configurations for which Variant 2 has lower validation macro ST-RAE than Variant 1.
+- The primary sensitivity statistic is `k/8`, where `k` is the number of configurations for which Variant 2 has lower validation macro ST-RAE than Variant 1.
 - The grid does not alter the C0 headline A/B selection rule and does not become an iterative configuration-search procedure.
 - After configurations and checkpoints are frozen, each headline variant receives one held-out test evaluation.
 - Variant 2 replaces Variant 1 only if Variant 2 has the lower held-out test macro ST-RAE.
@@ -191,7 +191,7 @@ C1-C7 × Variant 1
 C1-C7 × Variant 2
 ```
 
-with validation macro ST-RAE used to calculate the \(k/8\) sensitivity statistic.
+with validation macro ST-RAE used to calculate the `k/8` sensitivity statistic.
 
 No C1-C7 configuration may be run for only one variant on the basis of the C0 validation result.
 
@@ -863,10 +863,10 @@ Every proposed Regression Prediction upload must be validated against three froz
 
 ##### Molecule identity
 
-For every row position \(i=1,\ldots,750\):
+For every row position `i=1,\ldots,750`:
 
-- `Molecule_Name` in the proposed submission must exactly equal `Molecule_Name` in row \(i\) of the frozen official challenge test file;
-- `SMILES` in the proposed submission must exactly equal `SMILES` in row \(i\) of the frozen official challenge test file as the organizer-provided string.
+- `Molecule_Name` in the proposed submission must exactly equal `Molecule_Name` in row `i` of the frozen official challenge test file;
+- `SMILES` in the proposed submission must exactly equal `SMILES` in row `i` of the frozen official challenge test file as the organizer-provided string.
 
 No canonicalization, normalization, salt handling, fragment selection, neutralization, tautomer conversion, stereochemistry manipulation, or other molecular transformation may be used to make mismatching identity strings agree.
 
@@ -1298,21 +1298,21 @@ No new C0 training is required.
 
 ## Same-seed paired comparison
 
-For each candidate \(j\in\{C5,C6\}\) and training seed \(s\), define the validation advantage:
+For each candidate `j\in\{C5,C6\}` and training seed `s`, define the validation advantage:
 
-\[
+```latex
 A_{j,s}
 =
 ST\!-\!RAE_{C0,s}
 -
 ST\!-\!RAE_{j,s}.
-\]
+```
 
 Lower ST-RAE is better. Therefore:
 
-- \(A_{j,s}>0\): candidate \(j\) beats C0 at that seed;
-- \(A_{j,s}=0\): tie;
-- \(A_{j,s}<0\): C0 beats candidate \(j\).
+- `A_{j,s}>0`: candidate `j` beats C0 at that seed;
+- `A_{j,s}=0`: tie;
+- `A_{j,s}<0`: C0 beats candidate `j`.
 
 Every candidate result is compared with the **existing C0 result generated at the same training seed**.
 
@@ -1332,7 +1332,7 @@ The authoritative existing C0 validation values are:
 
 For C5 versus C0 and C6 versus C0 separately, report:
 
-- all five paired advantages \(A_{j,s}\);
+- all five paired advantages `A_{j,s}`;
 - mean paired advantage;
 - median paired advantage;
 - sample SD of the five paired advantages;
@@ -1351,23 +1351,23 @@ For each candidate separately, the bootstrap unit is the **paired training seed*
 
 The observed five-element vector is:
 
-\[
+```latex
 (A_{j,1},A_{j,2},A_{j,3},A_{j,4},A_{j,5}).
-\]
+```
 
 For each bootstrap draw, sample **five seed indices with replacement** from the fixed five-seed set.
 
-Whenever a seed index is sampled, its already-computed paired advantage \(A_{j,s}\) is carried as one indivisible observation. C0 and candidate scores are never resampled independently.
+Whenever a seed index is sampled, its already-computed paired advantage `A_{j,s}` is carried as one indivisible observation. C0 and candidate scores are never resampled independently.
 
-For bootstrap draw \(b\):
+For bootstrap draw `b`:
 
-\[
+```latex
 \bar A_j^{*(b)}
 =
 \frac{1}{5}
 \sum_{r=1}^{5}
 A_{j,s_r^{*(b)}}.
-\]
+```
 
 Use:
 
@@ -1383,30 +1383,30 @@ The analysis RNG seed must be fixed prospectively before the bootstrap is execut
 
 The percentile interval is:
 
-\[
+```latex
 [
 Q_{0.025}(\bar A_j^*),
 Q_{0.975}(\bar A_j^*)
 ].
-\]
+```
 
 Define:
 
-\[
+```latex
 LCB(A_j)=Q_{0.025}(\bar A_j^*).
-\]
+```
 
 The use of 10,000 paired bootstrap draws and a 95% percentile interval follows the already-frozen CYP-002 bootstrap precedent; the experimental unit here is changed appropriately to the five paired training-seed replicates.
 
 ## Candidate-specific seed variability
 
-For candidate \(j\), define:
+For candidate `j`, define:
 
-\[
+```latex
 SD_{\mathrm{seed},j}
 =
 SD(A_{j,1},A_{j,2},A_{j,3},A_{j,4},A_{j,5}).
-\]
+```
 
 This is the sample SD of the **C0-versus-candidate paired validation advantages**.
 
@@ -1420,9 +1420,9 @@ is not reused as the C5/C6 threshold because it was specifically measured from t
 
 The prior CYP-002 preregistration established the methodological principle:
 
-\[
+```latex
 LCB(\Delta_{\mathrm{test}})>SD_{\mathrm{seed}}
-\]
+```
 
 for an observed improvement to displace the incumbent.
 
@@ -1432,19 +1432,19 @@ D004 retains that principle while estimating the stochastic scale from the corre
 
 C5 displaces C0 only if:
 
-\[
+```latex
 \boxed{
 LCB(A_{C5})>SD_{\mathrm{seed},C5}
 }
-\]
+```
 
 C6 displaces C0 only if:
 
-\[
+```latex
 \boxed{
 LCB(A_{C6})>SD_{\mathrm{seed},C6}
 }
-\]
+```
 
 Otherwise that candidate does not displace C0.
 
@@ -1460,7 +1460,7 @@ If both clear the rule, D004 does **not** select between C5 and C6. A C5-versus-
 
 ## Conservatism at five seeds
 
-The frozen rule is deliberately conservative at \(n=5\).
+The frozen rule is deliberately conservative at `n=5`.
 
 Only five paired training-seed effects are observed. Consequently:
 
@@ -3438,46 +3438,46 @@ It does not presume that pairwise learning will repair CYP2D6 or that the cause 
 
 P1's comparator is the **single-model D007-T121 development procedure**, not the later frozen 150-checkpoint blind-inference ensemble.
 
-For development cell \(c\), T121 trained one model on that cell's frozen training partition. Checkpoint selection and early stopping used held-out **validation macro ST-RAE**, defined as the unweighted macro across CYP1A2, CYP2C9, CYP2D6, and CYP3A4. The retained checkpoint was the checkpoint with the lowest validation macro ST-RAE for that fit.
+For development cell `c`, T121 trained one model on that cell's frozen training partition. Checkpoint selection and early stopping used held-out **validation macro ST-RAE**, defined as the unweighted macro across CYP1A2, CYP2C9, CYP2D6, and CYP3A4. The retained checkpoint was the checkpoint with the lowest validation macro ST-RAE for that fit.
 
 Let:
 
-\[
+```latex
 S_c(M)
 =
 \frac{1}{4}
 \sum_{t=1}^{4}
 \operatorname{ST\!-\!RAE}_{c,t}(M)
-\]
+```
 
-denote the retained single model's held-out validation macro ST-RAE in development cell \(c\).
+denote the retained single model's held-out validation macro ST-RAE in development cell `c`.
 
 The authoritative full-fidelity D007 objective is:
 
-\[
+```latex
 O_{150}(M)
 =
 \frac{1}{150}
 \sum_{c=1}^{150} S_c(M).
-\]
+```
 
 The 150 cells are the frozen:
 
-\[
+```latex
 50\ \text{repetition/fold partitions}
 \times
 3\ \text{training seeds}.
-\]
+```
 
 Equivalently, D007 described this as averaging the three seed-level cell scores within each of 50 folds and then averaging those 50 fold values.
 
 The authoritative frozen comparator is:
 
-\[
+```latex
 O_{150}(\mathrm{T121})
 =
 0.701212576796.
-\]
+```
 
 ### Source artifact
 
@@ -3522,21 +3522,21 @@ D007-T121 remains frozen regardless of P1 outcome.
 
 P1 uses a two-component shared Chemprop 2.3.1 D-MPNN.
 
-For molecules \(A\) and \(B\):
+For molecules `A` and `B`:
 
-\[
+```latex
 h_A=E_\theta(A),
 \qquad
 h_B=E_\theta(B),
-\]
+```
 
 where each embedding has dimension `600` and the same encoder parameters are used for both molecules.
 
-The pair function \(G\) receives ordered concatenation:
+The pair function `G` receives ordered concatenation:
 
-\[
+```latex
 [h_A,h_B]\in\mathbb{R}^{1200}.
-\]
+```
 
 The approved pair head is:
 
@@ -3545,17 +3545,17 @@ The approved pair head is:
 - T121 activation;
 - dropout `0.4`;
 - four endpoint outputs;
-- the same \(G\) parameters for both orientations.
+- the same `G` parameters for both orientations.
 
 The reported delta is:
 
-\[
+```latex
 \widehat{\Delta z}_t(A,B)
 =
 \frac{
 G_t(h_A,h_B)-G_t(h_B,h_A)
 }{2}.
-\]
+```
 
 No additional width search or parameter-matching experiment is authorized for P1.
 
@@ -3563,17 +3563,17 @@ No additional width search or parameter-matching experiment is authorized for P1
 
 In deterministic evaluation mode:
 
-\[
+```latex
 \widehat{\Delta z}_t(A,B)
 =
 -\widehat{\Delta z}_t(B,A)
-\]
+```
 
 and:
 
-\[
+```latex
 \widehat{\Delta z}_t(A,A)=0
-\]
+```
 
 are required architecture invariants, subject only to ordinary floating-point arithmetic.
 
@@ -3585,13 +3585,13 @@ No coupled-dropout machinery is introduced solely to impose training-time symmet
 
 Cycle/transitivity residuals are diagnostic only. The unrestricted antisymmetric head does not guarantee:
 
-\[
+```latex
 \widehat{\Delta}(A,B)
 +
 \widehat{\Delta}(B,C)
 =
 \widehat{\Delta}(A,C).
-\]
+```
 
 ## Parameter accounting
 
@@ -3622,32 +3622,32 @@ No new split generation is authorized.
 
 ## Pair eligibility and missing labels
 
-For endpoint \(t\), pair \((A,B)\) has an eligible delta target only when both training labels are observed.
+For endpoint `t`, pair `(A,B)` has an eligible delta target only when both training labels are observed.
 
 Define:
 
-\[
+```latex
 M_{ABt}
 =
 \begin{cases}
 1,& y_{A,t}\text{ and }y_{B,t}\text{ are both observed},\\
 0,& \text{otherwise}.
 \end{cases}
-\]
+```
 
-For \(M_{ABt}=1\):
+For `M_{ABt}=1`:
 
-\[
+```latex
 \Delta y_t(A,B)
 =
 y_{A,t}-y_{B,t}.
-\]
+```
 
 No endpoint label is imputed.
 
 No missing target is replaced by a self-pair, prediction, surrogate value, validation label, protected-test label, or D008 label.
 
-If \(n_t<2\) in a training partition, endpoint \(t\) has no valid within-partition pairwise supervision and must be explicitly reported.
+If `n_t<2` in a training partition, endpoint `t` has no valid within-partition pairwise supervision and must be explicitly reported.
 
 Existing-artifact accounting found zero such cases across the 50 frozen D007 partitions.
 
@@ -3657,11 +3657,11 @@ Pairs are sampled on-the-fly from the corresponding training partition.
 
 Sampling is uniform over ordered distinct pairs:
 
-\[
+```latex
 A\ne B.
-\]
+```
 
-The full \(N(N-1)\) pair universe is not materialized or represented as independent experimental evidence.
+The full `N(N-1)` pair universe is not materialized or represented as independent experimental evidence.
 
 A sampled pair may contain zero to four eligible endpoint targets.
 
@@ -3679,30 +3679,30 @@ Generated pairs are dependent transformations of the original molecular measurem
 
 ## Fold-specific pair weighting
 
-For training-partition size \(N\) and endpoint-specific observed-label count \(n_t\), uniform ordered-distinct pair sampling gives:
+For training-partition size `N` and endpoint-specific observed-label count `n_t`, uniform ordered-distinct pair sampling gives:
 
-\[
+```latex
 q_t
 =
 \frac{n_t(n_t-1)}{N(N-1)}.
-\]
+```
 
 The approved endpoint weight is:
 
-\[
+```latex
 w_t
 =
 \frac{N-1}{n_t-1},
 \qquad n_t\ge2.
-\]
+```
 
 Therefore:
 
-\[
+```latex
 q_t w_t
 =
 \frac{n_t}{N}.
-\]
+```
 
 This identity supports matching the **endpoint label mixture in the population limit**.
 
@@ -3724,7 +3724,7 @@ Training-label counts:
 - CYP2D6: `1123–1157`
 - CYP3A4: `1766–1815`
 
-Approved \(w_t\) ranges:
+Approved `w_t` ranges:
 
 - CYP1A2: `3.41–3.53628652215`
 - CYP2C9: `3.72492552135–3.89107883817`
@@ -3746,7 +3746,7 @@ Performance cannot alter them.
 
 P1 uses:
 
-\[
+```latex
 L_{\mathrm{P1}}
 =
 \frac{
@@ -3762,13 +3762,13 @@ M_{jt}w_t
 \displaystyle
 \sum_{j,t}M_{jt}w_t
 }.
-\]
+```
 
 The denominator is explicitly:
 
-\[
+```latex
 \sum M w.
-\]
+```
 
 This deliberately differs from stock Chemprop MSE's observed-entry-count denominator.
 
@@ -3780,33 +3780,33 @@ Their numerical training-loss values must not be compared as though they measure
 
 ## Target transformation and delta inversion
 
-For each training partition and endpoint \(t\), fit the training-only scaler:
+For each training partition and endpoint `t`, fit the training-only scaler:
 
-\[
+```latex
 z_t
 =
 \frac{y_t-\mu_t}{s_t}.
-\]
+```
 
 The pairwise training target is:
 
-\[
+```latex
 \Delta z_t(A,B)
 =
 z_{A,t}-z_{B,t}
 =
 \frac{y_{A,t}-y_{B,t}}{s_t}.
-\]
+```
 
 The training mean cancels.
 
 At inference, convert the predicted standardized delta back to original pIC50 difference by:
 
-\[
+```latex
 \widehat{\Delta y}_t(A,B)
 =
 s_t\widehat{\Delta z}_t(A,B).
-\]
+```
 
 No scaler mean is added to a delta.
 
@@ -3822,17 +3822,17 @@ Recovered D007 training-partition sizes are:
 
 At batch size `16`, every partition produces exactly:
 
-\[
+```latex
 235
-\]
+```
 
 T121 optimizer updates per molecule epoch.
 
 P1 therefore defines one **pseudo-epoch** as exactly:
 
-\[
+```latex
 235\ \text{optimizer updates}.
-\]
+```
 
 A pseudo-epoch is an optimization-budget unit, not exhaustive traversal of the pair universe.
 
@@ -3856,10 +3856,10 @@ Equal epoch counts are not claimed to establish equal training exposure.
 
 Every P1 cell must preserve:
 
-- \(N\);
-- each \(n_t\);
-- each \(q_t\);
-- each \(w_t\);
+- `N`;
+- each `n_t`;
+- each `q_t`;
+- each `w_t`;
 - pair attempts;
 - accepted pair rows;
 - `no_supervision` rejections;
@@ -3877,41 +3877,41 @@ These quantities do not convert pairs into independent experimental observations
 
 ## Reference-based absolute reconstruction
 
-For held-out query \(Q\) and endpoint \(t\), references are exactly the endpoint-labeled molecules in that cell's training partition:
+For held-out query `Q` and endpoint `t`, references are exactly the endpoint-labeled molecules in that cell's training partition:
 
-\[
+```latex
 R_t^{\mathrm{train}}.
-\]
+```
 
 No validation, protected-test, or D008 molecule may serve as a reference for development evaluation.
 
-For training reference \(R_j\):
+For training reference `R_j`:
 
-\[
+```latex
 \widehat{\Delta y}_t(Q,R_j)
 =
 s_t\widehat{\Delta z}_t(Q,R_j).
-\]
+```
 
 Then:
 
-\[
+```latex
 \widehat y_t(Q\mid R_j)
 =
 y_{j,t}
 +
 \widehat{\Delta y}_t(Q,R_j).
-\]
+```
 
 The approved P1 absolute estimator is:
 
-\[
+```latex
 \widehat y_t(Q)
 =
 \frac{1}{|R_t^{\mathrm{train}}|}
 \sum_{R_j\in R_t^{\mathrm{train}}}
 \widehat y_t(Q\mid R_j).
-\]
+```
 
 The resulting prediction is in original pIC50 units before qualified ST-RAE scoring.
 
@@ -3956,7 +3956,7 @@ At each validation check:
 4. the checkpoint with the lowest validation macro ST-RAE is retained;
 5. early stopping monitors that same validation macro quantity.
 
-The retained single-model cell score \(S_c(P1)\) enters O150.
+The retained single-model cell score `S_c(P1)` enters O150.
 
 The pairwise training loss does not enter O150.
 
@@ -3970,22 +3970,22 @@ Per-endpoint results are mandatory reporting but do not override the primary mac
 
 The sole advancement rule is:
 
-\[
+```latex
 P1\text{ advances over T121}
 \iff
 O_{150}(P1)
 <
 0.701212576796.
-\]
+```
 
 where:
 
-\[
+```latex
 O_{150}(P1)
 =
 \frac{1}{150}
 \sum_{c=1}^{150}S_c(P1).
-\]
+```
 
 Any **strictly lower** O150 qualifies.
 
@@ -4098,7 +4098,7 @@ Before implementation authority was considered, the record required:
 4. preregister synthetic qualification tests for:
    - molecule-level split isolation;
    - pair eligibility;
-   - fold-specific \(n_t,q_t,w_t\);
+   - fold-specific `n_t,q_t,w_t`;
    - `no_supervision` handling;
    - training-only target scaling;
    - delta inversion;
@@ -4458,9 +4458,9 @@ P2 reuses the exact frozen D007 development procedure:
 
 The sole comparator is frozen D007-T121:
 
-\[
+```latex
 O_{150}(\mathrm{T121}) = 0.701212576796.
-\]
+```
 
 The 150 D007 cells are reused development evidence. They are not untouched confirmation data, and their repeated use does not make them independent external evidence.
 
@@ -4512,39 +4512,39 @@ P2 reuses the T121 Chemprop 2.3.1 architecture where applicable:
 
 Let:
 
-- \(\theta\) denote the molecular encoder parameters;
-- \(\psi\) denote the shared `600 -> 2000` hidden-layer parameters;
-- \(w_t,b_t\) denote the final linear output weight vector and scalar bias for isoform \(t\).
+- `\theta` denote the molecular encoder parameters;
+- `\psi` denote the shared `600 -> 2000` hidden-layer parameters;
+- `w_t,b_t` denote the final linear output weight vector and scalar bias for isoform `t`.
 
 The shared encoder and hidden layer are meta-learned across the four isoform tasks.
 
 ## Inner-adaptation boundary
 
-For task \(t\), inner adaptation changes only:
+For task `t`, inner adaptation changes only:
 
-- \(w_t\), the selected isoform's final output weight vector;
-- \(b_t\), the selected isoform's final output bias.
+- `w_t`, the selected isoform's final output weight vector;
+- `b_t`, the selected isoform's final output bias.
 
 Exactly one inner gradient step is taken:
 
-\[
+```latex
 (w'_t,b'_t)
 =
 (w_t,b_t)
 -
 0.01\nabla_{w_t,b_t}L^{S}_t.
-\]
+```
 
 The inner learning rate is therefore fixed at:
 
-\[
+```latex
 \alpha = 0.01.
-\]
+```
 
 No inner update is permitted to:
 
-- encoder parameters \(\theta\);
-- shared hidden-layer parameters \(\psi\);
+- encoder parameters `\theta`;
+- shared hidden-layer parameters `\psi`;
 - final-output parameters belonging to the other three isoforms.
 
 Final-output-only adaptation and exact-versus-first-order differentiation are separate methodological choices. D010 freezes final-output-only adaptation together with exact differentiation through that adaptation.
@@ -4560,7 +4560,7 @@ Every outer optimizer update contains exactly four episodes:
 
 There is no independent stochastic task selection and no task-frequency weighting.
 
-For each task \(t\), an episode contains:
+For each task `t`, an episode contains:
 
 - 13 support molecules;
 - 3 query molecules.
@@ -4589,15 +4589,15 @@ The 13-support/3-query construction is the frozen operationalization of the prop
 
 P2 reuses the existing cell-specific training-only target-scaling machinery.
 
-For task \(t\), the support objective is the arithmetic mean squared error over its 13 observed standardized support labels:
+For task `t`, the support objective is the arithmetic mean squared error over its 13 observed standardized support labels:
 
-\[
+```latex
 L^{S}_t
 =
 \frac{1}{13}
 \sum_{i\in S_t}
 (\hat z_{i,t}-z_{i,t})^2.
-\]
+```
 
 No validation information participates in scaler fitting.
 
@@ -4616,19 +4616,19 @@ D010 introduces no coupled-dropout-mask machinery or other mask-control mechanis
 
 ## Exact-ANIL outer objective
 
-Following the one-step support adaptation for task \(t\), query loss is the arithmetic mean standardized MSE over its three molecule-disjoint query compounds:
+Following the one-step support adaptation for task `t`, query loss is the arithmetic mean standardized MSE over its three molecule-disjoint query compounds:
 
-\[
+```latex
 L^{Q}_t
 =
 \frac{1}{3}
 \sum_{i\in Q_t}
 (\hat z'_{i,t}-z_{i,t})^2.
-\]
+```
 
 The four task query losses contribute equally:
 
-\[
+```latex
 L_{\mathrm{outer}}
 =
 \frac{1}{4}
@@ -4641,23 +4641,23 @@ L^{Q}_{2D6}
 +
 L^{Q}_{3A4}
 \right).
-\]
+```
 
 P2 uses exact ANIL.
 
 Differentiation is retained through the support-gradient calculation. The support gradient must not be detached or replaced with a first-order approximation.
 
-Consequently, the outer gradient includes the dependence of the adapted \(w'_t,b'_t\) on:
+Consequently, the outer gradient includes the dependence of the adapted `w'_t,b'_t` on:
 
 - their meta-initialization;
-- the support features produced by \(\theta\) and \(\psi\).
+- the support features produced by `\theta` and `\psi`.
 
 Therefore:
 
-- \(\theta\) receives no inner update but receives exact through-adaptation outer query gradients;
-- \(\psi\) receives no inner update but receives exact through-adaptation outer query gradients;
-- \(w_t,b_t\) receive the one-step inner update and corresponding exact meta-gradient;
-- the other three task outputs are not inner-adapted by task \(t\).
+- `\theta` receives no inner update but receives exact through-adaptation outer query gradients;
+- `\psi` receives no inner update but receives exact through-adaptation outer query gradients;
+- `w_t,b_t` receive the one-step inner update and corresponding exact meta-gradient;
+- the other three task outputs are not inner-adapted by task `t`.
 
 ## Rationale for exact ANIL
 
@@ -4694,17 +4694,17 @@ Sequential execution is a computational implementation of the frozen equal four-
 
 One P2 pseudo-epoch is defined as:
 
-\[
+```latex
 235
-\]
+```
 
 outer optimizer updates.
 
 Because each outer update contains four task episodes, one pseudo-epoch contains:
 
-\[
+```latex
 235\times4=940
-\]
+```
 
 task episodes.
 
@@ -4745,13 +4745,13 @@ Adapted parameters may not carry:
 - from one isoform to another;
 - from one validation check to another.
 
-For task \(t\):
+For task `t`:
 
-1. use all cell-training molecules having an observed label for \(t\);
+1. use all cell-training molecules having an observed label for `t`;
 2. compute the exact arithmetic-mean standardized MSE over that complete training-support population;
 3. take exactly one inner gradient step at learning rate 0.01;
-4. update only \(w_t,b_t\);
-5. predict endpoint \(t\) for every held-out validation molecule;
+4. update only `w_t,b_t`;
+5. predict endpoint `t` for every held-out validation molecule;
 6. invert the existing training-only scaler to original pIC50.
 
 If the full support population must be processed in minibatches for computational reasons, the implementation must accumulate the complete support squared-error sum and observation count and divide by the complete support count so that the single adaptation gradient corresponds to the arithmetic mean over the entire support population.
@@ -4766,15 +4766,15 @@ A validation molecule's four endpoint predictions therefore arise from four inde
 
 The four original-pIC50 validation predictions pass through the existing qualified ST-RAE evaluation machinery.
 
-For development cell \(c\):
+For development cell `c`:
 
-\[
+```latex
 S_c(P2)
 =
 \frac{1}{4}
 \sum_{t=1}^{4}
 ST\!-\!RAE_{c,t}(P2).
-\]
+```
 
 The retained checkpoint is the checkpoint with the strictly lowest validation macro ST-RAE.
 
@@ -4791,26 +4791,26 @@ The meta-training objective has no direct advancement authority.
 
 After exactly the frozen 150 development cells:
 
-\[
+```latex
 O_{150}(P2)
 =
 \frac{1}{150}
 \sum_{c=1}^{150}S_c(P2).
-\]
+```
 
 The sole comparator is:
 
-\[
+```latex
 O_{150}(\mathrm{T121})=0.701212576796.
-\]
+```
 
 P2 advances if and only if:
 
-\[
+```latex
 \boxed{
 O_{150}(P2)<0.701212576796
 }
-\]
+```
 
 An exact tie does not advance.
 
@@ -4861,7 +4861,7 @@ It must demonstrate at minimum:
 8. exclusion of validation data from meta-training, episode construction, scaler fitting, and support adaptation;
 9. exclusion of the protected internal test and D008 from all P2 procedures;
 10. no missing-label imputation;
-11. only the selected task's \(w_t,b_t\) change during inner adaptation;
+11. only the selected task's `w_t,b_t` change during inner adaptation;
 12. encoder, shared hidden layer, and other task outputs receive no inner update;
 13. the support-gradient calculation remains differentiable;
 14. outer gradients include the dependence of adapted output parameters on support features and their initialization;
@@ -5164,13 +5164,13 @@ Subject to that compatibility check:
 
 ## Candidate protocol
 
-For candidate \(c=(\alpha,K)\), the same inner learning rate \(\alpha\) and number of adaptation steps \(K\) are used during both meta-training and evaluation-time adaptation.
+For candidate `c=(\alpha,K)`, the same inner learning rate `\alpha` and number of adaptation steps `K` are used during both meta-training and evaluation-time adaptation.
 
-During each meta-training task episode, exactly \(K\) sequential exact-ANIL inner steps are taken on the selected isoform's final output weight vector and bias only.
+During each meta-training task episode, exactly `K` sequential exact-ANIL inner steps are taken on the selected isoform's final output weight vector and bias only.
 
-Differentiation is retained exactly through all \(K\) adaptation steps.
+Differentiation is retained exactly through all `K` adaptation steps.
 
-During evaluation, each isoform begins from a fresh unadapted selected checkpoint state and receives exactly \(K\) full-training-support adaptation steps at the same candidate-specific inner learning rate.
+During evaluation, each isoform begins from a fresh unadapted selected checkpoint state and receives exactly `K` full-training-support adaptation steps at the same candidate-specific inner learning rate.
 
 No adapted state carries between isoforms or validation checks.
 
@@ -5197,16 +5197,16 @@ No architecture change, first-order branch, additional baseline, endpoint veto, 
 
 ## Candidate scoring and selection
 
-For every candidate \(c\):
+For every candidate `c`:
 
-\[
+```latex
 O_{150}(c)
 =
 \frac{1}{150}
 \sum_{i=1}^{150} S_i(c),
-\]
+```
 
-where each \(S_i(c)\) is the retained macro ST-RAE from that cell's already-defined macro-selected checkpoint.
+where each `S_i(c)` is the retained macro ST-RAE from that cell's already-defined macro-selected checkpoint.
 
 After all 12 declared configurations have complete eligible results, select the configuration with the strictly lowest O150.
 
@@ -5223,15 +5223,15 @@ Candidate evaluation order has no selection authority, and the study does not st
 
 The sole comparator remains frozen D007-T121:
 
-\[
+```latex
 O_{150}(\mathrm{T121}) = 0.701212576796.
-\]
+```
 
 After candidate selection, the selected D011 configuration advances if and only if:
 
-\[
+```latex
 O_{150}(\mathrm{selected}) < 0.701212576796.
-\]
+```
 
 An exact tie does not advance.
 
@@ -5281,7 +5281,7 @@ Benchmark the worst planned adaptation depth:
 
 The benchmark must execute the complete D010 molecular graph encoder, aggregation, meta-head, exact through-adaptation computation through all three inner steps, outer backward, optimizer, scheduler, and the corresponding three-step full-support evaluation adaptation/prediction path.
 
-The D010 runtime benchmark may not be automatically inherited because changing \(K\) changes the exact differentiation and evaluation workload.
+The D010 runtime benchmark may not be automatically inherited because changing `K` changes the exact differentiation and evaluation workload.
 
 The benchmark must report:
 
@@ -5304,7 +5304,7 @@ D011 does not authorize implementation, candidate evaluation, training, or produ
 The next authorized preparation step, after this record is frozen, is a connected implementation/qualification package that:
 
 - parameterizes only inner LR and inner-step count;
-- verifies exact differentiation through \(K=1,2,3\);
+- verifies exact differentiation through `K=1,2,3`;
 - verifies matched candidate settings during meta-training and evaluation;
 - proves D010 `(0.01,1)` protocol compatibility for anchor reuse;
 - implements deterministic 12-candidate selection and tie-breaking;
@@ -5647,4 +5647,31 @@ Not authorized by this amendment: stage B (comparison of the top three configura
 Stage B compares the three best stage A configurations, ranked by primary-head validation MAE, across three seeds each: the stage A common seed 20261117, 20261118 and 20261119, giving six new runs (the two new seed values are fixed by this approval). The three configurations are selected by `pxr/scripts/pxr002_stage_b_runner.py` from the stage A `metrics.json` files. Configurations are ranked by mean primary-head validation MAE across the three seeds (item 4). The artifact, features, loss weights, 100-epoch maximum and patience 20 are those of stage A. The wall-time request is 1 h, through `pxr/scripts/pxr002_stage_b.slurm`, which requires `AUTHORIZE_STAGE_B=yes`. Execution record: `notes/Tripwire_PXR_002.md`, section 5e.
 
 Not authorized by this amendment: the auxiliary-off ablation and its interpretation rule; final ensemble size; any holdout or official-test evaluation; retraining on train plus validation; any statistical improvement threshold or the Rev 3 line 129 bar; any other training or job; treating any item under "Pending, not decided" as approved. The remaining "Not authorized" items of this record stay in force.
+
+**Amendment 4 (2026-11-18) — Auxiliary-off ablation.** Resolves the "Pending, not decided" item on the auxiliary-off ablation and its interpretation rule. The "Not authorized" bar on training, GPU jobs and SLURM submission is lifted for this ablation only.
+
+1. **Runs.** The configuration ranked first in the stage B ranking (`stage_b_ranking.json`) is trained at seeds 20261117, 20261118 and 20261119 with the three auxiliary loss coefficients set to 0 and the primary coefficient set to 1. The v2 cohort, artifact, descriptors, batches, optimizer and stopping rule are those of stage A; the cohort is kept identical so that only the loss changes.
+2. **Caveat.** Chemprop divides the loss by all observed labels, so with auxiliary coefficients at 0 the primary loss is scaled by n_primary / n_observed.
+3. **Interpretation rule (descriptive; no statistical threshold).** The three-seed mean and range of primary-head validation MAE are compared for the multitask and auxiliary-off variants. The multitask design is supported only if its mean is lower and the two ranges do not overlap; otherwise the variants are reported as not distinguishable. The runner also reports a mirrored label when the auxiliary-off mean is lower and the ranges are disjoint, and reports fresh-seed-only means (seeds 20261118 and 20261119) for both variants because the stage A seed was the best of 36 candidates.
+4. **Execution.** Wall-time request 1 h, through `pxr/scripts/pxr002_ablation.slurm`, which requires `AUTHORIZE_ABLATION=yes`. Preparation record: `notes/Tripwire_PXR_002.md`, section 5g.
+
+Not authorized by this amendment: final ensemble size and protocol; any holdout or official-test evaluation; retraining on train plus validation; any statistical improvement threshold or the Rev 3 line 129 bar and its comparator; any other training or job; treating any other item under "Pending, not decided" as approved. The remaining "Not authorized" items of this record stay in force.
+
+**Amendment 5 (2026-11-18) — Improvement criterion.** Resolves the "Pending, not decided" item on the numerical improvement bar (Rev 3 line 129) for the PXR multitask path.
+
+The criterion is satisfied by reporting the final holdout MAE against the constant training-mean predictor as a floor, as a descriptive comparison. No numeric threshold and no statistical test is set; the "any statistical improvement threshold" item remains unset.
+
+Clarifications: the constant predictor is the mean primary-train pEC50 of the v2 training cohort (2,896 labels); it is a floor and not a comparator method; it has no defined Spearman, so only MAE is compared. Rev 3 is not a repository file and is not amended by this record.
+
+Not authorized by this amendment: the final ensemble size, the choice of variants evaluated on the holdout and the final-evaluation protocol (all remain pending); any holdout or official-test evaluation; final training; retraining on train plus validation; any numeric improvement threshold or statistical test.
+
+**Amendment 6 (2026-11-18) — Final ensemble and holdout evaluation protocol.** Resolves the "Pending, not decided" items on final ensemble size and the final-evaluation protocol. Approved as a protocol; this amendment does not by itself authorize any run.
+
+1. **Primary model.** The configuration ranked first in the stage B ranking (`stage_b_ranking.json`; by the recorded stage B results, multitask h600_d4_f2_p0.2), trained on the train split only (v2 cohort), with no refit on train plus validation. The ensemble is five fresh seeds, 20261120, 20261121, 20261122, 20261123 and 20261124, with predictions averaged.
+2. **Secondary variant.** The auxiliary-off variant (auxiliary coefficients 0), same five seeds, is reported alongside the primary model.
+3. **Selection.** No selection between variants or configurations on holdout numbers.
+4. **Evaluation.** One holdout evaluation of the 621 D014 holdout molecules, reporting MAE and Spearman. The evidence class is internal-retrospective (Rev 3 line 53). The official test and its firewalled labels are not used.
+5. **Improvement criterion.** As in Amendment 5: a descriptive comparison of the holdout MAE with the constant mean-pEC50 predictor.
+
+Not authorized by this amendment: any final training, prediction or holdout evaluation run; reading any holdout label before the final evaluation step; retraining on train plus validation; any official-test evaluation; any numeric improvement threshold or statistical test; any change to the D014 split or grouping.
 

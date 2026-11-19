@@ -145,18 +145,75 @@ Claude's analysis (not a decision): all three have two FFN layers and dropout 0.
 
 **Submission.** Miles staged the stage B package and submitted stage B as batch job 3119543 on CoreHPC. Names proposed by Claude: archive `pxr002_stage_20261118_r4.tar.gz`, hash list `pxr002_stage_hashes_20261118_r4.txt`, wrapper `pxr002_stage_b.slurm` (1 h, 1 L40S, 8 CPUs, 96G, requires `AUTHORIZE_STAGE_B=yes`), stage A root `/scratch/user/mhuang8/pxr002_stage_a_20261118`, output root `/scratch/user/mhuang8/pxr002_stage_b_20261118`. The package names, hash comparisons, the 36-result count check and the exact sbatch line were not reported, so whether these were used and whether the staged files matched the reviewed hashes is UNKNOWN. Outcome of job 3119543: UNKNOWN.
 
+## 5f. Stage B results (job 3119543, 2026-11-18, CoreHPC)
+
+Source: Miles's report of the `.out`; job logs are not in this checkout. Stage B output root (proposed `/scratch/user/mhuang8/pxr002_stage_b_20261118`) is not shown in the output.
+
+**Job.** 3119543 COMPLETED 0:0 on ggpu1-11 (L40S), 14:28:32 to 14:42:05, elapsed 00:13:33 against the 1 h request. All 18 listed files passed `sha256sum -c` (r4 package, including `pxr002_stage_a_runner.py` and `pxr002_stage_b_runner.py`); chemprop 2.3.1. The plan line selected h600_d4_f2_p0.2, h300_d5_f2_p0.2 and h300_d3_f2_p0.2 (matching Claude's hand-sort of stage A) and 6 extra runs. All six runs returned code 0, 24-30 epochs, about 2.2 min each.
+
+**Best primary-head validation MAE by seed** (20261117 is the stage A value):
+
+| Configuration | 20261117 | 20261118 | 20261119 | Mean |
+|---|---|---|---|---|
+| h600_d4_f2_p0.2 | 0.52960 | 0.53900 (27 ep) | 0.54396 (25 ep) | 0.53752 |
+| h300_d5_f2_p0.2 | 0.53574 | 0.53768 (27 ep) | 0.54985 (30 ep) | 0.54109 |
+| h300_d3_f2_p0.2 | 0.53681 | 0.55002 (28 ep) | 0.54755 (24 ep) | 0.54479 |
+
+Ranking by mean (D018 item 4 rule): 1 h600_d4_f2_p0.2 (0.53752), 2 h300_d5_f2_p0.2 (0.54109), 3 h300_d3_f2_p0.2 (0.54479). The final-epoch val_primary_mae printed in the log (0.572-0.589) is the last epoch, not the saved best checkpoint.
+
+**Claude's analysis (not a decision).** Per-configuration seed spread is about 0.007 (SD) and 0.013-0.014 (range), so the mean gaps of 0.0036 and 0.0073 are about the size of the standard error of a three-seed mean (about 0.004); the three configurations are not separable on this evidence, although the D018 rule names h600_d4_f2_p0.2. For each configuration the stage A seed was its lowest value, consistent with selection from 36 candidates at one seed (winner's curse). On the two fresh seeds alone the means are h600_d4 0.5415, h300_d5 0.5438 and h300_d3 0.5488 (same order), so fresh-seed MAE is about 0.54, not 0.53.
+
+**Boundaries.** Validation only; no holdout or official-test labels used. Not authorized or decided: auxiliary-off ablation and its interpretation rule, final ensemble size and final-training protocol, any holdout or official-test evaluation, retraining on train plus validation, statistical improvement threshold, Rev 3 line 129 numerical bar and its comparator.
+
+## 5g. Auxiliary-off ablation approval and preparation (2026-11-18)
+
+**Approval (D018 Amendment 4).** Miles approved the ablation proposal as Claude put it. The stage B selected configuration (top of `stage_b_ranking.json`; by the reported stage B results h600_d4_f2_p0.2) is run at seeds 20261117, 20261118 and 20261119 with the three auxiliary loss coefficients 0 and primary coefficient 1; cohort, v2 artifact, descriptors, batches, optimizer and stopping rule unchanged, so only the loss changes. Caveat: Chemprop divides by all observed labels, so the primary loss is scaled by n_primary / n_observed. Interpretation rule (descriptive, no statistical threshold): compare three-seed mean and range of each variant; multitask is supported only if its mean is lower and the ranges do not overlap, otherwise "not distinguishable". The runner also prints a mirrored `ablation_better_ranges_disjoint` label when the ablation is clearly lower (Claude's descriptive addition) and reports fresh-seed-only (20261118, 20261119) means for both variants, since the stage A seed was the best of 36. Wall-time request 1 h. Not authorized: final ensemble size and protocol, any holdout or official-test evaluation, retraining on train plus validation, statistical improvement threshold, Rev 3 line 129 bar and comparator.
+
+**Files (written or edited by Claude Code; uncommitted).** New: `pxr/scripts/pxr002_ablation_runner.py`, `pxr/scripts/pxr002_ablation.slurm` (requires `AUTHORIZE_ABLATION=yes`). Edited: `pxr/scripts/pxr002_loss_weights.py` (`aux_off_weight_vector`) and `pxr/scripts/pxr002_train.py` (`--aux-off` flag, default off; stage A and B behaviour unchanged; manifest records `aux_off`). Four tests added.
+
+**Submission.** Miles reported submitting the ablation as batch job 3120327 on CoreHPC. His test run, hash comparisons, stage A/B result-file checks and exact sbatch line were not pasted. Names proposed by Claude: archive `pxr002_stage_20261118_r5.tar.gz`, hash list `pxr002_stage_hashes_20261118_r5.txt`, wrapper `pxr002_ablation.slurm` (1 h, 1 L40S, requires `AUTHORIZE_ABLATION=yes`), stage A root `/scratch/user/mhuang8/pxr002_stage_a_20261118`, stage B root `/scratch/user/mhuang8/pxr002_stage_b_20261118`, output root `/scratch/user/mhuang8/pxr002_ablation_20261118`. Whether these were used, whether the tests passed (Claude expected 26) and whether the staged files matched the reviewed hashes is UNKNOWN. Outcome of job 3120327: UNKNOWN.
+
+## 5h. Auxiliary-off ablation results (job 3120327, 2026-11-18, CoreHPC)
+
+Source: Miles's report of the `.out`; job logs are not in this checkout.
+
+**Job.** 3120327 COMPLETED 0:0 on ggpu1-11, 15:36:56 to 15:43:38, elapsed 00:06:42 against the 1 h request. All 19 listed files passed `sha256sum -c` (r5 package, including `pxr002_ablation_runner.py`); chemprop 2.3.1. The plan line shows the selected configuration h600_d4_f2_p0.2.
+
+**Best primary-head validation MAE by seed** (configuration h600_d4_f2_p0.2):
+
+| Variant | 20261117 | 20261118 | 20261119 | Mean | Range |
+|---|---|---|---|---|---|
+| Multitask (stage A/B) | 0.52960 | 0.53900 | 0.54396 | 0.53752 | 0.52960-0.54396 |
+| Auxiliary-off | 0.53036 (26 ep) | 0.54472 (25 ep) | 0.54911 (25 ep) | 0.54140 | 0.53036-0.54911 |
+
+Mean difference (ablation minus multitask) +0.00388. Fresh-seed-only means (20261118, 20261119): ablation 0.54692, multitask 0.54148, difference +0.00544. **Outcome under the approved rule (D018 Amendment 4): not_distinguishable** (multitask mean lower, ranges overlap). The final-epoch val_primary_mae in the log (0.589-0.593) is the last epoch, not the saved best checkpoint.
+
+**Claude's analysis (exploratory; not part of the approved rule; no threshold).** The ablation was worse at all three seeds, by +0.0008, +0.0057 and +0.0051 (mean +0.0039, SD about 0.0027). With n=3 this does not establish an effect, and whether same-seed pairs are a valid pairing is not established. The auxiliary heads therefore show at most a small benefit (about 0.004-0.005 MAE, about 1%) relative to the seed SD of about 0.007; the evidence does not distinguish the variants under the approved rule.
+
+**Boundaries.** Validation only; no holdout or official-test labels used. Not authorized or decided: final ensemble size and protocol, which variant(s) go to final evaluation, any holdout or official-test evaluation, retraining on train plus validation, statistical improvement threshold, Rev 3 line 129 bar and comparator. A separate structure-only check by Claude (SMILES only, labels not read) is not recorded here.
+
+## 5i. Final ensemble and holdout evaluation protocol: approval and preparation (2026-11-18)
+
+**Approval (D018 Amendment 6).** Miles approved the protocol Claude proposed. Primary model: the stage B selected configuration (top of `stage_b_ranking.json`; by the reported results multitask h600_d4_f2_p0.2), trained on the train split only (v2 cohort), no refit on train plus validation; ensemble of five fresh seeds 20261120-20261124, predictions averaged. Secondary variant: auxiliary-off (coefficients 0), same five seeds, reported alongside. No selection between variants or configurations on holdout numbers. One holdout evaluation of the 621 molecules reporting MAE and Spearman; evidence class internal-retrospective (Rev 3 line 53); official test and its firewalled labels unused. Improvement criterion per Amendment 5 (descriptive comparison with the constant mean-pEC50 predictor). Not authorized: any run of these steps, and any holdout label read before the final evaluation step.
+
+**Claude's design choices within that approval (not separate decisions).** Holdout labels never leave the local machine: the CoreHPC job predicts from a structure-only holdout artifact, and evaluation runs locally only with an explicit flag, a predictions-file SHA-256 gate and a one-shot output directory. Each model's inference path must first reproduce its recorded validation MAE within 1e-3, or no holdout predictions are made. Wall-time request 1.5 h.
+
+**Files (written by Claude Code; uncommitted; not yet tested by Miles, hashed or staged).** `pxr/scripts/pxr002_holdout_artifact.py`, `pxr002_final_runner.py`, `pxr002_final_predict.py`, `pxr002_final_eval.py`, `pxr002_final.slurm` (requires `AUTHORIZE_FINAL_TRAINING=yes`), and tests in `pxr/tests/test_pxr002.py`. 
+
+**Submission.** Miles reported submitting the final training and prediction job as batch job 3120551 on CoreHPC, his separate go-ahead for that run under Amendment 6 (the launch command carried `AUTHORIZE_FINAL_TRAINING=yes`). The job trains ten models and writes holdout predictions from the structure-only artifact; it reads no holdout labels. No holdout evaluation has run. His test run, holdout-artifact build, hash comparisons, stage B ranking-file check and exact sbatch line were not pasted. Names proposed by Claude: archive `pxr002_stage_20261118_r6.tar.gz`, hash list `pxr002_stage_hashes_20261118_r6.txt`, wrapper `pxr002_final.slurm` (1.5 h, 1 L40S, 8 CPUs, 96G), structure-only artifact `pxr/artifacts/pxr002_holdout_v1`, stage B root `/scratch/user/mhuang8/pxr002_stage_b_20261118`, output root `/scratch/user/mhuang8/pxr002_final_20261118`. Whether these were used, whether the tests passed (Claude expected 34, count uncertain) and whether the staged files matched the reviewed hashes is UNKNOWN. Outcome of job 3120551: UNKNOWN.
+
 ## 6. Still pending (not approved)
 
-- Stage B: approved (§5e); its results are pending.
+- Stage B: completed (§5f).
+- Auxiliary-off ablation and its interpretation rule: approved and completed as job 3120327; outcome not_distinguishable under the approved rule (§5h). Which variant(s) go to final evaluation is not decided.
 - Unlisted fixed settings proposed as Chemprop stock defaults: batch size 64, LR 1e-4/1e-3/1e-4, warmup 2, ReLU, norm aggregation 100, no batch norm, hidden size sets both message and FFN width. Proposal only.
-- auxiliary-off ablation and its interpretation rule;
-- final ensemble size (an earlier suggested five-seed ensemble was not adopted);
-- any statistical improvement threshold;
-- numerical improvement bar (Rev 3 line 129);
+- final ensemble size and final-evaluation protocol: approved as a protocol in D018 Amendment 6 (§5i); the training and prediction job was submitted as 3120551; the holdout evaluation step has not run;
+- any statistical improvement threshold (none set; D018 Amendment 5 sets no threshold or test);
+- numerical improvement bar (Rev 3 line 129): decided in D018 Amendment 5 (2026-11-18). For the PXR multitask path it is satisfied by reporting the final holdout MAE against the constant training-mean predictor as a floor, descriptively, with no numeric threshold or statistical test. Claude's clarifications: the predictor is the mean primary-train pEC50 of the v2 cohort (2,896 labels; v1 mean 4.328, validation MAE 0.9216); a floor, not a comparator method; no defined Spearman, so only MAE is compared. Rev 3 is not a repository file and is not amended;
 - standardization remains unchanged (released SMILES).
 
 PXR-001 open items not addressed this session: crude and semi-pure HT-chem eligibility, the `OCNT-2395416` == `OADMET-0006234` match, ringless-molecule distribution (19 / 3 / 8).
 
 ## 7. Stopping point and next step
 
-Implementation files, the v1 artifact and the v2 amended artifact exist locally (uncommitted). Runtime pilot job 3111835 completed (§5b); nothing trained; no training authorized. The validation-MAE fix is tested locally (17 passed), restaged (r2) and confirmed on the real GPU path (job 3113883). Stage A (36-configuration grid, single serial job) completed as job 3113907 in 01:16:08 with all 36 runs exit 0 (§5d). Stage B was then approved (D018 Amendment 3, §5e); it was submitted as job 3119543 (§5e), outcome UNKNOWN. Next step: the stage B results and ranking; Miles's decisions on the other pending items in §6 remain open. Nothing beyond stages A and B is authorized. The earlier stray srun jobs are no longer in the queue (§5a).
+Implementation files, the v1 artifact and the v2 amended artifact exist locally (uncommitted). Runtime pilot job 3111835 completed (§5b); nothing trained; no training authorized. The validation-MAE fix is tested locally (17 passed), restaged (r2) and confirmed on the real GPU path (job 3113883). Stage A (36-configuration grid, single serial job) completed as job 3113907 in 01:16:08 with all 36 runs exit 0 (§5d). Stage B was then approved (D018 Amendment 3, §5e); it completed as job 3119543 (§5f); the D018 mean-MAE ranking names h600_d4_f2_p0.2 first (0.53752), ahead of h300_d5_f2_p0.2 (0.54109) and h300_d3_f2_p0.2 (0.54479). The auxiliary-off ablation was then approved (D018 Amendment 4, §5g); it completed as job 3120327 (§5h): auxiliary-off mean 0.54140 against multitask 0.53752, ranges overlapping, so not_distinguishable under the approved rule. The improvement criterion was then decided (D018 Amendment 5, §6): descriptive comparison of the final holdout MAE with the constant training-mean floor, no threshold or test. Completed work, 2026-11-18: Claude ran a structure-only check reading only holdout SMILES and identities (the pEC50 column was not read); all 621 holdout molecules have finite `v1_rdkit_2d_normalized` descriptors (0 non-finite). The final ensemble and holdout evaluation protocol was then approved (D018 Amendment 6, §5i); the final training and prediction job was submitted as job 3120551 (§5i), outcome UNKNOWN; no holdout evaluation has run. Next step: the job outcome; the holdout evaluation step requires Miles's separate go-ahead. Not authorized: any holdout or official-test evaluation, final training, retraining on train plus validation. Nothing beyond stages A and B and the approved ablation is authorized. The earlier stray srun jobs are no longer in the queue (§5a).

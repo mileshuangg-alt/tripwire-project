@@ -109,6 +109,38 @@ Seconds per run were supplied as a separate list and paired to rows by the state
 
 Report section: 5e. New files (local, uncommitted, hashes not reported): `pxr/scripts/pxr002_stage_b_runner.py`, `pxr/scripts/pxr002_stage_b.slurm` (1 h wall request; requires `AUTHORIZE_STAGE_B=yes`); stage B runner tests added to `pxr/tests/test_pxr002.py` (not yet run by Miles). Local test run: 21 passed, 1 failed of 22 (failing test `test_stage_b_aggregate_uses_stage_a_value_plus_new_seeds` had a wrong expected ranking; means x 0.5733, y 0.5300, z 0.5467 rank y, z, x); test expectation corrected, production code unchanged; Miles then reported pass (summary line not pasted). Stage B submitted as batch job 3119543 on CoreHPC. Proposed (not confirmed) names: `pxr002_stage_20261118_r4.tar.gz`, `pxr002_stage_hashes_20261118_r4.txt`, `pxr002_stage_b.slurm`, stage A root `/scratch/user/mhuang8/pxr002_stage_a_20261118`, output root `/scratch/user/mhuang8/pxr002_stage_b_20261118`. Hash comparisons, 36-result count check, exact sbatch line and file hashes not reported; outcome UNKNOWN. Source: Miles's reports relayed in the call.
 
+## Stage B results, job 3119543 (2026-11-18)
+
+Report section: 5f. Node ggpu1-11 (L40S), 14:28:32 to 14:42:05, elapsed 00:13:33, COMPLETED 0:0. 18 listed files (r4 package) passed `sha256sum -c`; chemprop 2.3.1; six runs rc=0, 24-30 epochs, about 2.2 min each. Best primary-head validation MAE (20261117 = stage A value):
+
+| Configuration | 20261117 | 20261118 | 20261119 | Mean |
+|---|---|---|---|---|
+| h600_d4_f2_p0.2 | 0.52960 | 0.53900 | 0.54396 | 0.53752 |
+| h300_d5_f2_p0.2 | 0.53574 | 0.53768 | 0.54985 | 0.54109 |
+| h300_d3_f2_p0.2 | 0.53681 | 0.55002 | 0.54755 | 0.54479 |
+
+Epochs: h600_d4 27, 25; h300_d5 27, 30; h300_d3 28, 24 (seeds 20261118, 20261119). Fresh-seed-only means (Claude's calculation): 0.5415, 0.5438, 0.5488. Final-epoch log values 0.572-0.589 are not the best checkpoint. Output root path not shown. Source: Miles's report of CoreHPC output; logs not in this checkout.
+
+## Auxiliary-off ablation preparation (2026-11-18)
+
+Report section: 5g; decision D018 Amendment 4. New files (local, uncommitted, hashes not reported): `pxr/scripts/pxr002_ablation_runner.py`, `pxr/scripts/pxr002_ablation.slurm` (1 h; requires `AUTHORIZE_ABLATION=yes`). Edited files (hashes not reported; prior hashes in earlier sections are superseded for these two): `pxr/scripts/pxr002_loss_weights.py` (`aux_off_weight_vector`), `pxr/scripts/pxr002_train.py` (`--aux-off`, default off; manifest records `aux_off`). Four tests added to `pxr/tests/test_pxr002.py`; not yet run by Miles. Submitted by Miles as batch job 3120327 on CoreHPC. Proposed (not confirmed) names: `pxr002_stage_20261118_r5.tar.gz`, `pxr002_stage_hashes_20261118_r5.txt`, `pxr002_ablation.slurm` (1 h, 1 L40S), stage A root `/scratch/user/mhuang8/pxr002_stage_a_20261118`, stage B root `/scratch/user/mhuang8/pxr002_stage_b_20261118`, output root `/scratch/user/mhuang8/pxr002_ablation_20261118`. Test run (26 passed expected), hash comparisons, stage A/B result-file checks and the sbatch line not reported; outcome UNKNOWN. Source: Miles's decision and report, relayed in the call.
+
+## Ablation results, job 3120327 (2026-11-18)
+
+Report section: 5h. Node ggpu1-11, 15:36:56 to 15:43:38, elapsed 00:06:42, COMPLETED 0:0. 19 listed files (r5 package) passed `sha256sum -c`; chemprop 2.3.1. Configuration h600_d4_f2_p0.2. Best primary-head validation MAE by seed 20261117 / 20261118 / 20261119: multitask 0.52960 / 0.53900 / 0.54396 (mean 0.53752); auxiliary-off 0.53036 (26 ep) / 0.54472 (25 ep) / 0.54911 (25 ep) (mean 0.54140, range 0.53036-0.54911). Mean difference +0.00388; fresh-seed-only means ablation 0.54692, multitask 0.54148 (+0.00544); per-seed differences +0.0008, +0.0057, +0.0051 (Claude's calculation). Label: not_distinguishable. Final-epoch log values 0.589-0.593 are not the best checkpoint. Source: Miles's report of CoreHPC output; logs not in this checkout. The structure-only check is not recorded.
+
+## Holdout structure-only check (2026-11-18)
+
+Claude read only holdout SMILES and identities from the D014 split (pEC50 column not read). Result: all 621 holdout molecules have finite `v1_rdkit_2d_normalized` descriptors; 0 non-finite. Not a holdout evaluation. Source: Claude's report relayed in the call; script and command not recorded.
+
+## Improvement criterion (2026-11-18)
+
+Decision recorded as D018 Amendment 5; see report §6. Floor reference values (Claude's): v2 cohort 2,896 primary labels; v1 training mean pEC50 4.328; constant-predictor validation MAE 0.9216. Claude's protocol proposal (5 seeds 20261120-20261124, multitask primary, aux-off secondary) is pending Miles's answer.
+
+## Final protocol preparation (2026-11-18)
+
+Report section: 5i; decision D018 Amendment 6. New files (local, uncommitted, hashes not reported): `pxr/scripts/pxr002_holdout_artifact.py`, `pxr002_final_runner.py`, `pxr002_final_predict.py`, `pxr002_final_eval.py`, `pxr002_final.slurm` (1.5 h; requires `AUTHORIZE_FINAL_TRAINING=yes`); tests added to `pxr/tests/test_pxr002.py` (not yet run by Miles). Seeds 20261120-20261124. Submitted by Miles as batch job 3120551 on CoreHPC (launch carried `AUTHORIZE_FINAL_TRAINING=yes`); trains ten models, writes holdout predictions from the structure-only artifact, reads no holdout labels; no holdout evaluation run. Proposed (not confirmed) names: `pxr002_stage_20261118_r6.tar.gz`, `pxr002_stage_hashes_20261118_r6.txt`, `pxr002_final.slurm` (1.5 h, 1 L40S, 8 CPUs, 96G), `pxr/artifacts/pxr002_holdout_v1`, stage B root `/scratch/user/mhuang8/pxr002_stage_b_20261118`, output root `/scratch/user/mhuang8/pxr002_final_20261118`. Test run (34 expected, count uncertain), holdout-artifact build, hash comparisons, ranking-file check and sbatch line not reported; outcome UNKNOWN. Source: Miles's report, relayed in the call.
+
 ## Queue check (2026-11-18)
 
 Miles pasted a squeue check: none of the stray srun jobs 3106182, 3106184, 3106189, 3106196, 3106200 remained; only unrelated job 3105596 (actfound-d015-chain, CYP workstream) was running. Output not stored in this checkout.

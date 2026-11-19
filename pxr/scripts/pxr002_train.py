@@ -26,7 +26,9 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from pxr.scripts.pxr002_loss_weights import nominal_allocation, task_weight_vector  # noqa: E402
+from pxr.scripts.pxr002_loss_weights import (  # noqa: E402
+    aux_off_weight_vector, nominal_allocation, task_weight_vector,
+)
 
 BATCH_SIZE = 64
 MAX_EPOCHS = 100
@@ -140,7 +142,9 @@ def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-def run_training(config: PXR002Config, seed: int, artifact_dir: Path, out_dir: Path, accelerator: str) -> dict:
+def run_training(
+    config: PXR002Config, seed: int, artifact_dir: Path, out_dir: Path, accelerator: str, aux_off: bool = False
+) -> dict:
     import chemprop
     import torch
     from chemprop import data
@@ -161,7 +165,10 @@ def run_training(config: PXR002Config, seed: int, artifact_dir: Path, out_dir: P
     artifact = load_artifact(artifact_dir)
     train, validation, hashes = artifact["train"], artifact["validation"], artifact["hashes"]
     counts = label_counts(train)
-    weights = task_weight_vector(counts[PRIMARY_TASK], {t: counts[t] for t in AUX_TASKS})
+    if aux_off:  # auxiliary-off ablation: same cohort and batches, auxiliary loss coefficients 0
+        weights = aux_off_weight_vector(len(AUX_TASKS))
+    else:
+        weights = task_weight_vector(counts[PRIMARY_TASK], {t: counts[t] for t in AUX_TASKS})
     allocation = nominal_allocation(weights, [counts[PRIMARY_TASK], *[counts[t] for t in AUX_TASKS]])
 
     sets = build_datasets(train, validation, artifact["train_x"], artifact["val_x"])
@@ -180,6 +187,7 @@ def run_training(config: PXR002Config, seed: int, artifact_dir: Path, out_dir: P
         "monitor": MONITOR,
         "train_label_counts": counts,
         "task_weights": weights,
+        "aux_off": aux_off,
         "nominal_allocation": allocation,
         "artifact_hashes": hashes,
         "excluded_rows": artifact["amendment"]["row_id"].tolist(),
@@ -226,10 +234,11 @@ def main() -> None:
     p.add_argument("--depth", required=True, type=int)
     p.add_argument("--ffn-layers", required=True, type=int)
     p.add_argument("--dropout", required=True, type=float)
+    p.add_argument("--aux-off", action="store_true", help="auxiliary-off ablation: auxiliary loss coefficients 0")
     a = p.parse_args()
     run_training(
         PXR002Config(a.hidden_size, a.depth, a.ffn_layers, a.dropout),
-        a.seed, a.artifact_dir, a.out_dir, a.accelerator,
+        a.seed, a.artifact_dir, a.out_dir, a.accelerator, aux_off=a.aux_off,
     )
 
 
