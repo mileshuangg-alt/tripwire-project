@@ -1,0 +1,9 @@
+CheMeleon message-passing foundation weights (Tripwire-PXR-004, D020).
+Downloaded 2026-11-19 with curl --fail from the URL Chemprop 2.3.1 uses for --from-foundation CHEMELEON:
+  https://zenodo.org/records/15460715/files/chemeleon_mp.pt
+HTTP 200, 34,859,448 bytes. SHA-256 c376624d3407204e780a0ed13a9ac097cc9bb1c13ef89cdbc633c1715c183651.
+Inspected only with torch.load(weights_only=True): keys hyper_parameters, state_dict; tensors W_i.weight (2048,86),
+W_h.weight (2048,2048), W_o.weight (2048,2120), W_o.bias (2048); 8,714,240 parameters;
+hyper_parameters d_v=72 d_e=14 d_h=2048 bias=False depth=6 dropout=0.0 activation=relu undirected=False.
+Citation requested by Chemprop: DOI 10.48550/arXiv.2506.15792.
+Not yet copied to CoreHPC.

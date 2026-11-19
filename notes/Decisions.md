@@ -5717,3 +5717,110 @@ D018 Amendment 1 item 3 requires the same eligible cohort only for comparisons t
 - installation of any package into `tripwire_cyp002` or `oadmet_cyp_tutorial`;
 - any SLURM submission without a recorded benchmark and wall-time check.
 
+# D020 — PXR Sequential Auxiliary Pretraining: Two-Arm Scope (Tripwire-PXR-004)
+
+**Decision date:** 2026-11-19
+
+**Status:** Scope direction, amended in place on 2026-11-19 to record the approved pilot design (Pilot design sections below). Implementation (pilot code and tests per this decision) and the CheMeleon weights download were approved on 2026-11-19 and are done. The feasibility timing is authorized as a single Slurm batch job on CoreHPC only, per the Timing route section. Installation, training, prediction and every other run or submission remain unauthorized.
+
+## Decision and scope
+
+Tripwire-PXR-004 studies sequential auxiliary pretraining with two arms. Both arms start from the same released CheMeleon encoder. Arm 1 fine-tunes directly on pEC50. Arm 2 first trains on the eligible single-concentration PXR responses and then fine-tunes on pEC50. The downstream setup is matched across the two arms so that the comparison isolates the value of the auxiliary-training step. This is the auxiliary-learning follow-up set aside as separate in D019. No earlier decision records the adoption of CheMeleon; this entry is the scope record for its use in PXR-004 and records no more than the scope above.
+
+## Descriptor-free inputs
+
+Both arms use descriptor-free inputs for the pilot: no atom, bond or molecule-level descriptors are supplied in either arm. This is a design choice and not a CheMeleon requirement. The Chemprop 2.3.1 foundation-model CLI (`chemprop/cli/train.py`) rejects atom-features, atom-descriptors and bond-features paths with CheMeleon and requires the V2 multi-hot atom featurizer; it does not reject molecule-level descriptors applied downstream of the encoder. Added molecule-level descriptors may be tested separately afterward; that test is not decided and not scheduled.
+
+## Cohort condition
+
+The cohort for both arms is the full 2,897 primary-train molecules. OADMET-0003727 (auranofin) is restored. The v1 frame (`pxr/artifacts/pxr002_aux/`: 2,897 primary-train plus 7,922 auxiliary-only molecules, 10,819 training molecules, and 621 validation molecules) is used with descriptor-free inputs. The 2,896 versus 2,897 question is closed. The consumed holdout was not used to make this choice.
+
+Basis (read-only inspection, 2026-11-19, Chemprop 2.3.1, RDKit 2026.03.6, environment `tripwire_cyp002`): the SMILES parses as one fragment with 32 atoms and 32 bonds, retains its stereocentres and reproduces the input as canonical SMILES. The molecule is `primary_train`, eligible, D014 group 1620 (scaffold `C1CCOCC1`), train split, pEC50 2.54, with no auxiliary labels. Its only prior exclusion was the descriptor-based amendment (D018 record), which does not apply to descriptor-free inputs; no other eligibility rule excludes it. The V2 graph is finite (node features 32x72, edge features 64x14).
+
+Disclosed caveat (not an exclusion): this molecule carries one atom outside the V2 explicit element list and a formal metal bond. The metal centre is encoded P(triethyl)=Au-S-(acetylated thioglucose). Au (Z=79) maps to the generic unknown-element bin (index 37; hybridization SP3D2), and RDKit treats P=Au as a double bond (Au valence 3, P valence 5), which is a formal-bond depiction and not a physically accurate bond order. Au is the only element outside the V2 list across the 10,819-molecule v1 training frame, so this molecule is the only one affected. CheMeleon pretraining coverage of the unknown-element bin was not checked.
+
+Cohort history: neural PXR-002 used 2,896 primary-train molecules; the PXR-003 baselines used 2,897; PXR-004 uses 2,897 in both arms.
+
+## Carried-forward boundaries
+
+- The D014 split is unchanged.
+- The D017 Amendment 1 and D018 item 1 eligibility and exclusion rules for single-concentration auxiliary data carry forward without modification; the stage-1 monitor below is an additional internal rule and does not change D018 item 1 eligibility.
+- The 621-compound holdout is consumed and remains closed; it is not used for tuning or selection.
+- The official test (513 blinded molecules) and its firewalled labels remain unused.
+- Model selection remains on the 621-compound validation set.
+
+## Pilot design (approved 2026-11-19)
+
+Each setting is labelled by basis: executed project precedent, external source, or pilot convention (a disclosed choice of this pilot, not a literature-established optimum).
+
+**Preserved.** Descriptor-free two-arm design, three paired seeds, and the evaluation firewall (621 holdout consumed and closed, official test unused, no train+validation retraining).
+
+**1. Arms and data.**
+- Arm 1: CheMeleon encoder plus a fresh FFN head, fine-tuned on pEC50. Arm 2: the same encoder, stage 1 on auxiliary log2FC labels (three heads: 8.25, 33 and 99 uM), then stage 2 identical to arm 1.
+- The encoder is fully fine-tuned in both stages (external source: CheMeleon paper main text, section 3.1, end-to-end fine-tuning with a fresh task head).
+- Three paired seeds. Frame: v1, `pxr/artifacts/pxr002_aux/` (2,897 primary-train plus 7,922 auxiliary-only; 10,819 training molecules; 621 validation). 9,847 of 10,819 training molecules carry at least one auxiliary label; per-head label counts 9,737 / 8,540 / 606; one value per molecule per concentration.
+
+**2. Stage-1 monitor (pilot convention; internal rule serving this decision).**
+- A fixed D014-group-held-out monitor is drawn from the training pool: whole D014 groups, seed 20261119, approximately 10% of auxiliary-labelled molecules. One draw is shared across all three training seeds and is saved as a hashed artifact.
+- Trial draw during review (not an artifact): 951 groups, 997 molecules, 985 labelled; monitor labels 968 / 837 / 61 for the three heads; 179 monitor molecules are primary-train.
+- Group 417 (278 molecules, 148 primary-train in the training pool) stays in training and is not eligible for the monitor, so that single series does not occupy roughly a quarter of the monitor. Tradeoff: the monitor does not assess that series.
+- No search across draws for favourable results.
+- Monitor molecules' auxiliary labels are excluded from stage-1 training; their available pEC50 labels remain in stage-2 training in both arms.
+- Validation-molecule auxiliary labels are not used for the monitor (D018 item 1 keeps them out; using them would also couple stage 1 to the stage-2 selection set). The monitor does not touch validation labels or molecules beyond what the existing protocol allows, the holdout, or the official test.
+
+**3. Stage-1 checkpoint selection.**
+- Signal: pooled masked MSE in standardized units. Each head's scaler is fit on the post-split stage-1 training labels only (monitor labels excluded) and then frozen for the monitor. Per-head MAE and Spearman are reported but do not select.
+- Limitations: the two larger heads (8.25 and 33 uM) dominate selection; the sparse 99 uM head (606 training labels, 61 monitor labels) remains experiment-confounded (single experiment OPA_PXR-030); auxiliary generalization does not guarantee downstream pEC50 transfer; 9,712 of 10,000 training-pool groups are singletons, so group-aware separation is close to molecule-level (scaffold-level at best); the monitor shares plates and experiments with training; one fixed draw, selection noise not quantified; about 10% of auxiliary labels are lost to stage 1; measurement stderr is not used.
+
+**4. Epochs and stopping.**
+- Maximum 100 epochs, patience 20, min_delta 0, for both stages.
+- Stage 2 (executed project precedent): follows the verified PXR-002 protocol (D018 item 4 and Amendments 2-3; constants MAX_EPOCHS=100, PATIENCE=20, MIN_DELTA=0 in `pxr/scripts/pxr002_train.py`), selecting by primary-head validation MAE.
+- Stage 1 (pilot convention): same constants, selecting by the pooled monitor MSE above.
+- The maximum epoch count also sets the learning-rate decay schedule, so it is not merely an unused ceiling. Exact PXR-002 best checkpoints require the PXR-002 metrics files, which are not in the checkout; no best-epoch figure is recorded here.
+
+**5. Optimisation.**
+- Batch size 64 and the Chemprop stock learning-rate schedule (initial 1e-4, maximum 1e-3, final 1e-4, 2 warmup epochs). Basis: executed project precedent (PXR-002 runs used these stock defaults per `pxr/scripts/pxr002_train.py`; D018 does not list them), and they are also the Chemprop CLI generic defaults. They are not derived from CheMeleon.
+- Stage 2 does not inherit stage-1 optimizer state: fresh optimizer state and a restarted scheduler and warmup at the start of stage 2, identical in both arms.
+
+**6. Head and encoder.**
+- Fresh FFN: 300 hidden units, 1 layer, dropout 0, an explicit library-default choice (Chemprop CLI defaults), not CheMeleon-derived.
+- Mean aggregation and the encoder dimensions are forced by Chemprop's foundation-model path and the checkpoint; per the paper (external source, section 1.1): message-passing width 2048, depth 6, mean aggregation, 8.7M encoder parameters.
+- The stage-2 protocol is matched across arms, including paired head initialization and paired downstream randomness per seed.
+
+**7. External-source summary.**
+- CheMeleon paper (Burns et al., arXiv 2506.15792 v2), main text: encoder fully fine-tuned with a fresh task head (section 3.1); no hyperparameter optimization (section 3.2); early stopping on a validation split (section 3.4) without a patience value. Downstream epochs, learning rate, schedule, batch size and FFN size are not stated in the main text; the paper points to a Supporting Information file that has not been read.
+- Reported by the user as code precedent, not independently verified and not verified supplementary-text evidence: the CheMeleon authors' paper-era fine-tuning code specifies a 50-epoch maximum, patience 5 on validation loss and a fresh 256-unit head. The pilot deliberately does not reproduce these settings (100 epochs, patience 20 on primary validation MAE, 300-unit head).
+- Chemprop CLI defaults (50 epochs, batch 64, same learning rates) are generic and are not a CheMeleon recipe.
+
+**8. Reporting.**
+- Validation MAE, Spearman and RMSE per seed and as the mean, with per-seed paired differences; descriptive only, with no threshold and no statistical test. RMSE requires primary-head validation predictions saved at the best epoch (a new output relative to PXR-002).
+- Context points, not matched comparators: constant training mean 0.9218; ECFP4 + LightGBM 0.6049 validation MAE (D019); PXR-002 single-model validation mean about 0.546 (descriptor-based, 2,896 cohort).
+
+**9. Timing.**
+- Timing and smoke runs are feasibility checks only (speed, memory, weight loading), never evidence of learning; no hyperparameter, cap or budget is chosen from them. The timing route is a CoreHPC batch job (Timing route section below).
+- Before any Slurm submission the standing practice is hash or diff verification of exact code and frames, measured interactive runtime with extrapolated total against requested wall time, and no benchmarking through Slurm. For the feasibility timing job only, the recorded bounded deviation is that it is run as a Slurm batch job because interactive gpu allocation fails, so its runtime is measured in that job and not interactively; hash verification and the extrapolated total against requested wall time still apply.
+
+## Timing route (decided 2026-11-19)
+
+The PXR-004 feasibility timing is run as a batch job on CoreHPC, using the Slurm wrapper `pxr/scripts/pxr004_timing.slurm` (sha256 `0a255a12e5054561b767beaca2b6117fe0820f3e26b5808d4378e7e6c92a1cf6`) against the staged package `pxr004_stage_20261119.tar.gz`. This is a deviation from the interactive-benchmark requirement and from the no-benchmarking-through-Slurm rule in section 9, made for the timing only because interactive allocation on the gpu partition fails (socket error "Insane message length"; same failure as PXR-002, `notes/Tripwire_PXR_002.md` section 5a). The deviation is limited to the feasibility timing.
+
+The timing remains a feasibility check only: no learning evidence, no hyperparameter, cap or budget chosen from it, and no training run.
+
+This entry does not authorize any training run, production training or any Slurm submission other than the timing job, and does not extend the batch deviation to any other benchmark or submission. The remaining pre-Slurm rules in section 9 (hash or diff verification of exact code and frames; extrapolated total against requested wall time) continue to apply.
+
+## Open (not decided)
+
+- any production training or submission;
+- check of the CheMeleon Supporting Information or repository fine-tuning configuration;
+- any numeric threshold or statistical test.
+
+## Not authorized
+
+- any installation, training or prediction;
+- any SLURM submission other than the single feasibility timing batch job (`pxr/scripts/pxr004_timing.slurm`), which is authorized; every other run, submission and benchmark remains unauthorized;
+- any use of the holdout for tuning, selection or evaluation;
+- any official-test use;
+- retraining on train plus validation;
+- any change to the D014 split or grouping;
+- any numeric improvement threshold or statistical test.
+
