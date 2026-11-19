@@ -1,0 +1,108 @@
+{
+  "constant_baseline_validation": {
+    "mae": 0.9217563645881204,
+    "rmse": 1.1356962326583726,
+    "spearman": NaN
+  },
+  "ensemble_validation": {
+    "lgbm": {
+      "mae": 0.6048745816802532,
+      "rmse": 0.7951781722300012,
+      "spearman": 0.6694852065850997
+    },
+    "rf": {
+      "mae": 0.6745120873408923,
+      "rmse": 0.8819160239693055,
+      "spearman": 0.5899359561484298
+    }
+  },
+  "n_train": 2897,
+  "per_model_validation": [
+    {
+      "best_iteration": 1830,
+      "best_iteration_at_cap": false,
+      "mae": 0.6053470621205206,
+      "model": "lgbm",
+      "rmse": 0.7959267888234516,
+      "seed": 20261220,
+      "spearman": 0.669388446520198
+    },
+    {
+      "best_iteration": 1332,
+      "best_iteration_at_cap": false,
+      "mae": 0.6109350557065037,
+      "model": "lgbm",
+      "rmse": 0.8030993464038196,
+      "seed": 20261221,
+      "spearman": 0.6619938429274558
+    },
+    {
+      "best_iteration": 1531,
+      "best_iteration_at_cap": false,
+      "mae": 0.6048834764868044,
+      "model": "lgbm",
+      "rmse": 0.7955275466083308,
+      "seed": 20261222,
+      "spearman": 0.6702065977163038
+    },
+    {
+      "best_iteration": 1818,
+      "best_iteration_at_cap": false,
+      "mae": 0.6063537120545616,
+      "model": "lgbm",
+      "rmse": 0.7960292721274234,
+      "seed": 20261223,
+      "spearman": 0.666708703832038
+    },
+    {
+      "best_iteration": 1786,
+      "best_iteration_at_cap": false,
+      "mae": 0.6056649594570485,
+      "model": "lgbm",
+      "rmse": 0.7953279307554456,
+      "seed": 20261224,
+      "spearman": 0.6717598197420692
+    },
+    {
+      "mae": 0.6776862440966395,
+      "model": "rf",
+      "n_trees": 500,
+      "rmse": 0.8855616834755956,
+      "seed": 20261220,
+      "spearman": 0.581606548106816
+    },
+    {
+      "mae": 0.6738051685974161,
+      "model": "rf",
+      "n_trees": 500,
+      "rmse": 0.8799676014837023,
+      "seed": 20261221,
+      "spearman": 0.5909454226877741
+    },
+    {
+      "mae": 0.6744508022755301,
+      "model": "rf",
+      "n_trees": 500,
+      "rmse": 0.8824537230913378,
+      "seed": 20261222,
+      "spearman": 0.5885096596764683
+    },
+    {
+      "mae": 0.6759049094558085,
+      "model": "rf",
+      "n_trees": 500,
+      "rmse": 0.8834836061299242,
+      "seed": 20261223,
+      "spearman": 0.5879664553866883
+    },
+    {
+      "mae": 0.6738158412514298,
+      "model": "rf",
+      "n_trees": 500,
+      "rmse": 0.8813529597028322,
+      "seed": 20261224,
+      "spearman": 0.5927806569586281
+    }
+  ],
+  "train_mean_pEC50": 4.327605645225014
+}

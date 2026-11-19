@@ -1,0 +1,49 @@
+{
+  "config_sha256": "36e00a857d43e7493df66d628ec15e309eab2cc7191a40386937e78063a25628",
+  "confirm_mean_val_mae": 0.6056242840019576,
+  "input_hashes": {
+    "assignments_csv": "c6028f1b7216ab2ea4bab96616fc02b95ce011be20b1b96f807d1e7d582ece46",
+    "train_csv": "fdc2252bb5763ab5742e78cb1ba692bebe131a972cf83aa1bd45e43d8c5bc223"
+  },
+  "library_versions": {
+    "lightgbm": "4.7.0",
+    "numpy": "2.5.5",
+    "pandas": "3.1.1",
+    "python": "3.12.16",
+    "scikit_learn": "1.9.1"
+  },
+  "model": "lgbm",
+  "params": {
+    "colsample_bytree": 0.15843405542395547,
+    "learning_rate": 0.015386657768419638,
+    "min_child_samples": 29,
+    "num_leaves": 51,
+    "reg_lambda": 0.6267173809397556,
+    "subsample": 0.6715074583269511
+  },
+  "per_trial_summary": [
+    {
+      "count": 3,
+      "mean": 0.6056242840019576,
+      "std": 0.001992365396545339,
+      "trial": 53
+    },
+    {
+      "count": 3,
+      "mean": 0.6063457842587211,
+      "std": 0.0019146921382851175,
+      "trial": 2
+    },
+    {
+      "count": 3,
+      "mean": 0.6071238972744079,
+      "std": 0.0027263987313988847,
+      "trial": 30
+    }
+  ],
+  "runtime_seconds": 791.3218354579294,
+  "selection_metric": "validation MAE",
+  "threads": 8,
+  "trial": 53,
+  "trials_at_iteration_cap": 0
+}

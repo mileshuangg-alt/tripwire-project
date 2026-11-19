@@ -1,0 +1,39 @@
+{
+  "config_sha256": "36e00a857d43e7493df66d628ec15e309eab2cc7191a40386937e78063a25628",
+  "input_hashes": {
+    "assignments_csv": "c6028f1b7216ab2ea4bab96616fc02b95ce011be20b1b96f807d1e7d582ece46",
+    "train_csv": "fdc2252bb5763ab5742e78cb1ba692bebe131a972cf83aa1bd45e43d8c5bc223"
+  },
+  "models": {
+    "lgbm": {
+      "confirm_mean_val_mae": 0.6056242840019576,
+      "params": {
+        "colsample_bytree": 0.15843405542395547,
+        "learning_rate": 0.015386657768419638,
+        "min_child_samples": 29,
+        "num_leaves": 51,
+        "reg_lambda": 0.6267173809397556,
+        "subsample": 0.6715074583269511
+      },
+      "trial": 53
+    },
+    "rf": {
+      "confirm_mean_val_mae": 0.6761549588439332,
+      "params": {
+        "max_features": 0.17098507643655447,
+        "max_samples": 0.694277443869578,
+        "min_samples_leaf": 2
+      },
+      "trial": 1
+    }
+  },
+  "note": "Frozen before any holdout scoring. Holdout scores may not change these choices.",
+  "seeds_final": [
+    20261220,
+    20261221,
+    20261222,
+    20261223,
+    20261224
+  ],
+  "selection_metric": "validation MAE"
+}

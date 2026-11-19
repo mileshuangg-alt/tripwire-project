@@ -5675,3 +5675,45 @@ Not authorized by this amendment: the final ensemble size, the choice of variant
 
 Not authorized by this amendment: any final training, prediction or holdout evaluation run; reading any holdout label before the final evaluation step; retraining on train plus validation; any official-test evaluation; any numeric improvement threshold or statistical test; any change to the D014 split or grouping.
 
+# D019 — PXR Classical Baselines: ECFP4 + LightGBM and ECFP4 + Random Forest
+
+**Decision date:** 2026-11-18
+
+**Status:** Approved as a design. Authorizes creation of the code and configuration files stated here and local execution. The baselines run in a new dedicated local conda environment `tripwire_pxr003` (Python 3.12, RDKit 2026.03.6 to match the PXR-001/PXR-002 featurization, numpy, pandas, scipy, scikit-learn, LightGBM, pytest, from conda-forge); no package is installed into `tripwire_cyp002` or `oadmet_cyp_tutorial`, because each environment serves one purpose and the existing environments are shared with Chemprop/CYP work (`tripwire_cyp002` lacks LightGBM; `oadmet_cyp_tutorial` lacks pytest). Authorizes no cluster submission without a recorded benchmark and wall-time check.
+
+## Decision and scope
+
+Two classical baselines are built for PXR pEC50: ECFP4 + LightGBM and ECFP4 + random forest, as required by the proposal (Rev 3 line 90). This supersedes the D017 skip of the ECFP4 gradient-boosting/random-forest tree-baseline ladder for these two baselines only. The stock-Chemprop-first run stays skipped and the D017 multitask direction is unchanged. The baselines are comparators to the completed neural work (D018 Amendments 1-6), not a restored baseline-first ordering. Rev 3 is not amended. Auxiliary-task improvement is a separate follow-up.
+
+## Design
+
+- **Features.** The existing ECFP4 helper (radius 2, 2048 bits, binary) on released SMILES; no standardization.
+- **Data.** Training on all 2,897 primary-train molecules; model selection on the 621 validation molecules by validation MAE. Train, validation and holdout identities are distinct (three-way disjointness asserted).
+- **Metrics.** MAE, Spearman and RMSE. The training-mean predictor is termed the constant baseline.
+- **Selection.** Two stages as in D018: a seeded random search, then the top 3 configurations at 3 seeds each; the best mean validation MAE is selected, with ties resolved to the lowest trial number. Seeds: search 20261201; confirmation 20261211-20261213; final 20261220-20261224.
+- **Final ensemble.** Five models per method, trained on the train split only (no retraining on train plus validation), predictions averaged, per-model results reported. CPU only.
+- **LightGBM.** L2 objective; 60 trials. learning_rate log-uniform 0.01-0.1; num_leaves integer 7-63; min_child_samples integer 5-50; feature_fraction uniform 0.05-0.5; bagging_fraction uniform 0.5-1.0 with bagging_freq=1; lambda_l2 log-uniform 1e-3-10. n_estimators cap 3000; max_depth unlimited; early stopping patience 100 on validation MAE (l1); each final model uses its own validation early stopping; deterministic=True, force_row_wise=True; thread count recorded; trials reaching the cap are flagged.
+- **Random forest.** Squared-error criterion with bootstrap; 40 trials. max_features fraction log-uniform 0.02-0.5; min_samples_leaf integer 1-8; max_samples uniform 0.5-1.0. 500 trees fixed (not tuned); max_depth None; no early stopping. Final: 5 forests of 500 trees.
+- **Sizing.** The trial budgets, patience and seed counts are sizing choices, not Rev 3 requirements.
+
+## Cohort reconciliation
+
+D018 Amendment 1 item 3 requires the same eligible cohort only for comparisons that isolate auxiliary-data effects. This comparison does not, so OADMET-0003727 (auranofin, pEC50 2.54, train split) is included. The neural cohort has 2,896 primary-train labels and the baselines 2,897; the training-mean pEC50 is 4.32822 (neural) against 4.32761 (baselines), computed from the release table and the split file. Validation and holdout sets are identical to the neural runs (621 each). The constant baseline for the new models uses the 2,897-molecule mean; the neural constant baseline (0.92372) is unchanged. The comparison is not strictly identical-training-set; this is disclosed and no sensitivity re-run is made.
+
+## Freeze and holdout
+
+- Tuning uses train and validation only.
+- A frozen configuration (selected configurations, validation scores, seeds, input and configuration hashes) is written and its SHA-256 recorded before any holdout scoring. Final models read no holdout labels.
+- Both frozen ensembles are scored on the holdout once, for reporting only, in one script that also computes the neural holdout RMSE from the existing `holdout_predictions.csv` (SHA-256 `45c84c925b9dfc1c5c959e3a95c6b01961667dd19e2338470e8ae26655aa07aa`) and matched labels, locally. Neural validation predictions are not regenerated.
+- Evidence class: internal-retrospective; the official test is not used. Neural holdout results were known before the baselines were configured. Holdout scores must not change any configuration or choose between random forest and LightGBM.
+- No numeric threshold and no statistical test is set.
+
+## Not authorized
+
+- holdout-based tuning or selection;
+- retraining on train plus validation;
+- any official-test use;
+- standardization;
+- installation of any package into `tripwire_cyp002` or `oadmet_cyp_tutorial`;
+- any SLURM submission without a recorded benchmark and wall-time check.
+

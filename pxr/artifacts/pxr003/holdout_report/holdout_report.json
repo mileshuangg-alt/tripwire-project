@@ -1,0 +1,180 @@
+{
+  "baseline_predictions_sha256": "85231ba487521d3c8aa4bfb2affc9cace29ce482ff7713ecf8f28c966591f48f",
+  "constant_baseline": {
+    "training_mean_2896_neural_cohort": {
+      "mae": 0.9237158726788007,
+      "mean": 4.3282229123677025,
+      "rmse": 1.137288449290251,
+      "spearman": NaN
+    },
+    "training_mean_2897_baseline_cohort": {
+      "mae": 0.9238739169230641,
+      "mean": 4.327605645225014,
+      "rmse": 1.1372717035498172,
+      "spearman": NaN
+    }
+  },
+  "disclosure": "Internal-retrospective comparison. The neural holdout results were known before the baselines were configured. No holdout score changed any configuration or chose between random forest and LightGBM. The baselines train on 2,897 molecules; the neural models on 2,896 (OADMET-0003727 excluded for descriptor eligibility). Validation and holdout sets are identical across all models.",
+  "evidence_class": "internal-retrospective (Rev 3 line 53); official test not used",
+  "frozen_config_sha256": "38238eb784a514289b04d65addebffe2ca1953e23af54157ce9f85cff4090030",
+  "n_holdout": 621,
+  "neural_predictions_sha256": "45c84c925b9dfc1c5c959e3a95c6b01961667dd19e2338470e8ae26655aa07aa",
+  "systems": {
+    "Chemprop aux-off (secondary)": {
+      "ensemble": {
+        "mae": 0.4846914814290217,
+        "rmse": 0.6837393934772162,
+        "spearman": 0.7367459979703412
+      },
+      "mean_per_model": {
+        "mae": 0.510344383083104,
+        "rmse": 0.7094827069260917,
+        "spearman": 0.7193255648986304
+      },
+      "per_model": {
+        "20261120": {
+          "mae": 0.5123565187008868,
+          "rmse": 0.7035770187305803,
+          "spearman": 0.7235003358414013
+        },
+        "20261121": {
+          "mae": 0.5036013430904075,
+          "rmse": 0.705342345740437,
+          "spearman": 0.7146292728816337
+        },
+        "20261122": {
+          "mae": 0.5102200559717446,
+          "rmse": 0.7052483800677045,
+          "spearman": 0.7247608194623195
+        },
+        "20261123": {
+          "mae": 0.5082109189148687,
+          "rmse": 0.7183944884136585,
+          "spearman": 0.716755038849811
+        },
+        "20261124": {
+          "mae": 0.5173330787376121,
+          "rmse": 0.7148513016780786,
+          "spearman": 0.7169823574579866
+        }
+      }
+    },
+    "Chemprop multitask (primary)": {
+      "ensemble": {
+        "mae": 0.48426956677398436,
+        "rmse": 0.6793576625648475,
+        "spearman": 0.7356659777738651
+      },
+      "mean_per_model": {
+        "mae": 0.5135741807135983,
+        "rmse": 0.7104870383017208,
+        "spearman": 0.7156164715218915
+      },
+      "per_model": {
+        "20261120": {
+          "mae": 0.5289851210466713,
+          "rmse": 0.720239115170933,
+          "spearman": 0.708399219709853
+        },
+        "20261121": {
+          "mae": 0.49490905334792074,
+          "rmse": 0.6999725131348304,
+          "spearman": 0.7221497030265073
+        },
+        "20261122": {
+          "mae": 0.5168511593092275,
+          "rmse": 0.7134214692087174,
+          "spearman": 0.7201510631046084
+        },
+        "20261123": {
+          "mae": 0.49693742107078076,
+          "rmse": 0.6972124482448264,
+          "spearman": 0.7261199992771158
+        },
+        "20261124": {
+          "mae": 0.530188148793391,
+          "rmse": 0.7215896457492962,
+          "spearman": 0.701262372491373
+        }
+      }
+    },
+    "ECFP4 + LightGBM": {
+      "ensemble": {
+        "mae": 0.5446130064480934,
+        "rmse": 0.7198237987683982,
+        "spearman": 0.7278021269123308
+      },
+      "mean_per_model": {
+        "mae": 0.546747911143483,
+        "rmse": 0.7219400454462217,
+        "spearman": 0.7254887235011525
+      },
+      "per_model": {
+        "20261220": {
+          "mae": 0.54618134991661,
+          "rmse": 0.7199822832710988,
+          "spearman": 0.7251874994118355
+        },
+        "20261221": {
+          "mae": 0.548895332556025,
+          "rmse": 0.7250452334242881,
+          "spearman": 0.7234781376393905
+        },
+        "20261222": {
+          "mae": 0.545118146950857,
+          "rmse": 0.7203131476131341,
+          "spearman": 0.7283921330739013
+        },
+        "20261223": {
+          "mae": 0.5474616575818467,
+          "rmse": 0.7225174241984581,
+          "spearman": 0.7249328213944094
+        },
+        "20261224": {
+          "mae": 0.5460830687120762,
+          "rmse": 0.7218421387241295,
+          "spearman": 0.725453025986226
+        }
+      }
+    },
+    "ECFP4 + random forest": {
+      "ensemble": {
+        "mae": 0.6126863932706675,
+        "rmse": 0.8086392843878025,
+        "spearman": 0.6822417704406809
+      },
+      "mean_per_model": {
+        "mae": 0.6131629596146808,
+        "rmse": 0.8093008802802458,
+        "spearman": 0.6802241442913738
+      },
+      "per_model": {
+        "20261220": {
+          "mae": 0.6130585146270998,
+          "rmse": 0.8089813333545874,
+          "spearman": 0.6784286905756451
+        },
+        "20261221": {
+          "mae": 0.6132971375807958,
+          "rmse": 0.8092989200031081,
+          "spearman": 0.6816557228749544
+        },
+        "20261222": {
+          "mae": 0.6125327850026542,
+          "rmse": 0.8072371056928931,
+          "spearman": 0.6807219452350661
+        },
+        "20261223": {
+          "mae": 0.6130569850903159,
+          "rmse": 0.8091158009989865,
+          "spearman": 0.6825955135718208
+        },
+        "20261224": {
+          "mae": 0.6138693757725388,
+          "rmse": 0.8118712413516538,
+          "spearman": 0.6777188491993823
+        }
+      }
+    }
+  }
+}

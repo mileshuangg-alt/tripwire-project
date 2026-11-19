@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "description": "PXR-003 classical baselines (ECFP4 + LightGBM, ECFP4 + random forest). Sizing choices, not Rev 3 requirements. Selection metric: validation MAE.",
+  "seeds": {
+    "search": 20261201,
+    "confirm": [20261211, 20261212, 20261213],
+    "final": [20261220, 20261221, 20261222, 20261223, 20261224]
+  },
+  "confirm_top_k": 3,
+  "lgbm": {
+    "n_trials": 60,
+    "n_estimators_cap": 3000,
+    "early_stopping_rounds": 100,
+    "fixed": {
+      "objective": "regression",
+      "metric": "l1",
+      "max_depth": -1,
+      "subsample_freq": 1,
+      "deterministic": true,
+      "force_row_wise": true
+    },
+    "ranges": {
+      "learning_rate": ["loguniform", 0.01, 0.1],
+      "num_leaves": ["int", 7, 63],
+      "min_child_samples": ["int", 5, 50],
+      "colsample_bytree": ["uniform", 0.05, 0.5],
+      "subsample": ["uniform", 0.5, 1.0],
+      "reg_lambda": ["loguniform", 0.001, 10.0]
+    }
+  },
+  "rf": {
+    "n_trials": 40,
+    "n_estimators": 500,
+    "fixed": {
+      "criterion": "squared_error",
+      "bootstrap": true,
+      "max_depth": null
+    },
+    "ranges": {
+      "max_features": ["loguniform", 0.02, 0.5],
+      "min_samples_leaf": ["int", 1, 8],
+      "max_samples": ["uniform", 0.5, 1.0]
+    }
+  }
+}
