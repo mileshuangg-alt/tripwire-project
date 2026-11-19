@@ -1,0 +1,113 @@
+{
+  "checkpoint_sha256": {
+    "aux_off_seed20261120": "9bc6b9fb9492bb97ad5aef5174b7559522371ba8149c79094348d662ea7a1375",
+    "aux_off_seed20261121": "c7076c31d9ce05c6f7249979a55cd1ddbcd4632d6825ba8a5481b336464845b3",
+    "aux_off_seed20261122": "da8eb663427f21454427383b8a51329b81299e78f9ebf721efe3de51436c336d",
+    "aux_off_seed20261123": "1269f7f45bfbb875c5181736d959486a38453008364661139b47eb30ebae833a",
+    "aux_off_seed20261124": "615ecf0de27964bbb7cb25b074ca5aef175834a651d482668d47ff7232d5748d",
+    "multitask_seed20261120": "7bb1cfc9228c5af5d763d4a302b313e9f5b0a74946fc4d91845ccb904b0585b4",
+    "multitask_seed20261121": "7fdf6ea83a84be86efdb2d42ddb1da55c8b340772fff5e4ce4659a74ce7ddd7f",
+    "multitask_seed20261122": "c1795e4badb916b9242c079ab323496155d4c60c4f806b1886c8fa92aeada6e1",
+    "multitask_seed20261123": "0c8ffffa32ae9c6c0b87300d7fba4d65e98887ac3f476829b9d90603aa465b5a",
+    "multitask_seed20261124": "c4206d67050e8eeac2f47abc0d6deb3f2ef23a983f97f97cfdc50a0f2dbbe101"
+  },
+  "configuration": "h600_d4_f2_p0.2",
+  "gate_tolerance": 0.001,
+  "gates": [
+    {
+      "abs_difference": 7.118003964023956e-09,
+      "recorded_val_mae": 0.5490965845120318,
+      "replicated_val_mae": 0.5490965916300358,
+      "seed": 20261120,
+      "variant": "multitask"
+    },
+    {
+      "abs_difference": 3.4169490570334915e-09,
+      "recorded_val_mae": 0.5408410885867673,
+      "replicated_val_mae": 0.5408410851698182,
+      "seed": 20261121,
+      "variant": "multitask"
+    },
+    {
+      "abs_difference": 1.0097276348375317e-08,
+      "recorded_val_mae": 0.5517003054396158,
+      "replicated_val_mae": 0.5517002953423394,
+      "seed": 20261122,
+      "variant": "multitask"
+    },
+    {
+      "abs_difference": 8.837996223753919e-09,
+      "recorded_val_mae": 0.5499550622442494,
+      "replicated_val_mae": 0.5499550534062532,
+      "seed": 20261123,
+      "variant": "multitask"
+    },
+    {
+      "abs_difference": 5.36729749534004e-09,
+      "recorded_val_mae": 0.5374431420063627,
+      "replicated_val_mae": 0.5374431366390652,
+      "seed": 20261124,
+      "variant": "multitask"
+    },
+    {
+      "abs_difference": 9.759420716015654e-09,
+      "recorded_val_mae": 0.5627113331151278,
+      "replicated_val_mae": 0.5627113233557071,
+      "seed": 20261120,
+      "variant": "aux_off"
+    },
+    {
+      "abs_difference": 1.005888261573773e-09,
+      "recorded_val_mae": 0.5412853672116659,
+      "replicated_val_mae": 0.5412853662057776,
+      "seed": 20261121,
+      "variant": "aux_off"
+    },
+    {
+      "abs_difference": 2.203740190331871e-09,
+      "recorded_val_mae": 0.5421333042319846,
+      "replicated_val_mae": 0.5421333064357248,
+      "seed": 20261122,
+      "variant": "aux_off"
+    },
+    {
+      "abs_difference": 5.67443891874575e-09,
+      "recorded_val_mae": 0.5613358030380642,
+      "replicated_val_mae": 0.5613357973636253,
+      "seed": 20261123,
+      "variant": "aux_off"
+    },
+    {
+      "abs_difference": 2.1154369922449234e-08,
+      "recorded_val_mae": 0.542112442030423,
+      "replicated_val_mae": 0.542112420876053,
+      "seed": 20261124,
+      "variant": "aux_off"
+    }
+  ],
+  "holdout_artifact_hashes": {
+    "pxr002_holdout_descriptors.npy": "da04d02a2d61fc0621ea4f4ba7e404423d7a896a87b6e3d637a34e2361404d34",
+    "pxr002_holdout_frame.csv": "68c300dfa36b3db622d3e9439afd55d3e73d498c0b8aaa9ad4f67d79a7931be2"
+  },
+  "holdout_labels_read": false,
+  "predictions_sha256": "45c84c925b9dfc1c5c959e3a95c6b01961667dd19e2338470e8ae26655aa07aa",
+  "seeds": [
+    20261120,
+    20261121,
+    20261122,
+    20261123,
+    20261124
+  ],
+  "v2_artifact_hashes": {
+    "pxr002_counts.json": "ab87005ff9c879067e6ee67e44984c798c3c763bcc684dba0c3e3b52d807f981",
+    "pxr002_eligibility_amendment_v1.csv": "78930b8081c84cdd2f7966b724cd4ca3c872e68792fa942fe4f2e0251836ec5c",
+    "pxr002_train_descriptors.npy": "aee07acedd64f549c9b262a0c4a2a3b13de2603b825ccc40eca790bf0ed28d9a",
+    "pxr002_train_frame.csv": "7f3552c3f6e88ced8efe8c9dd6734a480ca2af33be334e634f841ca19a2edd8f",
+    "pxr002_validation_descriptors.npy": "ee959ffea047b0400acb3938a7c3b797494f88aa49ea68b0cb44717bf27de0f4",
+    "pxr002_validation_frame.csv": "09bab2a2f76003432692942d84b731b9ad0376585c494360fb66f4c6ec19ff82"
+  },
+  "variants": [
+    "multitask",
+    "aux_off"
+  ]
+}
