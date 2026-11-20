@@ -62,7 +62,7 @@ Exhaustive hash inventories, command-by-command checks, pasted outputs and appro
 - Record approvals in plain language: what Miles approved, its scope, and what it does not authorize. Never quote his words verbatim in any record. Carry status exactly: Proposed stays Proposed, a partial approval stays partial, and approval of wording or implementation is not approval to run, build or train.
 - Scientific decisions live in the decisions log. The report cites the decision identifier and status and does not duplicate the decision text. Logging something never changes its approval status.
 - Correct errors in place, from the records. List each consequential correction in the corrections section, saying what was wrong, the corrected fact and its source. Do not keep a superseded explanation as current fact.
-- State only what the records establish. Mark a material fact that is not established as UNKNOWN; never fill a gap by inference.
+- State only what the records establish. Mark a material fact that is not established as UNKNOWN; never fill a gap by inference. A missing log entry does not make a known result unknown: flag missed documentation to the main conversation and preserve existing records. When the call carries the recovered information and authorization for the later entry, replace the missing-result flag in place with it, marked "previously missing", stating when and where it was recovered and the original event date separately when known, leaving one complete entry. Do not invent missing details or rewrite unrelated history.
 
 ### Archives
 
