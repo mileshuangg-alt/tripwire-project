@@ -5721,7 +5721,7 @@ D018 Amendment 1 item 3 requires the same eligible cohort only for comparisons t
 
 **Decision date:** 2026-11-19
 
-**Status:** Scope direction, amended in place on 2026-11-19 to record the approved pilot design (Pilot design sections below). Implementation (pilot code and tests per this decision) and the CheMeleon weights download were approved on 2026-11-19 and are done. The feasibility timing is authorized as a single Slurm batch job on CoreHPC only, per the Timing route section. Installation, training, prediction and every other run or submission remain unauthorized.
+**Status:** Scope direction, amended in place on 2026-11-19 to record the approved pilot design, timing route, and production packaging and seeds. The pilot (three paired seeds, 20261125-20261127) has been run; results are descriptive only, with no threshold or test. No holdout or official-test use, and no further run is authorized.
 
 ## Decision and scope
 
