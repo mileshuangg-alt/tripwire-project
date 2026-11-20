@@ -5808,9 +5808,19 @@ The timing remains a feasibility check only: no learning evidence, no hyperparam
 
 This entry does not authorize any training run, production training or any Slurm submission other than the timing job, and does not extend the batch deviation to any other benchmark or submission. The remaining pre-Slurm rules in section 9 (hash or diff verification of exact code and frames; extrapolated total against requested wall time) continue to apply.
 
+## Production packaging and seeds (decided 2026-11-19)
+
+The production pilot is packaged as three Slurm jobs, one per seed. Each job runs the direct arm and then the sequential arm for its seed on the same node, with a wall-time request of 1:00:00. The production wrapper is `pxr/scripts/pxr004_pilot.slurm`.
+
+The three seeds are 20261125, 20261126 and 20261127. Both arms share each seed, so that head initialization and downstream randomness are paired per seed. The seeds are fixed before any result and are not searched. They are distinct from the PXR-002 seeds (20261117-20261119 and 20261120-20261124) and from the monitor draw seed 20261119.
+
+Basis for the wall-time request: the worst-case p90 extrapolation of timing job 3132558 (`notes/Tripwire_PXR_004.md` section 8) is 0.096 h for the direct arm plus 0.375 h for the sequential arm, 0.47 h per seed; the 1:00:00 request is about 2.1 times that. The timing is a feasibility figure only; no epoch cap, patience or other hyperparameter derives from it.
+
+This entry covers packaging, the seed values, preparation of the production wrapper and its hash list, and their documentation. It does not authorize any production training run or Slurm submission; a separate launch approval is required, and the pre-Slurm rules in Pilot design item 9 (hash or diff verification of exact code and inputs) continue to apply.
+
 ## Open (not decided)
 
-- any production training or submission;
+- launch of any production training or submission;
 - check of the CheMeleon Supporting Information or repository fine-tuning configuration;
 - any numeric threshold or statistical test.
 

@@ -39,7 +39,7 @@ Still open and unapproved (the design-time statement; implementation and the wei
 
 **Approval and scope.** Implementation of the pilot code and tests per D020, and the download of the CheMeleon weights, were approved. Not approved: running tests, training, timing or Slurm; the user runs all execution commands.
 
-**Weights.** Downloaded with `curl --fail` from `https://zenodo.org/records/15460715/files/chemeleon_mp.pt` (the URL Chemprop 2.3.1 uses for `--from-foundation CHEMELEON`) to `pxr/artifacts/pxr004_weights/chemeleon_mp.pt`: HTTP 200, 34,859,448 bytes, SHA-256 `c376624d3407204e780a0ed13a9ac097cc9bb1c13ef89cdbc633c1715c183651`. `SHA256SUMS` (sha256 `7e0f7dc0ffa49433ed9399e82c68716f8bddc954bacfd6dea43917ab9df8f764`) and `PROVENANCE.txt` sit beside it. The file was inspected only with `torch.load(weights_only=True)`: keys `hyper_parameters` and `state_dict`; four tensors (W_i.weight 2048x86, W_h.weight 2048x2048, W_o.weight 2048x2120, W_o.bias 2048); 8,714,240 parameters; d_v 72, d_e 14, d_h 2048, depth 6, dropout 0.0, bias False, activation relu, undirected False. This matches the paper's 2048 width, depth 6 and 8.7M-parameter encoder. The weights are not yet copied to CoreHPC.
+**Weights.** Downloaded with `curl --fail` from `https://zenodo.org/records/15460715/files/chemeleon_mp.pt` (the URL Chemprop 2.3.1 uses for `--from-foundation CHEMELEON`) to `pxr/artifacts/pxr004_weights/chemeleon_mp.pt`: HTTP 200, 34,859,448 bytes, SHA-256 `c376624d3407204e780a0ed13a9ac097cc9bb1c13ef89cdbc633c1715c183651`. `SHA256SUMS` (sha256 `7e0f7dc0ffa49433ed9399e82c68716f8bddc954bacfd6dea43917ab9df8f764`) and `PROVENANCE.txt` sit beside it. The file was inspected only with `torch.load(weights_only=True)`: keys `hyper_parameters` and `state_dict`; four tensors (W_i.weight 2048x86, W_h.weight 2048x2048, W_o.weight 2048x2120, W_o.bias 2048); 8,714,240 parameters; d_v 72, d_e 14, d_h 2048, depth 6, dropout 0.0, bias False, activation relu, undirected False. This matches the paper's 2048 width, depth 6 and 8.7M-parameter encoder. (Status at this entry; the weights were later staged on CoreHPC, section 7.)
 
 **Code (edit made, syntax-checked only).** Three new files were written; only a `py_compile` syntax check has passed. They have not been executed or tested: there is no passing test and no deployment verification.
 - `pxr/scripts/pxr004_data.py` (sha256 `430c7e968f4a3baaec310e175903f787d255dec9415baf2d1e383d277cfa1fbd`): hash-verified v1 frame loading, D014 group attach, seeded monitor draw (seed 20261119, 10%, group 417 excluded), hashed monitor-artifact builder, descriptor-free V2 datasets, stage-1 scaler fit on post-split training labels only.
@@ -79,20 +79,84 @@ Files: `pxr004_monitor_assignments.csv` (538,921 bytes; 10,819 rows, 1,002 in th
 
 The script is a feasibility check only, per D020. For each stage it builds the real datasets and the CheMeleon-initialised model, times a few forward/backward/optimizer steps on a throwaway model after warmup, one full validation pass and one checkpoint write. It never reads, prints or stores a loss, writes nothing under `pxr/artifacts`, and refuses to overwrite its `--out-json`. It extrapolates a worst case (every run to the 100-epoch maximum, validation and checkpoint write every epoch; 3 stage-1 runs and 6 stage-2 runs) and reports the serial total, one sequential-arm seed and one direct-arm seed, compared with a user-supplied requested wall time if given. The accelerator (cpu, gpu or mps) is the user's choice and is recorded in the output; no route has been chosen.
 
-2026-11-19: all tests were reported to have passed locally. The report did not state which test files were run, the pytest counts or the interpreter; that it refers to `pxr/tests/test_pxr004_timing.py` (sha256 `e2087c1a...d036`) is an inference and is unconfirmed. The timing run itself has not been done; the route (local vs CoreHPC GPU, interactive vs batch) is not yet chosen.
+2026-11-19: all tests were reported to have passed locally. The report did not state which test files were run, the pytest counts or the interpreter; that it refers to `pxr/tests/test_pxr004_timing.py` (sha256 `e2087c1a...d036`) is an inference and is unconfirmed. Status at this entry (superseded): the timing run had not been done and the route was not chosen; the route was later decided and the run completed (sections 7 and 8).
 
 ## 7. Staging, interactive failure and timing route (2026-11-19, later entry)
 
 **Staging.** A 16-file package was built by the assistant: `pxr004_stage_20261119.tar.gz` (hash list `pxr004_stage_hashes_20261119.txt`, which has its own sha256 `7efe0c1f98aca2c3e8e08f1975db5ca9823f3679ee37d5e28c11d670da6ec17a`; file list `pxr004_stage_files_20261119.txt`). Contents: `pxr004_data.py`, `pxr004_train.py`, `pxr004_timing.py`, the frozen split assignments, the v1 artifact (6 files), the monitor artifact (3 files) and the weights directory (3 files). Per the user's pasted shell prompt, it is extracted on CoreHPC at `/scratch/user/mhuang8/tripwire_staging/pxr004_stage_20261119`. The archive hash comparison and `sha256sum -c` results were not pasted, so those checks are unreported; the wrapper itself performs a per-file hash check at run time (below).
 
-**Interactive attempt failed.** The user pasted the output of `srun --partition=gpu --nodes=1 --ntasks=1 --gres=gpu:nvidia_l40s:1 --cpus-per-task=8 --mem=96G --time=1:00:00 --pty bash` from the CoreHPC login host (the line was derived by the assistant from the PXR-002 wrapper resource values; the interactive form is not recorded in the repository). It queued jobs 3132497 and 3132498 and printed the socket errors "Insane message length" and "Srun communication socket apparently being written to by something other than Slurm"; no interactive shell was obtained. The same error was recorded in PXR-002 on 2026-11-17 (`notes/Tripwire_PXR_002.md` section 5a), and the user states it occurs whenever a gpu-partition interactive allocation is requested. The two stray jobs are to be cancelled by the user; their current state is UNKNOWN until reported.
+**Interactive attempt failed.** The user pasted the output of `srun --partition=gpu --nodes=1 --ntasks=1 --gres=gpu:nvidia_l40s:1 --cpus-per-task=8 --mem=96G --time=1:00:00 --pty bash` from the CoreHPC login host (the line was derived by the assistant from the PXR-002 wrapper resource values; the interactive form is not recorded in the repository). It queued jobs 3132497 and 3132498 and printed the socket errors "Insane message length" and "Srun communication socket apparently being written to by something other than Slurm"; no interactive shell was obtained. The same error was recorded in PXR-002 on 2026-11-17 (`notes/Tripwire_PXR_002.md` section 5a), and the user states it occurs whenever a gpu-partition interactive allocation is requested.
 
 **Route decision (D020, Timing route section).** The feasibility timing is run as a batch job on CoreHPC for now, a deviation from the interactive-benchmark practice, for the same reason and in the same manner as PXR-002 section 5a. Scope is timing only: no learning evidence, no hyperparameter choice, no training run, and no other submission.
 
 **Wrapper (written, syntax-checked with `bash -n` only; not run).** `pxr/scripts/pxr004_timing.slurm`, sha256 `0a255a12e5054561b767beaca2b6117fe0820f3e26b5808d4378e7e6c92a1cf6`. Resources: 1 h, 1 L40S, 8 CPUs, 96G, partition gpu, no requeue. It verifies every staged file against the hash list before running; requires `STAGE_ROOT`, `PXR_ENV`, `HASH_LIST` and `OUT_JSON`; refuses an existing `OUT_JSON`; accepts optional `REQUESTED_WALL_HOURS`; and is to be submitted from the staging root. It is not in the 16-file package; it is transferred separately and checked against the sha256 above (that check is not yet reported).
 
-**Timing job submitted (2026-11-19, reported by the user).** The timing wrapper `pxr/scripts/pxr004_timing.slurm` (sha256 `0a255a12e5054561b767beaca2b6117fe0820f3e26b5808d4378e7e6c92a1cf6`, the version supplied to the user) was reported submitted on CoreHPC as Slurm batch job 3132558. The submission output, the wrapper hash check, the cancellation of stray jobs 3132497 and 3132498, and the job state were not pasted and are unreported. No result yet; timing numbers are pending. This is the D020 feasibility timing, not a training run.
+**Timing job submitted (2026-11-19, reported by the user).** The timing wrapper `pxr/scripts/pxr004_timing.slurm` (sha256 `0a255a12e5054561b767beaca2b6117fe0820f3e26b5808d4378e7e6c92a1cf6`, the version supplied to the user) was submitted on CoreHPC as Slurm batch job 3132558; its result is in section 8. This is the D020 feasibility timing, not a training run.
 
-## 8. Stopping point and next step
+## 8. Timing result, job 3132558 (2026-11-19)
 
-Tests pass in the correct interpreter (counts not supplied), against the unchanged hashed files (section 6). The monitor artifact is built and hashed locally; the CheMeleon weights are downloaded and hashed locally; the timing script and its tests, and the Slurm wrapper, are written and syntax-checked locally. The package is staged on CoreHPC (integrity checks unreported). The timing route is batch, decided in D020; the timing was reported submitted as job 3132558 and no result is yet available (section 7). Next: the user reports the job state and output of 3132558 and the status of stray jobs 3132497 and 3132498. Training and any other submission remain unauthorized.
+**Source.** The user pasted the stdout of `/scratch/user/mhuang8/tripwire_staging/pxr004_timing_3132558.out` from the CoreHPC login host. The evidence lives on CoreHPC and in that paste; the JSON `/scratch/user/mhuang8/pxr004_timing_20261119/timing_gpu.json` has not been downloaded or reviewed locally.
+
+**Run.** Job 3132558 ran on node ggpu1-07 (NVIDIA L40S, 46,068 MiB, driver 595.91.07), 2026-11-19 14:38:01 to 14:38:21 (-08:00), about 20 s, exit 0. The wrapper's per-file hash check printed OK for all 16 staged files (three `pxr004_*.py` scripts, split assignments, `pxr002_aux` x6, `pxr004_monitor` x3, `pxr004_weights` x3). CoreHPC environment: chemprop 2.3.1, torch 2.14.1+cu126, lightning 2.6.6, pandas 3.0.6, scipy 1.18.1, CUDA available. This resolves the earlier unknown on CoreHPC-side versions; the script's GPU path ran without error. No requested-wall-time comparison line appeared in the output, so `REQUESTED_WALL_HOURS` appears not to have been set (inference from the absent line).
+
+**Measurements (throwaway model, GPU).**
+
+| Stage | Train batches/epoch | Step median (s) | Fetch median (s) | Validation batches | Worst-case run, median / p90 (h) |
+|---|---|---|---|---|---|
+| 1 | 139 | 0.045 | 0.020 | 16 | 0.27 / 0.28 |
+| 2 | 46 | 0.044 | 0.019 | 10 | 0.09 / 0.10 |
+
+Extrapolated worst case (every run to 100 epochs, validation and checkpoint every epoch; 3 stage-1 and 6 stage-2 runs):
+
+| Quantity | Median (h) | p90 (h) |
+|---|---|---|
+| Direct arm, one seed | 0.0939 | 0.0960 |
+| Sequential arm, one seed | 0.3620 | 0.3747 |
+| Serial, all runs | 1.3678 | 1.4123 |
+
+**Status.** Feasibility only, per D020: no cap, patience or hyperparameter was chosen from it, and it is not evidence of learning. The figures are an extrapolated worst case from a throwaway model, not a measured production run. Packaging, wall-time request and seeds were subsequently decided (section 9); no production run or submission is approved.
+
+## 9. Production packaging and seeds (D020, 2026-11-19)
+
+**Decision (recorded in D020, Production packaging and seeds).** Three Slurm jobs, one per seed, each running the direct arm then the sequential arm for its seed on the same node, with a 1:00:00 request. Basis: worst-case p90 from job 3132558 of 0.096 h (direct) plus 0.375 h (sequential) is 0.47 h per seed; the request is about 2.1 times that. The timing is feasibility only; no cap or patience derives from it. Seeds 20261125, 20261126 and 20261127, shared by both arms for pairing, fixed before any result and not searched; distinct from the PXR-002 seeds (20261117-19, 20261120-24) and the monitor draw seed 20261119. The approval covers packaging, seeds, preparation of the production wrapper and hash list, and records. It does not authorize training or Slurm submission; a separate launch approval is required.
+
+**Wrapper (written locally, syntax-checked with `bash -n` only; not staged, not submitted; uncommitted).** `pxr/scripts/pxr004_pilot.slurm`, sha256 `86d40878bfd324e0407b55451769a55c84e7c69e8371720df9868b9f87355a52`. It requires `STAGE_ROOT`, `PXR_ENV`, `HASH_LIST`, `SEED` (restricted to the three approved seeds), a new `OUT_ROOT` per seed and `AUTHORIZE_PXR004_PILOT=yes`; hash-checks the staged files; loops direct then sequential through `pxr004_train.py`; no requeue; L40S, 8 CPUs, 96G. It had not been run when written (see Launch below).
+
+**Launch (2026-11-19).** The three pilot jobs were submitted on CoreHPC from the staging root `/scratch/user/mhuang8/tripwire_staging` with the wrapper above (sha256 as listed), `AUTHORIZE_PXR004_PILOT=yes` and `OUT_ROOT=/scratch/user/mhuang8/pxr004_pilot_20261119/seed<SEED>`, one job per seed (20261125, 20261126, 20261127; direct then sequential arm; 1:00:00). The submission itself is the launch approval, within the packaging and seeds decided above. Source: pasted CoreHPC submission shell transcript (2026-11-19). Job-to-seed mapping: seed 20261125 is job 3132953 (OUT_ROOT `/scratch/user/mhuang8/pxr004_pilot_20261119/seed20261125`); seed 20261126 is job 3132954 (`.../seed20261126`); seed 20261127 is job 3132955 (`.../seed20261127`). Each was submitted from `/scratch/user/mhuang8/tripwire_staging` via `pxr004_pilot.slurm` with `STAGE_ROOT` `.../pxr004_stage_20261119`, `PXR_ENV` `/scratch/user/mhuang8/envs/tripwire_cyp002`, `HASH_LIST` `.../pxr004_stage_hashes_20261119.txt` and `AUTHORIZE_PXR004_PILOT=yes`. The first `squeue` showed only 3132953 pending (state PD, reason Priority); an earlier pasted `squeue` had shown all three (`pxr004-p...`) pending on the gpu partition, state PD, reason Priority. UNKNOWN: whether the wrapper-hash and staged-file checks printed OK before submission (output not pasted). No job has started; no output or result exists. No holdout/test use and no reruns are authorized.
+
+**Checks (local).** The 16 files in `pxr004_stage_hashes_20261119.txt` still match their hashes (`shasum -c`, no mismatches); the three `pxr004_*.py` scripts are unchanged since the timing job. From `pxr004_train.py`, `pl.seed_everything(seed)` is called in both stage 1 and stage 2, so the seed governs head initialization, shuffling and dropout streams, and both arms seed stage 2 identically.
+
+## 10. Pilot results, jobs 3132953-3132955 (2026-11-19)
+
+**Source.** The user pasted CoreHPC login-host output reading `stage2/metrics.json` (both arms) and the sequential arm's `stage1/metrics.json` under `/scratch/user/mhuang8/pxr004_pilot_20261119/seed<SEED>/` (seed 20261125 is job 3132953, 20261126 is 3132954, 20261127 is 3132955). The evidence lives on CoreHPC and in that paste; nothing has been downloaded or reviewed locally. All values are on the 621-compound D014 validation set at the best epoch chosen by primary-head validation MAE. Full-precision values are in `notes/Tripwire_PXR_004_supporting.md`. Reporting is descriptive only per D020: no threshold, no statistical test.
+
+**Stage 2, validation (lower MAE/RMSE and higher Spearman are better).**
+
+| Seed | Arm | MAE | RMSE | Spearman | Best epoch | Epochs run |
+|---|---|---|---|---|---|---|
+| 20261125 | direct | 0.52129 | 0.71946 | 0.74402 | 23 | 44 |
+| 20261125 | sequential | 0.52134 | 0.71792 | 0.74290 | 15 | 36 |
+| 20261126 | direct | 0.53029 | 0.72749 | 0.73712 | 28 | 49 |
+| 20261126 | sequential | 0.53040 | 0.72784 | 0.73416 | 34 | 55 |
+| 20261127 | direct | 0.52583 | 0.73371 | 0.75472 | 2 | 23 |
+| 20261127 | sequential | 0.53213 | 0.72215 | 0.73371 | 2 | 23 |
+
+Paired differences (sequential minus direct; arithmetic by the assistant, descriptive): MAE +0.00005, +0.00011, +0.00630 (arm means: direct 0.52580, sequential 0.52796, difference +0.00215); RMSE -0.00154, +0.00035, -0.01155 (means 0.72689 and 0.72264, difference -0.00425); Spearman -0.00112, -0.00297, -0.02101 (means 0.74529 and 0.73692, difference -0.00837). The per-seed MAE differences are small relative to the seed-to-seed spread in MAE of about 0.009. In seed 20261127 both arms' stage-2 best epoch was 2.
+
+**Stage 1 (sequential arm), monitor set.**
+
+| Seed | Best pooled masked standardized MSE | Best epoch | Epochs run | MAE 8.25 / 33 / 99 uM | Spearman 8.25 / 33 / 99 uM |
+|---|---|---|---|---|---|
+| 20261125 | 0.5607 | 2 | 23 | 0.1988 / 0.2997 / 0.3792 | 0.571 / 0.631 / 0.579 |
+| 20261126 | 0.5589 | 4 | 25 | 0.1945 / 0.3035 / 0.3897 | 0.570 / 0.640 / 0.574 |
+| 20261127 | 0.5815 | 20 | 41 | 0.2070 / 0.3103 / 0.3955 | 0.544 / 0.629 / 0.549 |
+
+Monitor labels per head are 974 / 848 / 67. Stage-1 best epochs were early for two seeds (2 and 4).
+
+**Context (not matched comparators; earlier records).** Constant training mean 0.9218 validation MAE; ECFP4 + LightGBM 0.6049; PXR-002 single model about 0.546 (descriptor-based, 2,896 cohort).
+
+**Not done.** No holdout or official-test use; no reporting script yet; nothing committed. This entry records no conclusion about whether auxiliary pretraining helps.
+
+## 11. Stopping point and next step
+
+Tests pass in the correct interpreter (counts not supplied), against the unchanged hashed files (section 6). The monitor artifact and CheMeleon weights are built and hashed locally and were staged on CoreHPC, where the wrapper verified all 16 staged files. Timing job 3132558 completed (exit 0, about 20 s; section 8). Packaging and seeds are decided and the production wrapper written (section 9). The three pilot jobs were run and their validation results recorded (section 10). Next step: a reporting step per D020 (descriptive only). Nothing else is authorized (no holdout/test use, no reruns).
