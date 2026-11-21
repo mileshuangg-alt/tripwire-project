@@ -22,6 +22,15 @@ set -euo pipefail
 : "${DATASET:?}" "${ORIGINAL_SPLIT:?}" "${SPLIT_MANIFEST_ROOT:?}" "${SCREEN_PROPOSAL:?}"
 : "${SCREEN_CSV:?}" "${SCREEN_IDENTITY:?}" "${SCREEN_SIMILARITY:?}" "${SCREEN_CONTRACT:?}"
 
+# D021 arm D only: both or neither (the cell runner enforces the same rule).
+DESCRIPTOR_ARGS=()
+if [ -n "${DESCRIPTOR_CACHE_DIR:-}" ] || [ -n "${DESCRIPTOR_MANIFEST_SHA256:-}" ]; then
+  : "${DESCRIPTOR_CACHE_DIR:?set both DESCRIPTOR_CACHE_DIR and DESCRIPTOR_MANIFEST_SHA256}"
+  : "${DESCRIPTOR_MANIFEST_SHA256:?set both DESCRIPTOR_CACHE_DIR and DESCRIPTOR_MANIFEST_SHA256}"
+  DESCRIPTOR_ARGS=(--descriptor-cache-dir "${DESCRIPTOR_CACHE_DIR}" \
+                   --descriptor-manifest-sha256 "${DESCRIPTOR_MANIFEST_SHA256}")
+fi
+
 SCRATCH_RUNTIME="/scratch/user/mhuang8/actfound/runtime/t121cell_${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}"
 mkdir -p "${SCRATCH_RUNTIME}"/{tmp,xdg_cache,torch,cuda_cache}
 export TMPDIR="${SCRATCH_RUNTIME}/tmp" XDG_CACHE_HOME="${SCRATCH_RUNTIME}/xdg_cache"
@@ -38,4 +47,4 @@ cd "${PACKAGE_ROOT}"
   --screen "${SCREEN_CSV}" --identity "${SCREEN_IDENTITY}" \
   --similarity "${SCREEN_SIMILARITY}" --contract "${SCREEN_CONTRACT}" \
   --executor-source-dir "${PACKAGE_ROOT}/executor_source" \
-  --executor-source-sha256 "${EXECUTOR_SOURCE_SHA256}" --authorize-training
+  --executor-source-sha256 "${EXECUTOR_SOURCE_SHA256}" ${DESCRIPTOR_ARGS[@]+"${DESCRIPTOR_ARGS[@]}"} --authorize-training

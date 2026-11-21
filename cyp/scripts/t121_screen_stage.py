@@ -212,8 +212,12 @@ def prepare_screen_stage(
     proposal_path,
     output_dir,
     training_seed,
+    descriptor_cache=None,
 ):
-    """Prepare split, model and loaders; does not construct a Trainer or fit."""
+    """Prepare split, model and loaders; does not construct a Trainer or fit.
+
+    descriptor_cache (D021, opt-in): descriptors on every screening datapoint.
+    """
     proposal_path = Path(proposal_path)
     proposal = json.loads(proposal_path.read_text())
     if proposal.get("trial_index") != 121:
@@ -242,6 +246,7 @@ def prepare_screen_stage(
         sampled_config=sampled,
         config_name="D007-T121",
         training_seed=training_seed,
+        descriptor_cache=descriptor_cache,
     )
     dataset = base["training_dataset"]
 
@@ -330,6 +335,8 @@ def prepare_screen_stage(
         "sampled_config": sampled,
         "full_screen_refit": False,
     }
+    if descriptor_cache is not None:
+        metadata["descriptors"] = descriptor_cache.provenance()
     (out / "preparation.json").write_text(
         json.dumps(metadata, indent=2) + "\n"
     )
@@ -382,6 +389,7 @@ def prepare_selected_screen_handoff(
     validation_dataframe,
     config_name,
     training_seed,
+    descriptor_dim=0,
 ):
     """Load the selected screen state only; no optimizer/scheduler resume."""
     path = Path(selected_record["checkpoint"])
@@ -399,5 +407,6 @@ def prepare_selected_screen_handoff(
         sampled_config=prepared_screen["sampled_config"],
         config_name=config_name,
         training_seed=training_seed,
+        descriptor_dim=descriptor_dim,
     )
     return result

@@ -28,6 +28,7 @@ import time
 def load_ops():
     import pandas as pd
     import cyp007_cell_fit as fit
+    import t121_descriptor_cache as descriptors
     import t121_screen_stage as screen
     import t121_weighted_training as weighted
 
@@ -42,6 +43,7 @@ def load_ops():
         prepare_screen_stage=screen.prepare_screen_stage,
         prepare_selected_screen_handoff=screen.prepare_selected_screen_handoff,
         fit_stage=weighted.fit_prepared_t121_pic50_stage,
+        attach_descriptors=descriptors.attach_descriptor_columns,
     )
 
 
@@ -63,7 +65,11 @@ def run_updated_t121_cell(
     screen_inputs,
     authorize_training=False,
     ops=None,
+    descriptor_cache=None,
 ):
+    """D021: `descriptor_cache` (a loaded DescriptorCache) selects arm D, with
+    the frozen descriptors in both the screening shell and the pIC50 stage.
+    None is arm R and runs exactly as before."""
     if authorize_training is not True:
         raise RuntimeError("Updated-T121 cell training is not authorized.")
     ops = load_ops() if ops is None else ops
@@ -101,6 +107,12 @@ def run_updated_t121_cell(
     if not isinstance(sampled_config, dict):
         raise RuntimeError("T121 proposal is missing frozen sampled_config.")
     config_name = proposal.get("config_name", f"D007-T{trial_index:03d}")
+    arm = (
+        "updated_t121_from_screen_checkpoint" if descriptor_cache is None
+        else "updated_t121_descriptors_from_screen_checkpoint"
+    )
+    screen_extra = {} if descriptor_cache is None else {"descriptor_cache": descriptor_cache}
+    handoff_extra = {} if descriptor_cache is None else {"descriptor_dim": descriptor_cache.dim}
 
     split_manifest_path = (
         Path(split_manifest_root)
@@ -126,22 +138,31 @@ def run_updated_t121_cell(
         "started_time": time.time(),
         "split_manifest_path": str(split_manifest_path),
         "proposal_path": str(proposal_path),
-        "arm": "updated_t121_from_screen_checkpoint",
+        "arm": arm,
         "screen_selection_sha256": screen_selection_sha256,
     })
 
     try:
+        dataframe = ops.read_csv(dataset_path)
         routed = ops.route_fold(
-            dataframe=ops.read_csv(dataset_path),
+            dataframe=dataframe,
             original_split_dataframe=ops.read_csv(original_split_path),
             split_manifest=split_manifest,
             training_seed=plan["seed"],
         )
+        if descriptor_cache is not None:
+            # Attach only after routing: the dataset file also holds protected
+            # rows, which the routing guard drops and the cache deliberately
+            # does not contain (a lookup of one would raise).
+            routed = dict(routed)
+            for key in ("training_dataframe", "validation_dataframe"):
+                routed[key] = ops.attach_descriptors(routed[key], descriptor_cache)
         prepared_screen = ops.prepare_screen_stage(
             **dict(screen_inputs),
             proposal_path=screen_proposal_path,
             output_dir=cell_dir / "screen_shell",
             training_seed=plan["seed"],
+            **screen_extra,
         )
         if prepared_screen["sampled_config"] != sampled_config:
             raise RuntimeError(
@@ -154,6 +175,7 @@ def run_updated_t121_cell(
             validation_dataframe=routed["validation_dataframe"],
             config_name=config_name,
             training_seed=plan["seed"],
+            **handoff_extra,
         )
         fit = ops.fit_stage(
             prefit_state=prefit,
@@ -177,7 +199,7 @@ def run_updated_t121_cell(
             "split_manifest_sha256": ops.sha256_file(split_manifest_path),
             "proposal_path": str(proposal_path),
             "config_name": config_name,
-            "arm": "updated_t121_from_screen_checkpoint",
+            "arm": arm,
             "screen_selected_epoch": selection["epoch"],
             "screen_checkpoint_sha256": selection["sha256"],
         }
@@ -199,6 +221,8 @@ def run_updated_t121_cell(
                 prefit.get("updated_t121_weighting")
             ),
         }
+        if descriptor_cache is not None:
+            provenance["descriptors"] = descriptor_cache.provenance()
         ops.write_json_atomic(cell_dir / "provenance.json", provenance)
         ops.write_json_exclusive(result_path, result)
         ops.write_json_exclusive(complete_path, {
@@ -230,7 +254,11 @@ def main(argv=None):
     parser.add_argument("--trial-index", required=True, type=int)
     parser.add_argument("--cell-index", required=True, type=int)
     parser.add_argument("--authorize-training", action="store_true")
+    parser.add_argument("--descriptor-cache-dir")
+    parser.add_argument("--descriptor-manifest-sha256")
     args = parser.parse_args(argv)
+    if bool(args.descriptor_cache_dir) != bool(args.descriptor_manifest_sha256):
+        raise SystemExit("Give both --descriptor-cache-dir and --descriptor-manifest-sha256, or neither.")
 
     source = Path(args.executor_source_dir) / "cyp007_cell_fit.py"
     digest = hashlib.sha256(source.read_bytes()).hexdigest()
@@ -240,6 +268,14 @@ def main(argv=None):
         if directory not in sys.path:
             sys.path.insert(0, directory)
 
+    descriptor_cache = None
+    if args.descriptor_cache_dir:
+        from t121_descriptor_cache import DescriptorCache
+
+        descriptor_cache = DescriptorCache.load(
+            args.descriptor_cache_dir,
+            expected_manifest_sha256=args.descriptor_manifest_sha256,
+        )
     result = run_updated_t121_cell(
         run_root=args.run_root,
         trial_index=args.trial_index,
@@ -257,6 +293,7 @@ def main(argv=None):
             "contract_path": args.contract,
         },
         authorize_training=args.authorize_training,
+        descriptor_cache=descriptor_cache,
     )
     print(json.dumps(result, default=str))
     return 0

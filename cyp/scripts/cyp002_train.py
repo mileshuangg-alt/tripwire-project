@@ -12,6 +12,7 @@ from lightning import pytorch as pl
 from chemprop import data
 
 from cyp002_config import (
+    CYP002_DESCRIPTOR_COLUMN_PREFIX,
     CYP002_GRID,
     CYP002_TASK_NAMES,
     CYP002_VARIANT_STOCK,
@@ -132,14 +133,32 @@ def _frame_to_molecule_dataset(
         CYP002_TASK_NAMES,
     )
 
+    # D021: descriptor columns are opt-in. With none present the datapoints
+    # are built exactly as before (x_d is None).
+    descriptor_columns = sorted(
+        column for column in dataframe.columns
+        if str(column).startswith(CYP002_DESCRIPTOR_COLUMN_PREFIX)
+    )
+    if descriptor_columns:
+        descriptor_matrix = dataframe[descriptor_columns].to_numpy(
+            dtype=np.float64, copy=True
+        )
+        if not np.isfinite(descriptor_matrix).all():
+            raise ValueError("Descriptor columns contain non-finite values.")
+        descriptor_rows = list(descriptor_matrix)
+    else:
+        descriptor_rows = [None] * len(dataframe)
+
     datapoints = [
         data.MoleculeDatapoint.from_smi(
             smiles,
             target_row,
+            **({} if x_d is None else {"x_d": x_d}),
         )
-        for smiles, target_row in zip(
+        for smiles, target_row, x_d in zip(
             dataframe["SMILES"].tolist(),
             target_matrix,
+            descriptor_rows,
             strict=True,
         )
     ]

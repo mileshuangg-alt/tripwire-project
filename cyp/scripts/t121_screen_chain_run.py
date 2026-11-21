@@ -31,9 +31,17 @@ MANIFEST_KEYS = {
 }
 SCREEN_INPUT_KEYS = {"screen_path", "identity_path", "similarity_path", "contract_path"}
 REQUIRED_PINNED_ROLES = {"screen_stage", "weighted_training", "proposal"}
+# D021 arm D: optional section; when present the module and both cache files
+# must also be pinned, and the section must point at the pinned manifest.
+DESCRIPTOR_SECTION_KEYS = {"directory", "manifest_sha256"}
+DESCRIPTOR_PINNED_ROLES = {"descriptor_cache_module", "descriptor_manifest", "descriptor_npz"}
 
 
 def validate_manifest(manifest):
+    original = manifest
+    has_descriptors = isinstance(manifest, dict) and "descriptor_cache" in manifest
+    if has_descriptors:
+        manifest = {k: v for k, v in manifest.items() if k != "descriptor_cache"}
     require_keys("manifest", manifest, MANIFEST_KEYS)
     require_keys("screen_inputs", manifest["screen_inputs"], SCREEN_INPUT_KEYS)
     if not isinstance(manifest["training_seed"], int) or isinstance(manifest["training_seed"], bool):
@@ -50,6 +58,19 @@ def validate_manifest(manifest):
         require_keys(f"evidence[{index}]", entry, {"path", "sha256", "bound_fields"})
     if Path(manifest["proposal_path"]).resolve() != Path(pinned["proposal"]["path"]).resolve():
         raise ValueError("proposal_path must be the pinned proposal file.")
+    if has_descriptors:
+        spec = original["descriptor_cache"]
+        require_keys("descriptor_cache", spec, DESCRIPTOR_SECTION_KEYS)
+        if not DESCRIPTOR_PINNED_ROLES <= set(pinned):
+            raise ValueError(
+                f"descriptor_cache requires pinned roles {sorted(DESCRIPTOR_PINNED_ROLES)}."
+            )
+        if pinned["descriptor_manifest"]["sha256"] != spec["manifest_sha256"]:
+            raise ValueError("descriptor_cache.manifest_sha256 must equal the pinned descriptor_manifest hash.")
+        if Path(spec["directory"]).resolve() != Path(pinned["descriptor_manifest"]["path"]).resolve().parent:
+            raise ValueError("descriptor_cache.directory must be the pinned descriptor manifest's directory.")
+        if Path(pinned["descriptor_npz"]["path"]).resolve().parent != Path(spec["directory"]).resolve():
+            raise ValueError("The pinned descriptor_npz must be in descriptor_cache.directory.")
 
 
 def verify_evidence(entries):
@@ -83,11 +104,23 @@ def run_screen_chain(manifest, stage_module):
         raise FileExistsError(f"Refusing to reuse screening output: {root}")
     root.mkdir(parents=True)
 
+    extra = {}
+    if manifest.get("descriptor_cache"):
+        # D021 arm D: frozen descriptors on every screening molecule. The
+        # manifest must pin the cache by its manifest hash.
+        from t121_descriptor_cache import DescriptorCache
+
+        spec = manifest["descriptor_cache"]
+        require_keys("descriptor_cache", spec, {"directory", "manifest_sha256"})
+        extra["descriptor_cache"] = DescriptorCache.load(
+            spec["directory"], expected_manifest_sha256=spec["manifest_sha256"]
+        )
     prepared = stage_module.prepare_screen_stage(
         **dict(manifest["screen_inputs"]),
         proposal_path=manifest["proposal_path"],
         output_dir=root / "preparation",
         training_seed=manifest["training_seed"],
+        **extra,
     )
     selected = stage_module.fit_screen_stage(prepared, authorize_training=True)
 

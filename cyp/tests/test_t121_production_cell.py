@@ -60,6 +60,7 @@ class CellTests(unittest.TestCase):
 
         def route_fold(**kwargs):
             calls.append("route")
+            self.routed_input = kwargs["dataframe"]
             return {"training_dataframe": "T", "validation_dataframe": "V"}
 
         def prepare_screen_stage(**kwargs):
@@ -177,6 +178,38 @@ class CellTests(unittest.TestCase):
         again = self.run_cell()
         self.assertEqual(again, first)
         self.assertEqual(self.calls, [])
+
+    def test_arm_r_passes_no_descriptor_arguments_and_keeps_its_arm_label(self):
+        result = self.run_cell()
+        self.assertNotIn("descriptor_cache", self.screen_kwargs)
+        self.assertNotIn("descriptor_dim", self.handoff_kwargs)
+        self.assertEqual(result["arm"], "updated_t121_from_screen_checkpoint")
+        provenance = json.loads((self.cell_dir / "provenance.json").read_text())
+        self.assertNotIn("descriptors", provenance)
+
+    def test_arm_d_routes_the_cache_to_both_stages_and_labels_the_arm(self):
+        class Cache:
+            dim = 196
+
+            def provenance(self):
+                return {"manifest_sha256": "abc", "dim": 196}
+
+        attached = []
+        ops = self.ops()
+        ops.attach_descriptors = lambda frame, cache: attached.append((frame, cache)) or "frame+xd"
+        cache = Cache()
+        result = self.run_cell(ops=ops, descriptor_cache=cache)
+        # Routing sees the raw dataset (protected rows included, not in the
+        # cache); descriptors attach only to the routed training/validation frames.
+        self.assertEqual(self.routed_input, "frame")
+        self.assertEqual(attached, [("T", cache), ("V", cache)])
+        self.assertIs(self.screen_kwargs["descriptor_cache"], cache)
+        self.assertEqual(self.handoff_kwargs["descriptor_dim"], 196)
+        self.assertEqual(result["arm"], "updated_t121_descriptors_from_screen_checkpoint")
+        started = json.loads((self.cell_dir / "STARTED.json").read_text())
+        self.assertEqual(started["arm"], "updated_t121_descriptors_from_screen_checkpoint")
+        provenance = json.loads((self.cell_dir / "provenance.json").read_text())
+        self.assertEqual(provenance["descriptors"]["manifest_sha256"], "abc")
 
 
 if __name__ == "__main__":

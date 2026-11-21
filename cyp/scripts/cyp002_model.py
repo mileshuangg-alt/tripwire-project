@@ -19,13 +19,24 @@ def build_cyp002_model(
     output_scaler=None,
     validation_conf_low=None,
     validation_conf_high=None,
+    extra_input_dim: int = 0,
 ) -> models.MPNN:
     """
     Build the frozen CYP-002 Chemprop architecture.
 
     Variant is the only scientifically consequential difference:
     stock MSE versus the D001 task-balanced masked MSE criterion.
+
+    extra_input_dim (D021) is the number of molecule-level descriptors
+    concatenated to the aggregated vector; 0 leaves the graph-only
+    architecture exactly as before.
     """
+    if (
+        not isinstance(extra_input_dim, int)
+        or isinstance(extra_input_dim, bool)
+        or extra_input_dim < 0
+    ):
+        raise ValueError("extra_input_dim must be a non-negative integer.")
     if config.num_tasks != 4:
         raise ValueError(
             f"CYP-002 requires exactly 4 tasks, got {config.num_tasks}"
@@ -69,7 +80,7 @@ def build_cyp002_model(
 
     predictor = nn.RegressionFFN(
         n_tasks=config.num_tasks,
-        input_dim=config.message_hidden_dim,
+        input_dim=config.message_hidden_dim + extra_input_dim,
         hidden_dim=config.ffn_hidden_dim,
         n_layers=config.ffn_num_layers,
         dropout=config.dropout,

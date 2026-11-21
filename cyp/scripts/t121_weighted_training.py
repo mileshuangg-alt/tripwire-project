@@ -110,8 +110,15 @@ def collate_uncertainty_batch(records):
 
 def build_screen_dataset(
     screen_path, identity_path, similarity_path, contract_path,
+    descriptor_cache=None,
 ):
-    """Reuse frozen adjudications; retain four native-log2fc enzyme outputs."""
+    """Reuse frozen adjudications; retain four native-log2fc enzyme outputs.
+
+    descriptor_cache (D021, opt-in): a loaded descriptor cache. Each datapoint
+    then carries the cached descriptor vector for the SMILES it is built from;
+    a SMILES missing from the cache raises. None leaves the graph-only
+    behavior exactly as before.
+    """
     from actfound_model_side import load_adjudicated_screen_assays
 
     assays = load_adjudicated_screen_assays(
@@ -151,8 +158,12 @@ def build_screen_dataset(
     datapoints = []
     for row, name in enumerate(ids):
         try:
+            extra = (
+                {} if descriptor_cache is None
+                else {"x_d": descriptor_cache.lookup(smiles_by_id[name])}
+            )
             point = data.MoleculeDatapoint.from_smi(
-                smiles_by_id[name], labels[row].copy()
+                smiles_by_id[name], labels[row].copy(), **extra
             )
             if point.mol is None:
                 raise ValueError("No molecular structure returned.")
@@ -306,11 +317,16 @@ def build_updated_t121_pic50_prefit_state(
     sampled_config,
     config_name,
     training_seed,
+    descriptor_dim=0,
 ):
     """Build the opt-in CI-weighted arm through the verified D007 prefit path.
 
     This constructs an untrained state. Screening checkpoint transfer is a
     separate required transition and is not performed by this function.
+
+    descriptor_dim (D021, opt-in): number of descriptor columns (named with
+    CYP002_DESCRIPTOR_COLUMN_PREFIX) carried by both frames. 0 is the
+    graph-only arm and must find no descriptor columns.
     """
     from cyp007_cell_fit import build_d007_prefit_state
 
@@ -321,6 +337,31 @@ def build_updated_t121_pic50_prefit_state(
         config_name=config_name,
         training_seed=training_seed,
     )
+    for partition, loader in (
+        ("training", original["train_loader"]),
+        ("validation", original["validation_loader"]),
+    ):
+        actual = int(loader.dataset.d_xd)
+        if actual != descriptor_dim:
+            raise ValueError(
+                f"{partition} descriptor width {actual} != descriptor_dim "
+                f"{descriptor_dim}."
+            )
+    if descriptor_dim > 0:
+        from cyp002_model import build_cyp002_model
+        from cyp002_train import _configure_determinism
+
+        # The verified builder made a graph-only model. Rebuild it with the
+        # widened first FFN layer, re-seeded so initialization is reproducible.
+        _configure_determinism(training_seed)
+        original["model"] = build_cyp002_model(
+            original["config"],
+            original["variant"],
+            output_scaler=original["scaler"],
+            validation_conf_low=original["validation_conf_low"],
+            validation_conf_high=original["validation_conf_high"],
+            extra_input_dim=descriptor_dim,
+        )
     weighted_data = build_weighted_pic50_train_loader(
         original, training_dataframe
     )
@@ -367,6 +408,7 @@ def build_updated_t121_pic50_prefit_state(
         "observed_training_cells": weighted_data["observed_cells"],
         "evaluation_weighted": False,
     }
+    result["descriptor_dim"] = descriptor_dim
     return result
 
 
@@ -506,8 +548,14 @@ def build_t121_screen_prefit_state(
     sampled_config,
     config_name,
     training_seed,
+    descriptor_cache=None,
 ):
-    """Construct the screening stage without fitting or selecting a checkpoint."""
+    """Construct the screening stage without fitting or selecting a checkpoint.
+
+    descriptor_cache (D021, opt-in): carries cached descriptors on every
+    screening datapoint and widens the first FFN layer to match. None keeps
+    the graph-only construction exactly as before.
+    """
     from torch.utils.data import DataLoader
     from cyp002_config import CYP002_VARIANT_STOCK
     from cyp002_model import build_cyp002_model
@@ -526,6 +574,7 @@ def build_t121_screen_prefit_state(
         identity_path,
         similarity_path,
         contract_path,
+        descriptor_cache=descriptor_cache,
     )
 
     # Reuse Chemprop's existing sampler policy rather than replacing it
@@ -550,6 +599,7 @@ def build_t121_screen_prefit_state(
         config,
         CYP002_VARIANT_STOCK,
         output_scaler=None,
+        extra_input_dim=0 if descriptor_cache is None else descriptor_cache.dim,
     )
     model = T121ScreenTrainingMPNN(
         message_passing=stock.message_passing,
@@ -593,6 +643,7 @@ def prepare_t121_pic50_transition(
     sampled_config,
     config_name,
     training_seed,
+    descriptor_dim=0,
 ):
     """Prepare a fresh pIC50 stage and transfer screening shared weights.
 
@@ -605,6 +656,7 @@ def prepare_t121_pic50_transition(
         sampled_config=sampled_config,
         config_name=config_name,
         training_seed=training_seed,
+        descriptor_dim=descriptor_dim,
     )
     destination = state["model"]
     if getattr(destination, "_trainer", None) is not None:

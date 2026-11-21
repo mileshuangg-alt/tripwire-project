@@ -122,6 +122,47 @@ class ScreenLauncherTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             launcher.validate_manifest(broken)
 
+    def descriptor_manifest(self):
+        directory = self.root / "cache"
+        directory.mkdir(exist_ok=True)
+        pinned = {}
+        for role, name in (
+            ("descriptor_cache_module", "t121_descriptor_cache.py"),
+            ("descriptor_manifest", "cache/descriptor_manifest.json"),
+            ("descriptor_npz", "cache/descriptors.npz"),
+        ):
+            path = self.root / name
+            path.write_text(f"# {role}\n")
+            pinned[role] = {"path": str(path), "sha256": sha(path)}
+        manifest = copy.deepcopy(self.manifest)
+        manifest["pinned_files"].update(pinned)
+        manifest["descriptor_cache"] = {
+            "directory": str(directory),
+            "manifest_sha256": pinned["descriptor_manifest"]["sha256"],
+        }
+        return manifest
+
+    def test_descriptor_section_is_accepted_when_fully_pinned(self):
+        launcher.validate_manifest(self.descriptor_manifest())
+
+    def test_descriptor_section_is_refused_when_unpinned_or_inconsistent(self):
+        broken = self.descriptor_manifest()
+        del broken["pinned_files"]["descriptor_npz"]
+        with self.assertRaisesRegex(ValueError, "requires pinned roles"):
+            launcher.validate_manifest(broken)
+        broken = self.descriptor_manifest()
+        broken["descriptor_cache"]["manifest_sha256"] = "0" * 64
+        with self.assertRaisesRegex(ValueError, "pinned descriptor_manifest"):
+            launcher.validate_manifest(broken)
+        broken = self.descriptor_manifest()
+        broken["descriptor_cache"]["directory"] = str(self.root)
+        with self.assertRaisesRegex(ValueError, "directory"):
+            launcher.validate_manifest(broken)
+        broken = self.descriptor_manifest()
+        broken["descriptor_cache"]["extra"] = 1
+        with self.assertRaises(ValueError):
+            launcher.validate_manifest(broken)
+
     def test_proposal_path_must_be_the_pinned_file(self):
         broken = copy.deepcopy(self.manifest)
         broken["proposal_path"] = str(self.root / "other.json")

@@ -6,6 +6,10 @@ from dataclasses import dataclass
 CYP002_SEED = 20261001
 CYP002_N_TASKS = 4
 
+# D021: opt-in molecule-level descriptor columns carried in a training or
+# validation frame. Columns are ordered by name; absent columns mean graph-only.
+CYP002_DESCRIPTOR_COLUMN_PREFIX = "xd__"
+
 CYP002_TASK_NAMES = (
     "CYP1A2_pIC50_direct_inhibition",
     "CYP2C9_pIC50_direct_inhibition",

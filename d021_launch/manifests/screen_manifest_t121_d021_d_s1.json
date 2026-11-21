@@ -1,0 +1,113 @@
+{
+  "descriptor_cache": {
+    "directory": "/scratch/user/mhuang8/tripwire_staging/t121_d021_package_20261119/cyp/artifacts/d021_descriptors/descriptor_cache_v1",
+    "manifest_sha256": "870188de60c0eca47d8b8af6eb4ba8529a589273965f2beca2c665fef5edf740"
+  },
+  "evidence": [
+    {
+      "bound_fields": {
+        "check_py_sha256": "09abee9d707862460bd10ea19dc45dc7dafba85b49ae2506b3cffa442736b2e4",
+        "descriptor_manifest_sha256": "870188de60c0eca47d8b8af6eb4ba8529a589273965f2beca2c665fef5edf740",
+        "screen_stage_sha256": "9588cc0573c644fe2a23ba5c1fc91534ac6e9c0587f8bcd15a952497f856e266",
+        "weighted_training_sha256": "b3d331d7c42063e422d035595b3095c2b7d23620a3773342dadb76edc2583282"
+      },
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_d021_package_20261119/results/d021_descriptor_smoke/result.json",
+      "sha256": "dad22845c87c8486df2dd5c0c59252d842cfbb8fab29dbf4d5cb7925391df1b2"
+    }
+  ],
+  "output_dir": "/scratch/user/mhuang8/tripwire_staging/t121_d021_d_s1_screen_run",
+  "pinned_files": {
+    "cyp002_config": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_d021_package_20261119/cyp/scripts/cyp002_config.py",
+      "sha256": "4034dcf153f4097f52dfc782bf007dc470261955352edccbdb4ab11160a10ea2"
+    },
+    "cyp002_model": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_d021_package_20261119/cyp/scripts/cyp002_model.py",
+      "sha256": "3818bfdfa88e3d15e50add1c59b97284741d866e9d4e8235031ca1d1c4561a82"
+    },
+    "cyp002_train": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_d021_package_20261119/cyp/scripts/cyp002_train.py",
+      "sha256": "78f6ee196201cf707e9bd485fa39a98fc98f6960c85d93cf37226ab7516368d2"
+    },
+    "cyp002_validation": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_d021_package_20261119/cyp/scripts/cyp002_validation.py",
+      "sha256": "f0693b9294be0570988f08cc28256bf8ae995ea0cb82b421c45d40acb8bbc81e"
+    },
+    "cyp007_infrastructure": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_d021_package_20261119/cyp/scripts/cyp007_infrastructure.py",
+      "sha256": "521469efc448af749a0849921d903d7c96e8e162ac8efbbc3e278abc367576fd"
+    },
+    "descriptor_cache_module": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_d021_package_20261119/cyp/scripts/t121_descriptor_cache.py",
+      "sha256": "642f031509c8d3feaa6b94a0ece554d9f2594df3946c9de9bf148c2cbfef405c"
+    },
+    "descriptor_manifest": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_d021_package_20261119/cyp/artifacts/d021_descriptors/descriptor_cache_v1/descriptor_manifest.json",
+      "sha256": "870188de60c0eca47d8b8af6eb4ba8529a589273965f2beca2c665fef5edf740"
+    },
+    "descriptor_npz": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_d021_package_20261119/cyp/artifacts/d021_descriptors/descriptor_cache_v1/descriptors.npz",
+      "sha256": "03734bbe8f73fd6336754886d5c0cae60513eae908fc23311087b2bda7221a46"
+    },
+    "executor_cell_fit": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_d021_package_20261119/executor_source/cyp007_cell_fit.py",
+      "sha256": "625a64fae191573b5a860cdba9a6ae9456d17bc6cd5b0337cc0b7cff1df1a00b"
+    },
+    "executor_production_execution": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_d021_package_20261119/executor_source/cyp007_production_execution.py",
+      "sha256": "4b6d13f7488da9320e7607624609a54e482380e7a94759df9c056fdaf9cb42fe"
+    },
+    "launcher_base": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_d021_package_20261119/cyp/scripts/actfound_stage_chain_run.py",
+      "sha256": "fdc6563230801dbba26587fe82b972cbf2d9f1bf50cf4a88a4874f7eb4594798"
+    },
+    "production_cell": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_d021_package_20261119/cyp/scripts/t121_production_cell.py",
+      "sha256": "5cda18eb5cb8ca9d9b2a645b156062df2904cce9c85af8c3159b71a8aa3bba21"
+    },
+    "proposal": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_d021_package_20261119/inputs/trial_121_proposal.json",
+      "sha256": "71f4cad969981cbe60a0b5eccc904089ffe8b9b029d023cda6678661fe27dbe6"
+    },
+    "screen": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/actfound_screen_loader_20261117/inputs/screen_full.csv",
+      "sha256": "4f61be8ffdec767a61981ab89e3f06d28850603c3fa4ad0715a2183d4261a706"
+    },
+    "screen_chain_run": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_d021_package_20261119/cyp/scripts/t121_screen_chain_run.py",
+      "sha256": "255dd01ba5dbb2a6142afc29523b185c29a9a122521bdb2ad443c06d189dd780"
+    },
+    "screen_contract": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/actfound_screen_loader_20261117/qualification/actfound/screen_loader_20261117/contract.json",
+      "sha256": "df3090f3e2eefe6d36e24336d83ce67e62132ac201021c2e6b912b810434bfa3"
+    },
+    "screen_identity": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/actfound_screen_loader_20261117/inputs/adjudication.tsv",
+      "sha256": "2f3045124dbf138ec535abfd8b697a6e2e2cd605d2bccd9f30a58f4ba5464f54"
+    },
+    "screen_similarity": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/actfound_screen_loader_20261117/inputs/cluster_adjudication.tsv",
+      "sha256": "eadd679fc7de66f0b2bc02d8b4913f1fccb0f08566884cb50ebfbdcc70002783"
+    },
+    "screen_stage": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_d021_package_20261119/cyp/scripts/t121_screen_stage.py",
+      "sha256": "9588cc0573c644fe2a23ba5c1fc91534ac6e9c0587f8bcd15a952497f856e266"
+    },
+    "stage_controller": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_d021_package_20261119/cyp/scripts/actfound_stage_controller.py",
+      "sha256": "fd8711b23b0c1a878d5353a984a0dd6b0b47af6fa04ff8a95c0be01fa3133413"
+    },
+    "weighted_training": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_d021_package_20261119/cyp/scripts/t121_weighted_training.py",
+      "sha256": "b3d331d7c42063e422d035595b3095c2b7d23620a3773342dadb76edc2583282"
+    }
+  },
+  "proposal_path": "/scratch/user/mhuang8/tripwire_staging/t121_d021_package_20261119/inputs/trial_121_proposal.json",
+  "screen_inputs": {
+    "contract_path": "/scratch/user/mhuang8/tripwire_staging/actfound_screen_loader_20261117/qualification/actfound/screen_loader_20261117/contract.json",
+    "identity_path": "/scratch/user/mhuang8/tripwire_staging/actfound_screen_loader_20261117/inputs/adjudication.tsv",
+    "screen_path": "/scratch/user/mhuang8/tripwire_staging/actfound_screen_loader_20261117/inputs/screen_full.csv",
+    "similarity_path": "/scratch/user/mhuang8/tripwire_staging/actfound_screen_loader_20261117/inputs/cluster_adjudication.tsv"
+  },
+  "training_seed": 20261101
+}
