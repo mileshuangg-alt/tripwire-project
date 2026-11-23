@@ -31,6 +31,17 @@ if [ -n "${DESCRIPTOR_CACHE_DIR:-}" ] || [ -n "${DESCRIPTOR_MANIFEST_SHA256:-}" 
                    --descriptor-manifest-sha256 "${DESCRIPTOR_MANIFEST_SHA256}")
 fi
 
+# D022 CheMeleon arm only: all three or none (the cell runner enforces the same rule).
+CHEMELEON_ARGS=()
+if [ -n "${CHEMELEON_CONFIG:-}" ] || [ -n "${CHEMELEON_CONFIG_SHA256:-}" ] || [ -n "${CHEMELEON_WEIGHTS:-}" ]; then
+  : "${CHEMELEON_CONFIG:?set CHEMELEON_CONFIG, CHEMELEON_CONFIG_SHA256 and CHEMELEON_WEIGHTS}"
+  : "${CHEMELEON_CONFIG_SHA256:?set CHEMELEON_CONFIG, CHEMELEON_CONFIG_SHA256 and CHEMELEON_WEIGHTS}"
+  : "${CHEMELEON_WEIGHTS:?set CHEMELEON_CONFIG, CHEMELEON_CONFIG_SHA256 and CHEMELEON_WEIGHTS}"
+  CHEMELEON_ARGS=(--chemeleon-config "${CHEMELEON_CONFIG}" \
+                  --chemeleon-config-sha256 "${CHEMELEON_CONFIG_SHA256}" \
+                  --chemeleon-weights "${CHEMELEON_WEIGHTS}")
+fi
+
 SCRATCH_RUNTIME="/scratch/user/mhuang8/actfound/runtime/t121cell_${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}"
 mkdir -p "${SCRATCH_RUNTIME}"/{tmp,xdg_cache,torch,cuda_cache}
 export TMPDIR="${SCRATCH_RUNTIME}/tmp" XDG_CACHE_HOME="${SCRATCH_RUNTIME}/xdg_cache"
@@ -47,4 +58,5 @@ cd "${PACKAGE_ROOT}"
   --screen "${SCREEN_CSV}" --identity "${SCREEN_IDENTITY}" \
   --similarity "${SCREEN_SIMILARITY}" --contract "${SCREEN_CONTRACT}" \
   --executor-source-dir "${PACKAGE_ROOT}/executor_source" \
-  --executor-source-sha256 "${EXECUTOR_SOURCE_SHA256}" ${DESCRIPTOR_ARGS[@]+"${DESCRIPTOR_ARGS[@]}"} --authorize-training
+  --executor-source-sha256 "${EXECUTOR_SOURCE_SHA256}" ${DESCRIPTOR_ARGS[@]+"${DESCRIPTOR_ARGS[@]}"} \
+  ${CHEMELEON_ARGS[@]+"${CHEMELEON_ARGS[@]}"} --authorize-training

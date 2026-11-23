@@ -1,0 +1,33 @@
+{
+  "decision": "D022 (Amendment 1)",
+  "weights": {
+    "file_name": "chemeleon_mp.pt",
+    "sha256": "c376624d3407204e780a0ed13a9ac097cc9bb1c13ef89cdbc633c1715c183651",
+    "source": "pxr/artifacts/pxr004_weights/PROVENANCE.txt"
+  },
+  "encoder": {
+    "d_v": 72,
+    "d_e": 14,
+    "d_h": 2048,
+    "depth": 6,
+    "dropout": 0.0,
+    "bias": false,
+    "undirected": false
+  },
+  "aggregation": "mean",
+  "head": {
+    "ffn_hidden_dim": 2000,
+    "ffn_num_layers": 1,
+    "dropout": 0.4,
+    "input_dim": 2048
+  },
+  "batch_size": 16,
+  "head_lr": {
+    "init": 1.4283739994469765e-05,
+    "peak": 0.0008245400010426866,
+    "final": 0.00020141638331344468,
+    "warmup_epochs": 10
+  },
+  "encoder_lr_ratio": 0.1,
+  "descriptors": false
+}

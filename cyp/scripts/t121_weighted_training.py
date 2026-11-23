@@ -6,6 +6,7 @@ import torch
 from chemprop import data
 
 from cyp002_validation import CYP002ValidationMPNN
+from t121_chemeleon import EncoderRatioOptimizerMixin, apply_chemeleon
 
 
 def weighted_training_mse(
@@ -178,7 +179,7 @@ def build_screen_dataset(
     return result
 
 
-class T121WeightedTrainingMPNN(CYP002ValidationMPNN):
+class T121WeightedTrainingMPNN(EncoderRatioOptimizerMixin, CYP002ValidationMPNN):
     """Override training only; retain the existing validation implementation."""
 
     def training_step(self, batch, batch_idx):
@@ -318,6 +319,7 @@ def build_updated_t121_pic50_prefit_state(
     config_name,
     training_seed,
     descriptor_dim=0,
+    chemeleon=None,
 ):
     """Build the opt-in CI-weighted arm through the verified D007 prefit path.
 
@@ -330,6 +332,8 @@ def build_updated_t121_pic50_prefit_state(
     """
     from cyp007_cell_fit import build_d007_prefit_state
 
+    if chemeleon is not None and descriptor_dim:
+        raise ValueError("D022 CheMeleon arm carries no descriptors.")
     original = build_d007_prefit_state(
         training_dataframe=training_dataframe,
         validation_dataframe=validation_dataframe,
@@ -362,6 +366,14 @@ def build_updated_t121_pic50_prefit_state(
             validation_conf_high=original["validation_conf_high"],
             extra_input_dim=descriptor_dim,
         )
+    chemeleon_report = None
+    if chemeleon is not None:
+        # D022: swap in the pretrained encoder, mean aggregation and a head
+        # sized to it. Stage transfer overwrites these with the screened
+        # weights; the swap makes the architectures match.
+        chemeleon_report = apply_chemeleon(
+            original["model"], chemeleon, original["config"], training_seed
+        )
     weighted_data = build_weighted_pic50_train_loader(
         original, training_dataframe
     )
@@ -387,6 +399,7 @@ def build_updated_t121_pic50_prefit_state(
         target_mean=getattr(scaler, "mean_", None),
         target_scale=getattr(scaler, "scale_", None),
     )
+    model.encoder_lr_ratio = getattr(baseline_model, "encoder_lr_ratio", None)
 
     original_state = baseline_model.state_dict()
     updated_state = model.state_dict()
@@ -409,6 +422,8 @@ def build_updated_t121_pic50_prefit_state(
         "evaluation_weighted": False,
     }
     result["descriptor_dim"] = descriptor_dim
+    if chemeleon_report is not None:
+        result["chemeleon"] = chemeleon_report
     return result
 
 
@@ -533,7 +548,7 @@ def transfer_screen_initialization(screen_model, pic50_model):
 from chemprop.models import MPNN as _ScreenMPNNBase
 
 
-class T121ScreenTrainingMPNN(_ScreenMPNNBase):
+class T121ScreenTrainingMPNN(EncoderRatioOptimizerMixin, _ScreenMPNNBase):
     """Screening-only model: weighted training without pIC50 validation hooks."""
 
     training_step = T121WeightedTrainingMPNN.training_step
@@ -549,6 +564,7 @@ def build_t121_screen_prefit_state(
     config_name,
     training_seed,
     descriptor_cache=None,
+    chemeleon=None,
 ):
     """Construct the screening stage without fitting or selecting a checkpoint.
 
@@ -557,6 +573,8 @@ def build_t121_screen_prefit_state(
     the graph-only construction exactly as before.
     """
     from torch.utils.data import DataLoader
+    if chemeleon is not None and descriptor_cache is not None:
+        raise ValueError("D022 CheMeleon arm carries no descriptors.")
     from cyp002_config import CYP002_VARIANT_STOCK
     from cyp002_model import build_cyp002_model
     from cyp002_train import _configure_determinism
@@ -601,6 +619,9 @@ def build_t121_screen_prefit_state(
         output_scaler=None,
         extra_input_dim=0 if descriptor_cache is None else descriptor_cache.dim,
     )
+    chemeleon_report = None
+    if chemeleon is not None:
+        chemeleon_report = apply_chemeleon(stock, chemeleon, config, training_seed)
     model = T121ScreenTrainingMPNN(
         message_passing=stock.message_passing,
         agg=stock.agg,
@@ -611,6 +632,7 @@ def build_t121_screen_prefit_state(
         max_lr=config.max_lr,
         final_lr=config.final_lr,
     )
+    model.encoder_lr_ratio = getattr(stock, "encoder_lr_ratio", None)
 
     original_state = stock.state_dict()
     screening_state = model.state_dict()
@@ -632,6 +654,8 @@ def build_t121_screen_prefit_state(
         "validation_loader": None,
         "checkpoint_selection": None,
     }
+    if chemeleon_report is not None:
+        result["chemeleon"] = chemeleon_report
     return result
 
 
@@ -644,6 +668,7 @@ def prepare_t121_pic50_transition(
     config_name,
     training_seed,
     descriptor_dim=0,
+    chemeleon=None,
 ):
     """Prepare a fresh pIC50 stage and transfer screening shared weights.
 
@@ -657,6 +682,7 @@ def prepare_t121_pic50_transition(
         config_name=config_name,
         training_seed=training_seed,
         descriptor_dim=descriptor_dim,
+        chemeleon=chemeleon,
     )
     destination = state["model"]
     if getattr(destination, "_trainer", None) is not None:

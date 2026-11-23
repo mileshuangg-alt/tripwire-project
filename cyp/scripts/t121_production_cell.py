@@ -66,10 +66,17 @@ def run_updated_t121_cell(
     authorize_training=False,
     ops=None,
     descriptor_cache=None,
+    chemeleon=None,
 ):
     """D021: `descriptor_cache` (a loaded DescriptorCache) selects arm D, with
     the frozen descriptors in both the screening shell and the pIC50 stage.
-    None is arm R and runs exactly as before."""
+    None is arm R and runs exactly as before.
+
+    D022: `chemeleon` (a loaded ChemeleonArm) selects the pretrained-encoder
+    arm in both the screening shell and the pIC50 stage. Not combinable with
+    descriptors."""
+    if chemeleon is not None and descriptor_cache is not None:
+        raise ValueError("D022 CheMeleon arm carries no descriptors.")
     if authorize_training is not True:
         raise RuntimeError("Updated-T121 cell training is not authorized.")
     ops = load_ops() if ops is None else ops
@@ -113,6 +120,10 @@ def run_updated_t121_cell(
     )
     screen_extra = {} if descriptor_cache is None else {"descriptor_cache": descriptor_cache}
     handoff_extra = {} if descriptor_cache is None else {"descriptor_dim": descriptor_cache.dim}
+    if chemeleon is not None:
+        arm = "updated_t121_chemeleon_from_screen_checkpoint"
+        screen_extra = {"chemeleon": chemeleon}
+        handoff_extra = {"chemeleon": chemeleon}
 
     split_manifest_path = (
         Path(split_manifest_root)
@@ -223,6 +234,8 @@ def run_updated_t121_cell(
         }
         if descriptor_cache is not None:
             provenance["descriptors"] = descriptor_cache.provenance()
+        if chemeleon is not None:
+            provenance["chemeleon"] = chemeleon.provenance()
         ops.write_json_atomic(cell_dir / "provenance.json", provenance)
         ops.write_json_exclusive(result_path, result)
         ops.write_json_exclusive(complete_path, {
@@ -256,7 +269,15 @@ def main(argv=None):
     parser.add_argument("--authorize-training", action="store_true")
     parser.add_argument("--descriptor-cache-dir")
     parser.add_argument("--descriptor-manifest-sha256")
+    parser.add_argument("--chemeleon-config")
+    parser.add_argument("--chemeleon-config-sha256")
+    parser.add_argument("--chemeleon-weights")
     args = parser.parse_args(argv)
+    chemeleon_args = (args.chemeleon_config, args.chemeleon_config_sha256, args.chemeleon_weights)
+    if any(chemeleon_args) and not all(chemeleon_args):
+        raise SystemExit("Give all of --chemeleon-config, --chemeleon-config-sha256 and --chemeleon-weights, or none.")
+    if any(chemeleon_args) and args.descriptor_cache_dir:
+        raise SystemExit("D022 CheMeleon arm carries no descriptors.")
     if bool(args.descriptor_cache_dir) != bool(args.descriptor_manifest_sha256):
         raise SystemExit("Give both --descriptor-cache-dir and --descriptor-manifest-sha256, or neither.")
 
@@ -276,6 +297,15 @@ def main(argv=None):
             args.descriptor_cache_dir,
             expected_manifest_sha256=args.descriptor_manifest_sha256,
         )
+    chemeleon = None
+    if args.chemeleon_config:
+        from t121_chemeleon import ChemeleonArm
+
+        chemeleon = ChemeleonArm.load(
+            args.chemeleon_config,
+            args.chemeleon_weights,
+            expected_config_sha256=args.chemeleon_config_sha256,
+        )
     result = run_updated_t121_cell(
         run_root=args.run_root,
         trial_index=args.trial_index,
@@ -294,6 +324,7 @@ def main(argv=None):
         },
         authorize_training=args.authorize_training,
         descriptor_cache=descriptor_cache,
+        chemeleon=chemeleon,
     )
     print(json.dumps(result, default=str))
     return 0

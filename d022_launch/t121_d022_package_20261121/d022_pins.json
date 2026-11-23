@@ -1,0 +1,110 @@
+{
+  "chemeleon": {
+    "config_path": "/scratch/user/mhuang8/tripwire_staging/t121_d022_package_20261121/cyp/artifacts/d022_chemeleon/chemeleon_config.json",
+    "config_sha256": "444d37bc3f2501237e5734893a48522bd60b93b8cbed5ece3a3324830eb67e4b",
+    "weights_path": "/scratch/user/mhuang8/tripwire_staging/t121_d022_package_20261121/cyp/artifacts/d022_chemeleon/chemeleon_mp.pt"
+  },
+  "executor_source_sha256": "625a64fae191573b5a860cdba9a6ae9456d17bc6cd5b0337cc0b7cff1df1a00b",
+  "package_root": "/scratch/user/mhuang8/tripwire_staging/t121_d022_package_20261121",
+  "pinned_files": {
+    "chemeleon_config": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_d022_package_20261121/cyp/artifacts/d022_chemeleon/chemeleon_config.json",
+      "sha256": "444d37bc3f2501237e5734893a48522bd60b93b8cbed5ece3a3324830eb67e4b"
+    },
+    "chemeleon_module": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_d022_package_20261121/cyp/scripts/t121_chemeleon.py",
+      "sha256": "d3d8c5fc3b20b54a4b9c7677b4b99d0022fb980cb808091580ed14b3c0615205"
+    },
+    "chemeleon_weights": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_d022_package_20261121/cyp/artifacts/d022_chemeleon/chemeleon_mp.pt",
+      "sha256": "c376624d3407204e780a0ed13a9ac097cc9bb1c13ef89cdbc633c1715c183651"
+    },
+    "cyp002_config": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_d022_package_20261121/cyp/scripts/cyp002_config.py",
+      "sha256": "4034dcf153f4097f52dfc782bf007dc470261955352edccbdb4ab11160a10ea2"
+    },
+    "cyp002_model": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_d022_package_20261121/cyp/scripts/cyp002_model.py",
+      "sha256": "3818bfdfa88e3d15e50add1c59b97284741d866e9d4e8235031ca1d1c4561a82"
+    },
+    "cyp002_train": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_d022_package_20261121/cyp/scripts/cyp002_train.py",
+      "sha256": "78f6ee196201cf707e9bd485fa39a98fc98f6960c85d93cf37226ab7516368d2"
+    },
+    "cyp002_validation": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_d022_package_20261121/cyp/scripts/cyp002_validation.py",
+      "sha256": "f0693b9294be0570988f08cc28256bf8ae995ea0cb82b421c45d40acb8bbc81e"
+    },
+    "cyp007_infrastructure": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_d022_package_20261121/cyp/scripts/cyp007_infrastructure.py",
+      "sha256": "521469efc448af749a0849921d903d7c96e8e162ac8efbbc3e278abc367576fd"
+    },
+    "descriptor_cache_module": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_d022_package_20261121/cyp/scripts/t121_descriptor_cache.py",
+      "sha256": "642f031509c8d3feaa6b94a0ece554d9f2594df3946c9de9bf148c2cbfef405c"
+    },
+    "executor_cell_fit": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_d022_package_20261121/executor_source/cyp007_cell_fit.py",
+      "sha256": "625a64fae191573b5a860cdba9a6ae9456d17bc6cd5b0337cc0b7cff1df1a00b"
+    },
+    "executor_production_execution": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_d022_package_20261121/executor_source/cyp007_production_execution.py",
+      "sha256": "4b6d13f7488da9320e7607624609a54e482380e7a94759df9c056fdaf9cb42fe"
+    },
+    "launcher_base": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_d022_package_20261121/cyp/scripts/actfound_stage_chain_run.py",
+      "sha256": "fdc6563230801dbba26587fe82b972cbf2d9f1bf50cf4a88a4874f7eb4594798"
+    },
+    "production_cell": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_d022_package_20261121/cyp/scripts/t121_production_cell.py",
+      "sha256": "48abf029dde1dbae2f63649d61060ccdd407160337f15b14180f5b21033963d3"
+    },
+    "proposal": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_d022_package_20261121/inputs/trial_121_proposal.json",
+      "sha256": "71f4cad969981cbe60a0b5eccc904089ffe8b9b029d023cda6678661fe27dbe6"
+    },
+    "screen": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/actfound_screen_loader_20261117/inputs/screen_full.csv",
+      "sha256": "4f61be8ffdec767a61981ab89e3f06d28850603c3fa4ad0715a2183d4261a706"
+    },
+    "screen_chain_run": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_d022_package_20261121/cyp/scripts/t121_screen_chain_run.py",
+      "sha256": "3a2d38346c62c4b3a3bce492598a690b0b6a39d6edb0c42f0b937e5fa5d89b56"
+    },
+    "screen_contract": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/actfound_screen_loader_20261117/qualification/actfound/screen_loader_20261117/contract.json",
+      "sha256": "df3090f3e2eefe6d36e24336d83ce67e62132ac201021c2e6b912b810434bfa3"
+    },
+    "screen_identity": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/actfound_screen_loader_20261117/inputs/adjudication.tsv",
+      "sha256": "2f3045124dbf138ec535abfd8b697a6e2e2cd605d2bccd9f30a58f4ba5464f54"
+    },
+    "screen_similarity": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/actfound_screen_loader_20261117/inputs/cluster_adjudication.tsv",
+      "sha256": "eadd679fc7de66f0b2bc02d8b4913f1fccb0f08566884cb50ebfbdcc70002783"
+    },
+    "screen_stage": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_d022_package_20261121/cyp/scripts/t121_screen_stage.py",
+      "sha256": "b9b3c0133342f21a1d3fbd546e369ff2ceb226f587efc56c8de980242f46a5d1"
+    },
+    "stage_controller": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_d022_package_20261121/cyp/scripts/actfound_stage_controller.py",
+      "sha256": "fd8711b23b0c1a878d5353a984a0dd6b0b47af6fa04ff8a95c0be01fa3133413"
+    },
+    "weighted_training": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_d022_package_20261121/cyp/scripts/t121_weighted_training.py",
+      "sha256": "50414196e14dd1846480749d328b7fcb9c680ca08cfed4f7cf47f4b6fa67c49e"
+    }
+  },
+  "proposal_path": "/scratch/user/mhuang8/tripwire_staging/t121_d022_package_20261121/inputs/trial_121_proposal.json",
+  "screen_inputs": {
+    "contract_path": "/scratch/user/mhuang8/tripwire_staging/actfound_screen_loader_20261117/qualification/actfound/screen_loader_20261117/contract.json",
+    "identity_path": "/scratch/user/mhuang8/tripwire_staging/actfound_screen_loader_20261117/inputs/adjudication.tsv",
+    "screen_path": "/scratch/user/mhuang8/tripwire_staging/actfound_screen_loader_20261117/inputs/screen_full.csv",
+    "similarity_path": "/scratch/user/mhuang8/tripwire_staging/actfound_screen_loader_20261117/inputs/cluster_adjudication.tsv"
+  },
+  "smoke_check": {
+    "check_py_sha256": "723017572535f2f6612d29c0c82529d4342a76f0c36ab2aaa0a964ec154ff090",
+    "result_path": "/scratch/user/mhuang8/tripwire_staging/t121_d022_package_20261121/results/d022_chemeleon_smoke/result.json"
+  }
+}

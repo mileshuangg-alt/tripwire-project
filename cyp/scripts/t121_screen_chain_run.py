@@ -34,14 +34,23 @@ REQUIRED_PINNED_ROLES = {"screen_stage", "weighted_training", "proposal"}
 # D021 arm D: optional section; when present the module and both cache files
 # must also be pinned, and the section must point at the pinned manifest.
 DESCRIPTOR_SECTION_KEYS = {"directory", "manifest_sha256"}
+# D022 CheMeleon arm: optional section; the module, frozen config and weights
+# must be pinned and the section must point at the pinned files.
+CHEMELEON_PINNED_ROLES = {"chemeleon_module", "chemeleon_config", "chemeleon_weights"}
 DESCRIPTOR_PINNED_ROLES = {"descriptor_cache_module", "descriptor_manifest", "descriptor_npz"}
 
 
 def validate_manifest(manifest):
     original = manifest
     has_descriptors = isinstance(manifest, dict) and "descriptor_cache" in manifest
-    if has_descriptors:
-        manifest = {k: v for k, v in manifest.items() if k != "descriptor_cache"}
+    has_chemeleon = isinstance(manifest, dict) and "chemeleon" in manifest
+    if has_descriptors and has_chemeleon:
+        raise ValueError("D022 CheMeleon arm carries no descriptors.")
+    if has_descriptors or has_chemeleon:
+        manifest = {
+            k: v for k, v in manifest.items()
+            if k not in ("descriptor_cache", "chemeleon")
+        }
     require_keys("manifest", manifest, MANIFEST_KEYS)
     require_keys("screen_inputs", manifest["screen_inputs"], SCREEN_INPUT_KEYS)
     if not isinstance(manifest["training_seed"], int) or isinstance(manifest["training_seed"], bool):
@@ -58,6 +67,17 @@ def validate_manifest(manifest):
         require_keys(f"evidence[{index}]", entry, {"path", "sha256", "bound_fields"})
     if Path(manifest["proposal_path"]).resolve() != Path(pinned["proposal"]["path"]).resolve():
         raise ValueError("proposal_path must be the pinned proposal file.")
+    if has_chemeleon:
+        spec = original["chemeleon"]
+        require_keys("chemeleon", spec, {"config_path", "config_sha256", "weights_path"})
+        if not CHEMELEON_PINNED_ROLES <= set(pinned):
+            raise ValueError(f"chemeleon requires pinned roles {sorted(CHEMELEON_PINNED_ROLES)}.")
+        if pinned["chemeleon_config"]["sha256"] != spec["config_sha256"]:
+            raise ValueError("chemeleon.config_sha256 must equal the pinned chemeleon_config hash.")
+        if Path(spec["config_path"]).resolve() != Path(pinned["chemeleon_config"]["path"]).resolve():
+            raise ValueError("chemeleon.config_path must be the pinned chemeleon_config file.")
+        if Path(spec["weights_path"]).resolve() != Path(pinned["chemeleon_weights"]["path"]).resolve():
+            raise ValueError("chemeleon.weights_path must be the pinned chemeleon_weights file.")
     if has_descriptors:
         spec = original["descriptor_cache"]
         require_keys("descriptor_cache", spec, DESCRIPTOR_SECTION_KEYS)
@@ -114,6 +134,14 @@ def run_screen_chain(manifest, stage_module):
         require_keys("descriptor_cache", spec, {"directory", "manifest_sha256"})
         extra["descriptor_cache"] = DescriptorCache.load(
             spec["directory"], expected_manifest_sha256=spec["manifest_sha256"]
+        )
+    if manifest.get("chemeleon"):
+        from t121_chemeleon import ChemeleonArm
+
+        spec = manifest["chemeleon"]
+        extra["chemeleon"] = ChemeleonArm.load(
+            spec["config_path"], spec["weights_path"],
+            expected_config_sha256=spec["config_sha256"],
         )
     prepared = stage_module.prepare_screen_stage(
         **dict(manifest["screen_inputs"]),

@@ -213,6 +213,7 @@ def prepare_screen_stage(
     output_dir,
     training_seed,
     descriptor_cache=None,
+    chemeleon=None,
 ):
     """Prepare split, model and loaders; does not construct a Trainer or fit.
 
@@ -247,6 +248,7 @@ def prepare_screen_stage(
         config_name="D007-T121",
         training_seed=training_seed,
         descriptor_cache=descriptor_cache,
+        chemeleon=chemeleon,
     )
     dataset = base["training_dataset"]
 
@@ -305,6 +307,7 @@ def prepare_screen_stage(
         final_lr=config.final_lr,
     )
     model.load_state_dict(old.state_dict(), strict=True)
+    model.encoder_lr_ratio = old.encoder_lr_ratio
 
     out.mkdir(parents=True)
     with (out / "split_assignments.csv").open("x", newline="") as handle:
@@ -337,6 +340,8 @@ def prepare_screen_stage(
     }
     if descriptor_cache is not None:
         metadata["descriptors"] = descriptor_cache.provenance()
+    if chemeleon is not None:
+        metadata["chemeleon"] = base["chemeleon"]
     (out / "preparation.json").write_text(
         json.dumps(metadata, indent=2) + "\n"
     )
@@ -390,6 +395,7 @@ def prepare_selected_screen_handoff(
     config_name,
     training_seed,
     descriptor_dim=0,
+    chemeleon=None,
 ):
     """Load the selected screen state only; no optimizer/scheduler resume."""
     path = Path(selected_record["checkpoint"])
@@ -408,5 +414,6 @@ def prepare_selected_screen_handoff(
         config_name=config_name,
         training_seed=training_seed,
         descriptor_dim=descriptor_dim,
+        chemeleon=chemeleon,
     )
     return result

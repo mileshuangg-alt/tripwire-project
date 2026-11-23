@@ -5875,3 +5875,49 @@ Claude Code, read-only findings of 2026-11-19 on development compounds only (pro
 
 The comparison isolates the effect of adding fixed molecule-level descriptors to the unchanged updated-T121 configuration, under the unchanged D013 improvement rule and the frozen scorer.
 
+# D022 — Pretrained CheMeleon Encoder in the Updated-T121 Two-Stage Pipeline (CYP Design)
+
+**Decision date:** 2026-11-21
+
+**Status:** Approved as a design only. **This record authorizes no audit, redesign, implementation, training, screening run, cell run, GPU job or SLURM submission; each requires separate approval.**
+
+## Decision and scope
+
+1. **Encoder.** The pretrained CheMeleon encoder replaces the current encoder. It is fully fine-tuned through CYP screening and then through potency (pIC50). No frozen-encoder comparison is made.
+2. **Recipe carried over.** The remaining recipe of updated T121 (D015), not frozen T121, is carried over: head width, depth and dropout; supervision; weighting; batch size; and stage-transfer behavior.
+3. **Head input.** The head input is adapted to the 2048-dimensional CheMeleon output. No descriptors are appended.
+4. **Learning rates, both stages.** Head: the updated-T121 Noam schedule is retained exactly, with initial rate 1.4283739994469765e-5, peak rate 8.245400010426866e-4, final rate 2.0141638331344468e-4 and warmup of 10 epochs. Encoder: exactly 0.1 times the head rate throughout the schedule, including the initial, peak and final values, with the same schedule shape and warmup.
+5. **Stage rules, unchanged.** Screening runs 50 epochs without early stopping, with its existing validation checkpoint-selection rule. Potency runs a maximum of 50 epochs with patience 20 and its existing checkpoint selection. The optimizer and scheduler are reset at the screening-to-potency transition.
+6. **Evaluation, unchanged.** The existing evaluation, comparator artifacts and O150 rules are unchanged.
+
+## Claim boundary
+
+The 0.1 encoder-to-head ratio has experimental precedent and is not evidence of superiority; its use across this two-stage schedule is the chosen design. A result tests the complete CheMeleon-based setup, not pretraining alone.
+
+## Relation to existing records
+
+D015 (updated T121 as reference) and D021 are referenced and unchanged. This record supersedes nothing.
+
+## Not authorized
+
+- any audit, redesign, implementation, training, screening run, cell run, GPU job or SLURM submission;
+- any implementation plan, acceptance criterion or next step, none of which is decided here;
+- any frozen-encoder comparison or appended descriptors;
+- any change to the evaluation, comparator artifacts or O150 rules.
+
+## Governing principle
+
+The CheMeleon-based setup is evaluated as a complete design under the unchanged updated-T121 recipe, stage rules and evaluation.
+
+## Amendments
+
+**Amendment 1 (2026-11-21) — Open design items settled: aggregation, dropout, batch size, acceptance rule.** Authorizes no audit beyond that already completed, implementation, training, screening, cell run, GPU job or SLURM submission; each requires separate approval.
+
+1. **Aggregation.** Mean aggregation, matching the pretrained encoder's setup, replaces the current norm aggregation for this design.
+2. **Dropout.** Encoder dropout 0.0, from the CheMeleon checkpoint. Head dropout 0.4, the updated-T121 head setting.
+3. **Batch size.** 16, the updated-T121 batch size.
+4. **Rationale for items 1 to 3.** The pretrained encoder's own setup and the updated-T121 head settings are kept distinct.
+5. **Acceptance rule.** CheMeleon is compared against the descriptor-free updated T121 (arm R) over the same three screening seeds, with matched O150 evaluation. CheMeleon is preferred only if its mean macro ST-RAE (mean over the three seeds of O150, lower is better) is lower than that of arm R. The paired seed differences and per-isoform results are reported alongside the mean. No statistical-significance claim is made for a lower mean.
+
+This amendment replaces the "no acceptance criterion" limit in "Not authorized" above for item 5 only. All other D022 text and all other decisions are unchanged.
+

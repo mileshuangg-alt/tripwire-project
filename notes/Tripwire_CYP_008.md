@@ -68,10 +68,14 @@ Per-isoform Delta-bar: CYP1A2 +0.012091654, CYP2C9 +0.003409566, CYP2D6 +0.00901
 
 ## 7. Claim boundary
 
-Descriptive result on development validation data under D021 item 6 only. No descriptor-aware inference or diagnostics scripts have been built. The report JSON hash has not been computed. Nothing is committed to git. A discussion of the screening-score concept (the log2fc assay definition is not confirmed in the repo) is not a result. D021 states no follow-up for a not-favoured outcome, and no next step is decided. No held-out evaluation is authorized and no protected internal test or challenge data were used. No entry has been made in `notes/Decisions.md` for this session.
+Descriptive result on development validation data under D021 item 6 only. No descriptor-aware inference or diagnostics scripts have been built. The report JSON hash has not been computed. Nothing is committed to git. A discussion of the screening-score concept (the log2fc assay definition is not confirmed in the repo) is not a result. D021 states no follow-up for a not-favoured outcome, and no next step is decided. No held-out evaluation is authorized and no protected internal test or challenge data were used. The only decision entry made in this session is D022 (§8a); it is a design decision, unrelated to the D021 result.
 
 ## 8. Stopping point and next step
 
-Stopping point: D021 item 6 result computed and recorded (§6). Next step: undecided; any follow-up (including CheMeleon, queued from 007 §7) requires an explicit decision entry. Session close or advance has not been declared.
+Stopping point: D021 item 6 result computed and recorded (§6). Next step: none decided. Session close or advance has not been declared. The CheMeleon design decision (§8a) is recorded; the CheMeleon work itself is session 009.
+
+## 8a. CheMeleon design decision (made in 008, 2026-11-21)
+
+Recorded as D022 in `notes/Decisions.md` (Approved as a design only): pretrained CheMeleon encoder, fully fine-tuned through screening then pIC50, replacing the current encoder; remaining updated-T121 recipe carried over; head input adapted to 2048 dimensions; no appended descriptors; no frozen-encoder comparison; head learning rate is the exact updated-T121 Noam schedule and encoder rate is 0.1 times it throughout; stage rules, evaluation, comparator artifacts and O150 rules unchanged. The 0.1 ratio has experimental precedent, not evidence of superiority. A result tests the complete setup, not pretraining alone. This authorizes no audit, redesign, implementation, training, screening, GPU job or Slurm submission; each requires separate approval, and no implementation plan, acceptance criterion or next step is decided.
 
 Supporting record: `notes/Tripwire_CYP_008_supporting.md`.
