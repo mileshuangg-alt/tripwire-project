@@ -1,7 +1,7 @@
 # Tripwire-CYP-009 Session Log
 
-**Date:** 2026-11-21 (opened); updated 2026-11-23  
-**Status:** Open. D022 (as completed by Amendment 1) is implemented locally, the package is deployed to CoreHPC, the qualification smoke has passed (job 3202933) and the approved one-off batch timing has run (job 3203300). No production screening, pIC50 production fit or cell array has been executed. No session close or advance has been declared.  
+**Date:** 2026-11-21 (opened); closed 2026-11-23  
+**Status:** Closed on declaration, 2026-11-23. D022 (as completed by Amendment 1) was implemented locally, deployed to CoreHPC, qualified (smoke job 3202933; approved one-off batch timing job 3203300), run through three 50-epoch screening runs (jobs 3203564-3203566) and three 150-cell arrays (jobs 3207090-3207092), and aggregated (section 9): CheMeleon is not preferred under D022 Amendment 1 item 5. The results are frozen by D023 (section 10). Next session: Tripwire-CYP-010; its scope and direction have not been stated.  
 **Supporting record:** `notes/Tripwire_CYP_009_supporting.md` (hashes and identifiers).
 
 ## 1. Session purpose and starting state
@@ -70,16 +70,74 @@ The timing script's two-optimizer-group assertion on a cell checkpoint, untested
 | Cell 0 (CheMeleon arm, from a 3-epoch screening checkpoint) | 129.63 s |
 | Optimizer groups in cell 0 | 2 (assertion passed) |
 | Peak GPU memory | 642,503,680 bytes (about 0.64 GB) |
-| Serial 150-cell extrapolation | 19,444 s (about 5.4 GPU-hours); arithmetic on one cell |
+| Serial 150-cell extrapolation, one array | 19,444 s (about 5.4 GPU-hours) per 150-cell array; arithmetic on one cell. Three arrays: about 16.2 GPU-hours in total (serial arithmetic, not a prediction of wall time) |
 
 - The cell's macro ST-RAE (0.7544) comes from a 3-epoch screening checkpoint and is not a result.
 - The logged cell fit reached epoch 25 of a 50-epoch maximum (early stopping, patience 20), so cell time depends on when stopping occurs. By arithmetic on the shown epoch count, per-epoch cost excluding setup is roughly 4.6 s, so a full 50 epochs would be roughly 4 minutes per cell. This is an upper-bound estimate, not measured.
 - Comparison: the D021 descriptor timing (`notes/Tripwire_CYP_008.md`) was 4.90 s/epoch screening and 147.6 s for cell 0.
 
-## 8. Claim boundary
+## 8. Launcher validation and screening runs
 
-Implementation and a 2-epoch qualification smoke only. No production screening, pIC50, cell-array or performance result exists for CheMeleon; the only other output is the timing measurement (section 7), whose ST-RAE is from a 3-epoch checkpoint and is not a result. No held-out evaluation is authorized and no protected internal test or challenge data were used.
+**Validate-only launcher run.** All three screening manifests (`t121_d022_c_s1`..`s3`) were validated on CoreHPC in validate-only mode; the launcher's checks accepted the smoke result as bound PASS evidence. Source: pasted CoreHPC output.
 
-## 9. Stopping point and next step
+**Screening runs (approved explicitly; scope: the three 50-epoch D022 CheMeleon screening runs only).** Submitted as batch jobs 3203564, 3203565 and 3203566, each with `--time=00:30:00` (a cap set from the measured 7.0 min extrapolation in section 7, not an estimate). Manifests `t121_d022_manifests/screen_manifest_t121_d022_c_s{1,2,3}.json` were hash-checked with `sha256sum -c` before submission (hashes in the supporting record). The job-to-run mapping was assumed to follow submission order (3203564 = c_s1) and is confirmed by the seeds in the completion records. Source: pasted CoreHPC output; the `completion.json` files were in the excerpt, the `sacct` job-state lines were not.
 
-Stopping point: smoke v2 passed; screening manifests were generated locally from `d022_pins.json` and the smoke result hash (`d022_launch/manifests`: `t121_d022_c_s1`..`s3` and three cells_env files). The timing run has completed (section 7). Proposal only, nothing approved: validate-only run of the launcher on CoreHPC; requested wall times from the measurement (screening about 7 min measured, proposed cap 30 min; cells about 2.2 min measured and about 4 min worst case, proposed per-task cap 30 min by command-line override of the script's 12 h); then explicit approval for the three 50-epoch screening runs and the three 150-cell arrays. Session close or advance has not been declared.
+All three `completion.json` report status completed, 50 epochs recorded, no full-screen refit. Run roots: `/scratch/user/mhuang8/tripwire_staging/t121_d022_c_s{1,2,3}_screen_run`.
+
+| Run | Seed | Selected epoch (zero-based) |
+|---|---|---|
+| c_s1 | 20261101 | 4 |
+| c_s2 | 20261102 | 45 |
+| c_s3 | 20261103 | 4 |
+
+Observation only, no claim about quality: two of three seeds selected an early epoch under the existing selection rule. For reference, `notes/Tripwire_CYP_008.md` section 4 records arm R selected epochs 16 (seed 20261101, existing run), 31 (s2), 29 (s3) and arm D 29, 46, 28 (s1 to s3); whether that log's epoch numbering is zero-based is not stated there. Screening scores were not in the pasted output. No screening metric or acceptance comparison has been made.
+
+**Correction.** An earlier chat estimate of about 5.4 GPU-hours for the arrays was wrong. 5.4 GPU-hours (19,444 s) is the serial extrapolation for one 150-cell array; the three arrays are about 16.2 GPU-hours in total (serial arithmetic on one cell, not a prediction of wall time).
+
+## 9. Cell arrays and D022 acceptance aggregation (2026-11-23)
+
+**Cell arrays (approved explicitly; scope: the three 150-cell CheMeleon arrays only).** Three 150-cell arrays were run as batch jobs 3207090, 3207091 and 3207092, each task with `--time=00:30:00` (a command-line override of the script's 12 h; cap, not estimate). The job-to-run mapping (c_s1, c_s2, c_s3 in order) follows submission order and is assumed; the aggregation's per-run screening checkpoint hashes differ for all six runs, and the aggregator checks that each run's cells share one screening checkpoint. Final counts as pasted: 150/150 completed and 0 incomplete for each root (`t121_d022_c_s{1,2,3}_cells_run`; logs `t121_d022_c_s{n}_cells_logs`). Mean elapsed of the first array's 150 tasks was 139.867 s per task (sacct, as pasted) against 129.6 s measured for cell 0 in the timing run (section 7); implied total about 17.5 GPU-hours versus the earlier 16.2 estimate.
+
+**Aggregation.** `t121_d022_aggregate.py` (SHA-256 7a2be5f7...d34c9) and `t121_d021_aggregate.py` (55ade624...2c39) were verified with `sha256sum -c` on CoreHPC before running (both OK). Comparator arm R runs: r1 = `t121_production_chain_20261117_cells_run`, r2 = `t121_d021_r_s2_cells_run`, r3 = `t121_d021_r_s3_cells_run`. The aggregator stops if r1 does not reproduce the recorded O150 0.6769540372619428; it wrote the report, so that check passed. Report: `/scratch/user/mhuang8/tripwire_staging/t121_d022_o150_report_20261123.json`, SHA-256 3f70eb45...a288ab (full hashes in the supporting record). Source: stdout pasted from CoreHPC, plus the report hash printed after it.
+
+O150 (macro ST-RAE; lower is better):
+
+| Seed | R (arm) | CheMeleon | Delta_s = CheMeleon - R |
+|---|---|---|---|
+| s1 | 0.676954037 | 0.706368862 | +0.029414825 |
+| s2 | 0.668499342 | 0.693407594 | +0.024908252 |
+| s3 | 0.669626167 | 0.710411351 | +0.040785184 |
+| Mean | 0.671693182 | 0.703395936 | +0.031702754 |
+
+Under the D022 Amendment 1 item 5 rule (CheMeleon preferred only if mean Delta_s is strictly below zero), **CheMeleon is not preferred.** Mean Delta_s is positive and every per-seed difference is positive.
+
+Per-isoform Delta-bar (per seed s1, s2, s3), CheMeleon minus R:
+
+| Isoform | Delta-bar | s1 | s2 | s3 |
+|---|---|---|---|---|
+| CYP1A2 | +0.032520341 | +0.031493 | +0.026601 | +0.039467 |
+| CYP2C9 | +0.035926921 | +0.035242 | +0.016496 | +0.056044 |
+| CYP2D6 | +0.039066549 | +0.040730 | +0.039479 | +0.036991 |
+| CYP3A4 | +0.019297204 | +0.010195 | +0.017058 | +0.030639 |
+
+Every per-seed, per-isoform difference is positive (CheMeleon worse than R).
+
+Observation only, no explanation or claim: the seed with the latest selected screening epoch (c_s2, epoch 45; section 8) has the smallest Delta_s; the other two selected epoch 4. With three seeds this is descriptive only.
+
+## 10. Result freeze (D023, 2026-11-23)
+
+D023 in `notes/Decisions.md` (Approved and frozen) freezes the D022 results: the O150 report (`t121_d022_o150_report_20261123.json`, SHA-256 3f70eb45...a288ab) and its stated result (CheMeleon not preferred; mean paired difference +0.031702754), the three screening runs and three cell roots (150 completed cells each), the deployed package (tarball SHA-256 781ba3f3...814900f), manifests, smoke result and timing output, and the frozen config (SHA-256 444d37bc...e4b). They are preserved unmodified, not overwritten, not re-run into the same roots, and the result is not revised unless a later explicit decision says otherwise. Recorded as a new short entry (D023) rather than a D022 amendment, because D022's amendments settle design items and D012 is the precedent for a stand-alone results-freeze record. The freeze decides no follow-up, does not change D022 or D021, and does not close or alter the Governing-principle question or the leftover untracked files noted in the Session 008 handoff (`notes/Handoffs/Tripwire_CYP_008_Handoff_20261121.md`, §5: the D021 Governing-principle sentence is awaiting an explicit decision entry, and the handling of the leftover untracked files is undecided). Hashes are in `notes/Tripwire_CYP_009_supporting.md`.
+
+## 11. Claim boundary
+
+Implementation, a 2-epoch qualification smoke, timing (section 7), three 50-epoch screening runs (section 8), three 150-cell arrays and the O150 comparison to arm R (section 9). No significance claim: the replicates share partitions and are not independent. The result tests the complete CheMeleon-based setup (D022 design with its screening-then-pIC50 schedule and the 0.1 encoder ratio), not pretraining alone; the 0.1 ratio was a chosen design and was not tuned. No explanation of the difference is established. No held-out evaluation is authorized and no protected internal test or challenge data were used.
+
+## 12. Stopping point and unresolved items
+
+Stopping point: session closed 2026-11-23 on declaration, after the D022 result was computed (section 9) and frozen (D023). No next step is decided; Session CYP-010 follows, its scope and direction not yet stated.
+
+Unresolved at close:
+- The batch-timing run (section 7) was a one-off deviation, not a standing permission.
+- Interactive `salloc`/`srun` on the CoreHPC login VM fails ("Insane message length"); unresolved.
+- Leftover untracked files in the checkout, and the untracked status of `pxr/artifacts/pxr004_weights/chemeleon_mp.pt` (the CheMeleon weights file), are undecided.
+- This log, its supporting record and the `notes/Decisions.md` edits (D022 Amendment 1, D023) are uncommitted at closing, as are the section 4 code edits.

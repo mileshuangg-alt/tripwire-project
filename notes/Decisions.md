@@ -5921,3 +5921,37 @@ The CheMeleon-based setup is evaluated as a complete design under the unchanged 
 
 This amendment replaces the "no acceptance criterion" limit in "Not authorized" above for item 5 only. All other D022 text and all other decisions are unchanged.
 
+# D023 — D022 CheMeleon Results Frozen
+
+**Decision date:** 2026-11-23
+
+**Status:** Approved and frozen. **This record decides no follow-up and authorizes no run, training, GPU job or SLURM submission.**
+
+## Decision and scope
+
+The D022 results are frozen. Frozen means the artifacts below are preserved unmodified, are not overwritten, are not re-run into the same roots, and the reported result is not revised, unless a later explicit decision says otherwise.
+
+1. **Result.** The D022 O150 aggregation report `/scratch/user/mhuang8/tripwire_staging/t121_d022_o150_report_20261123.json`, SHA-256 `3f70eb45a630548fff3b24460b201d9cd546c9e9245950c06f39dc4637a288ab`, and the result it states: CheMeleon is not preferred under D022 Amendment 1 item 5; mean paired difference (CheMeleon minus arm R) `+0.031702754`.
+2. **Screening runs.** `t121_d022_c_s1_screen_run`, `t121_d022_c_s2_screen_run`, `t121_d022_c_s3_screen_run`, with selected-record SHA-256 `330c4706a31bfc86c4326ecb49966e36eca261c3fb82454350d82cca7399825a`, `1242c5772ca7844a3ccb5a0fa84c22488aec746fe9d897c4adf4c2808c0dadc9` and `d59633bc694c7f360aae8f74bdb38f7861e125c5c5223703904157ed1aa6d84e` respectively.
+3. **Cell roots.** `t121_d022_c_s1_cells_run`, `t121_d022_c_s2_cells_run`, `t121_d022_c_s3_cells_run`, 150 completed cells each.
+4. **Package and manifests.** The deployed package `t121_d022_package_20261121` (tarball SHA-256 `781ba3f327e53fd7f624bfe529b0c133da0a95d66b6c85331a1d962ea814900f`) and the screening manifests.
+5. **Qualification evidence.** The smoke result (`result.json` SHA-256 `62c034709ccabe284c69eaa60b7eb41cf2b93a402f23ed01332b685ec6af4ed6`) and the timing output.
+6. **Frozen config.** `cyp/artifacts/d022_chemeleon/chemeleon_config.json`, SHA-256 `444d37bc3f2501237e5734893a48522bd60b93b8cbed5ece3a3324830eb67e4b`.
+
+All roots are under `/scratch/user/mhuang8/tripwire_staging/` on CoreHPC. Hash inventories and evidence: `notes/Tripwire_CYP_009.md` and `notes/Tripwire_CYP_009_supporting.md`.
+
+## Relation to existing records
+
+D022 and D021 are referenced and unchanged. The Governing-principle question and the leftover untracked files noted in the Session 008 handoff (`notes/Handoffs/Tripwire_CYP_008_Handoff_20261121.md`, §5) are neither closed nor altered by this record.
+
+## Not authorized
+
+- any follow-up to the D022 result, none of which is decided here;
+- modification, overwriting or re-running into the frozen roots of any artifact listed above;
+- any revision of the reported result;
+- any change to D022 or D021.
+
+## Governing principle
+
+The D022 result stands as reported, on preserved artifacts, until a later explicit decision says otherwise.
+
