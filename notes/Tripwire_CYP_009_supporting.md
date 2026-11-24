@@ -59,6 +59,50 @@ Aggregator reproduction check: r1 matches the recorded 0.6769540372619428 (the a
 
 Frozen by D023; identifiers as stated in the decision: report 3f70eb45a630548fff3b24460b201d9cd546c9e9245950c06f39dc4637a288ab; package tarball 781ba3f327e53fd7f624bfe529b0c133da0a95d66b6c85331a1d962ea814900f; smoke `result.json` 62c034709ccabe284c69eaa60b7eb41cf2b93a402f23ed01332b685ec6af4ed6; config 444d37bc3f2501237e5734893a48522bd60b93b8cbed5ece3a3324830eb67e4b; screening selected-record hashes and manifest hashes are in the screening table above.
 
+## Reopened error diagnostic (2026-11-24; session log section 12)
+
+- Script: `cyp/scripts/t121_error_diagnostic.py`, SHA-256 fdc23a4ba0e2df796d4d98c0b5ba1878f970024b1317cfa0f31cb296060ba214 (uncommitted). Written under a bounded approval (implement and `--selftest`; no execution by the assistant).
+- Inputs (read only): `t121_valinf_full_20261118/full_cells_000_149` (150 saved replicate-1 validation-prediction CSVs; optional `full_cells_000_149_SHA256SUMS.txt`), `cyp/artifacts/cyp_baseline/cluster_assignments.csv`, `cyp/artifacts/cyp_007/split_manifests`, reproduction JSONs.
+- Output: `analysis/cyp_009_error_diagnostic_20261124/full_150/` (mode full, 150 cells); output-file hashes not computed.
+- Environment `tripwire_cyp002`: pandas 3.0.6, numpy 2.5.3.
+- Run outputs: the full run's console output was reported; the self-test and three-cell smoke were run by the user, with output not reported.
+- Checks: range-check anomaly flags 0 of 600; recomputed vs recorded cell ST-RAE max abs diff 2.858e-09 over 600 comparisons.
+- Scorer scaling-heuristic branch (`cyp002_validation.py` lines 195-218): not recorded in any saved artifact; keep-raw branch is an inference from code-path analysis, not a record.
+
+## Reopened screening-versus-error analysis (2026-11-24; session log section 12, follow-on)
+
+- Script: `cyp/scripts/t121_screening_error_analysis.py`, SHA-256 0760bbfde003a027fc4b370ba073a884a410a597975481a3bf41319a04d6035f (uncommitted; full run reported 2026-11-24). Reuses `cyp/scripts/t121_error_diagnostic.py`, SHA-256 fdc23a4ba0e2df796d4d98c0b5ba1878f970024b1317cfa0f31cb296060ba214 (unchanged).
+- Screening source: `actfound_screen_loader_20261117.tar.gz` (read in place), members `inputs/screen_full.csv` (SHA-256 4f61be8ffdec767a61981ab89e3f06d28850603c3fa4ad0715a2183d4261a706, matches contract), `inputs/adjudication.tsv` (identity file SHA-256 2f3045124dbf138ec535abfd8b697a6e2e2cd605d2bccd9f30a58f4ba5464f54, matches contract), `qualification/actfound/screen_loader_20261117/contract.json`.
+- Screening columns: Molecule_Name, SMILES, OCNT_Batch, enzyme, plate_id, concentration_M, log2fc_estimate, log2fc_std_error, p_value, log2fc_fdr, log2fc_median, cohens_d.
+- Other inputs (read only): `t121_valinf_full_20261118/full_cells_000_149`, cluster assignments, split manifests, training CSV (SMILES check).
+- External web sources (fetched 2026-11-24; not repository facts): https://huggingface.co/datasets/openadmet/cyp-challenge-train-test (README); https://openadmet.ghost.io/announcing-openadmets-cyp-inhibition-blind-challenge/.
+- Output directory: `analysis/cyp_009_screening_error_20261124/full_150/` (mode full, 150 cells): screening_join_audit.csv, molecule_screening_error.csv, prediction_rows_with_screening.csv, relationship_summary.csv, log2fc_quintile_summary.csv, prediction_strata_summary.csv, overprediction_tail_comparison.csv, partition_relationship.csv, run_metadata.json. Output-file hashes not computed. Source of figures: console output pasted from the full run plus these tables read locally; self-test and smoke output not reported.
+- Join audit: CYP1A2 1,201 of 1,201 and CYP2D6 1,269 of 1,269 ok; 0 missing, duplicate, identity-unverified or missing-value rows; one concentration value (4.95049505e-05 M); no warnings.
+
+| Quantity | CYP1A2 | CYP2D6 |
+|---|---|---|
+| log2fc range (labelled) | -2.905 to +2.703 | -3.273 to -0.592 |
+| Spearman log2fc vs measured pIC50 (per-partition range) | -0.871 (-0.936..-0.797) | -0.825 (-0.881..-0.771) |
+| Spearman log2fc vs predicted pIC50 | -0.486 | -0.396 |
+| Spearman log2fc vs signed error (Pearson) | +0.758 (+0.808) | +0.688 (+0.615) |
+| Rank partial corr. with signed error given predicted | +0.811 | +0.748 |
+| Within predicted-pIC50 quintiles, Spearman range | +0.594..+0.927 | +0.711..+0.812 |
+| Per-partition Spearman with signed error (50 partitions) | +0.624..+0.832 | +0.528..+0.772 |
+| Spearman log2fc vs absolute error (per-partition range) | +0.326 (+0.121..+0.514) | -0.086 (-0.274..+0.138) |
+| MAE by log2fc quintile (strongest to weakest) | 0.622, 0.396, 0.320, 0.432, 1.451 | 0.757, 0.381, 0.432, 0.603, 0.707 |
+| Mean signed error by log2fc quintile | -0.519, -0.238, +0.033, +0.257, +1.438 | -0.684, -0.173, +0.192, +0.548, +0.690 |
+| Share overpredicted by quintile | 16.2, 30.8, 55.4, 75.8, 98.8% | 11.8, 30.7, 59.3, 84.3, 93.3% |
+| Weakest vs strongest quintile mean measured / predicted | 3.35 / 4.79 (weakest); 5.90 / 5.38 (strongest) | 4.05 / 4.74 (weakest); 5.81 / 5.13 (strongest) |
+| Top-10% signed-error tail n (tail vs rest) | 120 vs 1,081 | 127 vs 1,142 |
+| Tail vs rest median log2fc | -0.195 vs -1.601 | -1.068 vs -1.892 |
+| Rank AUC, top-10% tail / signed error > +1.0 (n) | 0.980 / 0.976 (183) | 0.787 / 0.788 (106) |
+
+Quintiles are equal-count (about 240 molecules per bin), exploratory.
+
+Pointer (2026-11-24): the three-arm penalty comparison definitions are recorded as D024 in `notes/Decisions.md` (design definitions only; no run authorized). The tables above are motivating context only; no new hashes or evidence were generated for D024.
+
+Pointer (2026-11-24): lambda, adoption rule, replicate scope, lambda = 0 checks, condition key and per-enzyme tails are recorded as Amendment 1 to D024 in `notes/Decisions.md`; no new hashes or evidence were generated.
+
 ## Smoke result
 
 Smoke v2 `result.json` SHA-256 62c034709ccabe284c69eaa60b7eb41cf2b93a402f23ed01332b685ec6af4ed6 (CoreHPC `results/d022_chemeleon_smoke/result.json`).

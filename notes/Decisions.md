@@ -5955,3 +5955,74 @@ D022 and D021 are referenced and unchanged. The Governing-principle question and
 
 The D022 result stands as reported, on preserved artifacts, until a later explicit decision says otherwise.
 
+# D024 — Screening-Informed Prediction-Penalty Comparison: Three-Arm Design Definitions (CYP)
+
+**Decision date:** 2026-11-24
+
+**Status:** Approved as design definitions only. **This record authorizes no implementation, training, inference, checkpoint loading, benchmarking, GPU job, SLURM submission or commit; any run requires separate approval.**
+
+## Decision and scope
+
+Motivating context only: `notes/Tripwire_CYP_009.md` section 12 (descriptive screening-versus-error analysis). Its findings are not restated here and are not evidence that a penalty improves performance.
+
+1. **Arms.** (i) Updated T121 unchanged; (ii) Q3-cutoff penalty; (iii) response-rank penalty. All arms use the existing updated-T121 recipe, partitions and seeds. Initially all arms use the same r1 screening checkpoint (selected epoch 16) and the matched 150 cells and seeds (5 repetitions x 10 folds x 3 cell seeds) of the saved updated-T121 baseline, on all four enzymes.
+2. **Evaluation.** Metrics are unchanged. The primary metric is macro ST-RAE per cell (lower is better), reported overall and per enzyme. The evaluation is development evaluation only, because the partitions have already been inspected. Protected test data are untouched.
+3. **Weights.** Weights are computed separately for each repetition, fold and enzyme, only from labelled training-fold molecules with verified screening values; the seeds of a fold share that fold's weights. No validation or test molecule enters either calculation.
+   - Cutoff arm: the cutoff is Q3 of screening log2fc in that population; values strictly above Q3 are flagged. Flagged molecules are relatively weaker responders, not confirmed inactives. The participant's absolute cutoff and any fixed pIC50 ceiling are not imported.
+   - Rank arm: log2fc is ranked ascending, ties take the average rank, and the raw weight is (average rank - 1)/(n - 1).
+   - Normalization: each arm's weights are normalized to population mean 1 within that enzyme and training fold (not per batch); the cutoff arm uses the actual flagged fraction. Equal average weights do not guarantee equal realized penalty losses.
+4. **Q3 interpolation.** Linear interpolation between neighbouring observations. This is the quartile computation convention only; it assumes no linear relationship between screening response and potency or penalty strength.
+5. **Loss.** The existing base loss is unchanged (masking, uncertainty weights, task weights, reduction). P = sum of w x relu(standardized prediction - standardized upper confidence bound)^2 over observed training cells, divided by the same observed-cell count the base loss uses. Total loss = existing loss + lambda x P. Native upper bounds are standardized with the same training-fold target scaler as the targets. P is not multiplied by the CI-width weights again. The unchanged arm has no extra term. lambda = 0 must reproduce the existing loss calculation exactly.
+6. **Missing, unverified and duplicate screening values.** A molecule with a missing or unverified screening value receives no extra penalty; its ordinary supervised loss and the observed-cell denominator are unchanged. Duplicate screening records are collapsed only when identity, enzyme, condition and value agree; conflicting records are flagged and excluded from the extra term, with counts reported and no silent choice.
+7. **Degenerate populations.** With fewer than two eligible molecules, or all-equal responses, the extra penalty is switched off for that enzyme and fold, with the reason logged (a deliberate fallback). If no molecule is strictly above Q3, the cutoff arm has no eligible penalties for that enzyme and fold (logged); the rank arm is assessed separately and is not automatically switched off.
+8. **Tail reporting (a reporting definition, not a training cutoff).** The most over-predicted and most under-predicted 10% of molecules are identified per enzyme by each molecule's mean signed error in the saved updated-T121 baseline. The same molecule groups are kept across arms. Overall and per-enzyme metrics are also reported, because errors can move to other molecules. Group membership is chosen from the baseline's own validation errors, so changes on those groups are not independent evidence.
+9. **Logging.** The agreed loss components are recorded: base loss, unscaled penalty component, lambda-scaled contribution, and flagged counts per enzyme and fold. The frozen executor is not changed. Small summaries are saved after every epoch so a failed run keeps its history. No new logging framework is introduced.
+10. **Implementation approach.** Opt-in functionality in the existing updated-T121 code, with no parallel pipeline and the frozen baseline artifacts unchanged. Earlier test passes are historical evidence only; the relevant tests, including the new penalty tests, are rerun after implementation.
+
+## Not decided
+
+- the numeric lambda and its selection rule (lambda stays configurable and unset; no record establishes typical loss-component magnitudes);
+- the adoption criterion;
+- whether to extend beyond r1 to all three screening replicates;
+- whether any lambda = 0 training fit or GPU measurement is wanted (neither is required or authorized by this record; a fresh training reproduction of a saved cell has not been demonstrated, only saved-baseline scoring was reproduced);
+- how "condition" maps to fields of the screening file for duplicate collapsing;
+- the coverage and direction check for CYP2C9 and CYP3A4, which is unaudited.
+
+## Relation to existing records
+
+D021, D022 and D023 are referenced and unchanged. D023's frozen artifacts are not modified. This record supersedes nothing.
+
+## Not authorized
+
+- any implementation, training, inference, checkpoint loading, benchmarking, GPU job, SLURM submission or commit;
+- any use of protected test data, or any selection or fitting of a rule on validation labels;
+- any lambda value, adoption criterion or extension to further screening replicates;
+- any change to the frozen baseline artifacts, the frozen scorer or the existing executor;
+- any change to D021, D022 or D023.
+
+## Governing principle
+
+The three arms differ only in the screening-informed penalty term, computed from training-fold information alone, under the unchanged updated-T121 recipe, partitions, seeds and evaluation.
+
+## Amendment 1 (2026-11-24) — Lambda, adoption rule, replicate scope, lambda = 0 checks, condition key, tails
+
+**Status:** Approved as design and evaluation definitions only, with the same limits as D024. **This amendment authorizes no implementation, training, inference, checkpoint loading, benchmarking, GPU job, SLURM submission or commit; any run requires separate approval.** D024's text above is unchanged. D021, D022 and D023 are unchanged. This amendment closes the following D024 "Not decided" items: numeric lambda, the adoption criterion, extension beyond r1, the lambda = 0 training fit or measurement, the condition key for duplicate collapsing, and the per-enzyme tail definition.
+
+1. **Lambda.** lambda = 1.0, fixed for both penalty arms and all four enzymes; there is no lambda search. It is a clear first test, not an empirically calibrated strength. Mean-one weights do not guarantee equal influence of the penalty and the base loss; their actual contributions are logged as defined in D024 item 9. A negative result rejects only this strength, not every possible lambda.
+2. **Adoption rule (deliberately strict; a small regression can block adoption; not established by D022 or D023).** A penalty arm passes only if all of the following hold relative to the unchanged updated T121 over the matched 150 cells: (a) lower mean macro ST-RAE; (b) no worse mean in any of the 12 enzyme x seed comparisons; (c) lower MAE on each enzyme's fixed over-prediction tail; (d) no higher MAE on each enzyme's under-prediction tail. If both arms pass, the arm with the lower macro ST-RAE is selected; an exact tie goes to the cutoff arm as the simpler rule. If neither passes, the unchanged updated T121 is kept.
+3. **Screening replicates.** r1 only for the primary comparison. A passing arm is a provisional winner. Comparing unchanged versus that winner on r2 and r3, before calling it robust across screening runs, is a separately authorized confirmation stage and is not part of the current comparison. The three downstream seeds on r1 do not test screening-replicate variation.
+4. **lambda = 0.** No separate lambda = 0 training reproduction or loss-measurement run. The existing saved unchanged arm is used. Deterministic loss-and-gradient equivalence tests at lambda = 0 through the modified loss path are required, together with the implementation smoke checks already required. This checks compatibility and does not claim the original training trajectory was reproduced.
+5. **Condition key.** For the current screening file the condition key is (Molecule_Name, enzyme); it has no duplicate keys today. The D024 item 6 duplicate policy stays as a safeguard: verified identical records collapse; conflicting or unverified records receive zero extra penalty with a report, and the base loss is retained. If the input later adds concentrations or repeat assay conditions, aggregation stops until the condition key is updated; records are never silently averaged.
+6. **Tails.** Tails are per enzyme. Unique compounds are ranked by their baseline mean signed error across their available predictions; the top and bottom 10% cohorts are fixed once and used for every arm; overall metrics are reported alongside.
+
+### Not decided by this amendment
+
+- How per-compound predictions for the penalty arms are obtained for the tail-MAE part of the adoption rule. Only the unchanged arm has saved per-compound predictions (r1 baseline, 150 cells). The options are validation-only inference from each cell's best checkpoint with the existing inference script (the route that produced the baseline rows; it needs checkpoint loading and a run) or capture inside the training run. Nothing is authorized.
+- Operational readings that need confirmation: "no worse" at equality passes; the 12 comparisons are 4 enzymes x the 3 cell seeds, each the mean per-enzyme ST-RAE over that seed's 50 cells; the over-prediction tail MAE must be strictly lower and the under-prediction tail MAE not higher; MAE is taken over all predictions of the cohort's compounds; cohort size is max(1, round(0.10 x n)).
+- Runtime measurement and wall-time sizing before any production submission. The working rule (measured interactive runtime with extrapolated total against requested wall time; no benchmarking through Slurm) is unchanged; interactive GPU is unavailable on the login VM and no timing run is authorized.
+- The coverage and direction check for CYP2C9 and CYP3A4 remains unaudited and undecided.
+
+### Limitations
+
+With no lambda = 0 trajectory reproduction, a difference between a penalty arm and the saved unchanged arm can include non-penalty sources (code version since the baseline was trained; GPU nondeterminism). Tail cohorts are chosen from the baseline's own validation errors, so changes on them are not independent evidence. All results are development evidence on already-inspected partitions.
+
