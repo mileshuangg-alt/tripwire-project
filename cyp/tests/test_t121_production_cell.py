@@ -211,6 +211,69 @@ class CellTests(unittest.TestCase):
         provenance = json.loads((self.cell_dir / "provenance.json").read_text())
         self.assertEqual(provenance["descriptors"]["manifest_sha256"], "abc")
 
+    def penalty_ops(self, logged_epochs=1):
+        ops = self.ops()
+        plain_fit = ops.fit_stage
+
+        def attach(**kwargs):
+            self.calls.append("penalty")
+            self.penalty_kwargs = kwargs
+            return {"weights_sha256": "w" * 64}
+
+        def fit_stage(**kwargs):
+            fitted = plain_fit(**kwargs)
+            (self.cell_dir / "penalty_epochs.jsonl").write_text('{"epoch": 0}\n' * logged_epochs)
+            return fitted
+
+        ops.attach_penalty = attach
+        ops.fit_stage = fit_stage
+        return ops
+
+    PENALTY = SimpleNamespace(arm_label="updated_t121_q3_penalty_from_screen_checkpoint",
+                              config_sha256="c" * 64)
+
+    def test_penalty_arm_attaches_between_handoff_and_fit_and_records_it(self):
+        result = self.run_cell(ops=self.penalty_ops(), penalty=self.PENALTY)
+        self.assertEqual(self.calls, ["route", "screen_shell", "handoff", "penalty", "fit"])
+        self.assertEqual(self.penalty_kwargs["training_dataframe"], "T")
+        self.assertEqual(self.penalty_kwargs["screen_inputs"], {"screen_path": "s"})
+        self.assertEqual(self.penalty_kwargs["cell_dir"], self.cell_dir)
+        self.assertIs(self.penalty_kwargs["arm"], self.PENALTY)
+        # Screening shell and handoff are exactly arm R's.
+        self.assertNotIn("descriptor_cache", self.screen_kwargs)
+        self.assertNotIn("chemeleon", self.handoff_kwargs)
+        self.assertEqual(result["arm"], self.PENALTY.arm_label)
+        self.assertEqual(result["penalty_config_sha256"], "c" * 64)
+        self.assertEqual(result["penalty_weights_sha256"], "w" * 64)
+        provenance = json.loads((self.cell_dir / "provenance.json").read_text())
+        self.assertEqual(provenance["screening_penalty"]["epoch_log_lines"], 1)
+        self.assertEqual(
+            provenance["screening_penalty"]["epoch_log_sha256"],
+            sha(self.cell_dir / "penalty_epochs.jsonl"),
+        )
+
+    def test_penalty_epoch_log_must_cover_every_completed_epoch(self):
+        for logged in (0, 2):
+            with self.subTest(logged=logged):
+                self.setUp()
+                with self.assertRaisesRegex(RuntimeError, "epoch log"):
+                    self.run_cell(ops=self.penalty_ops(logged), penalty=self.PENALTY)
+                self.assertTrue((self.cell_dir / "INCOMPLETE.json").exists())
+                self.assertFalse((self.cell_dir / "COMPLETED.json").exists())
+
+    def test_unchanged_arm_never_touches_the_penalty(self):
+        result = self.run_cell()
+        self.assertNotIn("penalty", self.calls)
+        self.assertNotIn("penalty_config_sha256", result)
+        provenance = json.loads((self.cell_dir / "provenance.json").read_text())
+        self.assertNotIn("screening_penalty", provenance)
+
+    def test_penalty_cannot_be_combined_with_other_arms(self):
+        for other in ({"descriptor_cache": object()}, {"chemeleon": object()}):
+            with self.assertRaisesRegex(ValueError, "no descriptors and no CheMeleon"):
+                self.run_cell(penalty=self.PENALTY, **other)
+        self.assertFalse((self.cell_dir / "STARTED.json").exists())
+
 
 if __name__ == "__main__":
     unittest.main()

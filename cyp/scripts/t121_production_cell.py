@@ -30,6 +30,7 @@ def load_ops():
     import cyp007_cell_fit as fit
     import t121_descriptor_cache as descriptors
     import t121_screen_stage as screen
+    import t121_screening_penalty as screening_penalty
     import t121_weighted_training as weighted
 
     return SimpleNamespace(
@@ -44,6 +45,7 @@ def load_ops():
         prepare_selected_screen_handoff=screen.prepare_selected_screen_handoff,
         fit_stage=weighted.fit_prepared_t121_pic50_stage,
         attach_descriptors=descriptors.attach_descriptor_columns,
+        attach_penalty=screening_penalty.attach_penalty,
     )
 
 
@@ -67,8 +69,14 @@ def run_updated_t121_cell(
     ops=None,
     descriptor_cache=None,
     chemeleon=None,
+    penalty=None,
 ):
-    """D021: `descriptor_cache` (a loaded DescriptorCache) selects arm D, with
+    """D024: `penalty` (a loaded PenaltyArm) selects a screening-penalty arm:
+    the screening shell, handoff and executor are those of arm R; the fold's
+    penalty table is attached to the prepared pIC50 model before the fit. Not
+    combinable with descriptors or CheMeleon.
+
+    D021: `descriptor_cache` (a loaded DescriptorCache) selects arm D, with
     the frozen descriptors in both the screening shell and the pIC50 stage.
     None is arm R and runs exactly as before.
 
@@ -77,6 +85,8 @@ def run_updated_t121_cell(
     descriptors."""
     if chemeleon is not None and descriptor_cache is not None:
         raise ValueError("D022 CheMeleon arm carries no descriptors.")
+    if penalty is not None and (descriptor_cache is not None or chemeleon is not None):
+        raise ValueError("D024 penalty arms carry no descriptors and no CheMeleon encoder.")
     if authorize_training is not True:
         raise RuntimeError("Updated-T121 cell training is not authorized.")
     ops = load_ops() if ops is None else ops
@@ -124,6 +134,8 @@ def run_updated_t121_cell(
         arm = "updated_t121_chemeleon_from_screen_checkpoint"
         screen_extra = {"chemeleon": chemeleon}
         handoff_extra = {"chemeleon": chemeleon}
+    if penalty is not None:
+        arm = penalty.arm_label
 
     split_manifest_path = (
         Path(split_manifest_root)
@@ -188,11 +200,37 @@ def run_updated_t121_cell(
             training_seed=plan["seed"],
             **handoff_extra,
         )
+        penalty_report = None
+        if penalty is not None:
+            penalty_report = ops.attach_penalty(
+                prefit=prefit,
+                training_dataframe=routed["training_dataframe"],
+                screen_inputs=dict(screen_inputs),
+                arm=penalty,
+                cell_dir=cell_dir,
+            )
         fit = ops.fit_stage(
             prefit_state=prefit,
             checkpoint_dir=cell_dir / "fit",
             authorize_training=True,
         )
+        if penalty is not None:
+            # One line per completed epoch; anything else means the penalty or
+            # its record did not run as defined.
+            history_path = cell_dir / "penalty_epochs.jsonl"
+            lines = (
+                history_path.read_text().splitlines() if history_path.exists() else []
+            )
+            if len(lines) != fit["epochs_completed"]:
+                raise RuntimeError(
+                    f"Penalty epoch log has {len(lines)} lines for "
+                    f"{fit['epochs_completed']} completed epochs."
+                )
+            penalty_report = dict(
+                penalty_report,
+                epoch_log_lines=len(lines),
+                epoch_log_sha256=ops.sha256_file(history_path),
+            )
         checkpoint_path = Path(fit["checkpoint_path"])
         best_validation = fit["best_validation"]
         result = {
@@ -214,6 +252,9 @@ def run_updated_t121_cell(
             "screen_selected_epoch": selection["epoch"],
             "screen_checkpoint_sha256": selection["sha256"],
         }
+        if penalty is not None:
+            result["penalty_config_sha256"] = penalty.config_sha256
+            result["penalty_weights_sha256"] = penalty_report["weights_sha256"]
         provenance = {
             "result": result,
             "sampled_config": sampled_config,
@@ -236,6 +277,8 @@ def run_updated_t121_cell(
             provenance["descriptors"] = descriptor_cache.provenance()
         if chemeleon is not None:
             provenance["chemeleon"] = chemeleon.provenance()
+        if penalty is not None:
+            provenance["screening_penalty"] = penalty_report
         ops.write_json_atomic(cell_dir / "provenance.json", provenance)
         ops.write_json_exclusive(result_path, result)
         ops.write_json_exclusive(complete_path, {
@@ -272,7 +315,13 @@ def main(argv=None):
     parser.add_argument("--chemeleon-config")
     parser.add_argument("--chemeleon-config-sha256")
     parser.add_argument("--chemeleon-weights")
+    parser.add_argument("--penalty-config")
+    parser.add_argument("--penalty-config-sha256")
     args = parser.parse_args(argv)
+    if bool(args.penalty_config) != bool(args.penalty_config_sha256):
+        raise SystemExit("Give both --penalty-config and --penalty-config-sha256, or neither.")
+    if args.penalty_config and (args.descriptor_cache_dir or args.chemeleon_config):
+        raise SystemExit("D024 penalty arms carry no descriptors and no CheMeleon encoder.")
     chemeleon_args = (args.chemeleon_config, args.chemeleon_config_sha256, args.chemeleon_weights)
     if any(chemeleon_args) and not all(chemeleon_args):
         raise SystemExit("Give all of --chemeleon-config, --chemeleon-config-sha256 and --chemeleon-weights, or none.")
@@ -306,6 +355,13 @@ def main(argv=None):
             args.chemeleon_weights,
             expected_config_sha256=args.chemeleon_config_sha256,
         )
+    penalty = None
+    if args.penalty_config:
+        from t121_screening_penalty import PenaltyArm
+
+        penalty = PenaltyArm.load(
+            args.penalty_config, expected_sha256=args.penalty_config_sha256
+        )
     result = run_updated_t121_cell(
         run_root=args.run_root,
         trial_index=args.trial_index,
@@ -325,6 +381,7 @@ def main(argv=None):
         authorize_training=args.authorize_training,
         descriptor_cache=descriptor_cache,
         chemeleon=chemeleon,
+        penalty=penalty,
     )
     print(json.dumps(result, default=str))
     return 0

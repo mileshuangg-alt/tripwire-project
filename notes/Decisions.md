@@ -6026,3 +6026,42 @@ The three arms differ only in the screening-informed penalty term, computed from
 
 With no lambda = 0 trajectory reproduction, a difference between a penalty arm and the saved unchanged arm can include non-penalty sources (code version since the baseline was trained; GPU nondeterminism). Tail cohorts are chosen from the baseline's own validation errors, so changes on them are not independent evidence. All results are development evidence on already-inspected partitions.
 
+## Amendment 2 (2026-11-24) — Implementation plan, verified screening values, adoption readings, per-compound predictions, runtime sizing
+
+**Status:** Approved. The revised Tripwire-CYP-010 implementation plan is approved, and the bar of D024 and Amendment 1 on implementation is lifted for the code, configurations and tests of the three-arm comparison. D024's and Amendment 1's text above is unchanged. D021, D022 and D023 are unchanged. The reason for this amendment is to authorize implementation and to close the items Amendment 1 left open on adoption readings, per-compound predictions and runtime sizing.
+
+1. **Implementation design.** The penalty is opt-in and is applied in `training_step` from a model-held table keyed by molecule ID. The dataset, collate function, model builder and screening stage are unchanged, and no model parameters are added. The planned files are the new module `cyp/scripts/t121_screening_penalty.py`; frozen configurations under `cyp/artifacts/d024_penalty/`; edits to `t121_weighted_training.py`, `t121_production_cell.py` and `t121_cells.slurm`; the new files `t121_d024_layout.py`, `t121_d024_build_package.py` and `t121_d024_aggregate.py`; and tests. The executor, scorer, inference script, baseline artifacts and D022/D023 outputs are unchanged. Equivalence at lambda = 0 is tested against the pre-edit module at commit `9bcf355`.
+2. **Verified screening value.** A screening value is verified when its identity class is `full_key_match` or `largest_fragment_match` and the screening SMILES equals the adjudication SMILES. Any difference between screening SMILES and training-CSV SMILES among such molecules stops the weight preview for review.
+3. **Adoption readings.** Equality passes the no-worse condition. The 12 comparisons are 4 enzymes x 3 cell seeds, each the mean per-cell per-enzyme ST-RAE over that seed's 50 cells. The over-prediction tail MAE must be strictly lower and the under-prediction tail MAE not higher. MAE is taken over all predictions of a cohort's molecules. Cohort size is max(1, round(0.10 n)), with ties broken by molecule name.
+4. **Per-compound predictions.** Predictions for the penalty arms come from validation-only inference from each cell's best checkpoint with the existing inference script.
+5. **Runtime sizing (one-off deviation).** Because an interactive GPU is unavailable, the measured-interactive-runtime rule is deviated from once, for this comparison: wall time is sized from past batch timings, cell 0 of each arm is run first (its timing, used to confirm the sizing, is a form of batch timing), and the existing 12 h per-cell request is retained. This is not a standing permission.
+6. **Precision and file location.** Population weights and quantiles use float64; training precision is unchanged. The population and weight files and the per-epoch log are written in the cell directory, outside `fit/`.
+7. **Execution order in the approved plan.** (i) Local tests. (ii) Local weight preview over all 50 folds x 4 enzymes, stopping on unexpected missing counts, a disabled fold or a SMILES difference. (iii) Tail cohorts built from the saved baseline and hash-pinned before new results exist. (iv) Package, transfer, `SHA256SUMS` verification and loaded-module check. (v) Cell 0 of each arm, for integrity checks only; its scores change nothing. (vi) Cells 1-149 per arm. (vii) Validation inference per arm. (viii) Aggregation. Planned items require no further separate approval.
+
+### Not decided by this amendment
+
+- The coverage and direction check for CYP2C9 and CYP3A4 is not closed by this amendment.
+- The r2 and r3 confirmation stage remains a separately authorized stage under Amendment 1 item 3.
+
+### Limitations
+
+The bar this amendment states as lifted is the bar on implementation. No commit authorization is stated. Amendment 1's limitations are unchanged.
+
+## Amendment 3 (2026-11-24) — CYP3A4 coverage gap and report-only coverage split
+
+**Status:** Approved. D024's text, Amendment 1 and Amendment 2 are unchanged. D021, D022 and D023 are unchanged.
+
+1. **CYP3A4 coverage gap.** In the local weight preview, 366-391 labelled training molecules per fold have no CYP3A4 screening row; no other enzyme has such molecules. This gap is handled by the D024 missing-value rule: no extra penalty is applied to those molecules, and the ordinary supervised loss and its denominator are kept. The plan continues to packaging (Amendment 2 item 7, step iv).
+2. **Report-only coverage split.** CYP3A4 results are additionally reported separately for molecules with and without screening coverage, alongside the full-enzyme and fixed-tail results, from the same saved predictions and with no new training. It is descriptive only. It is not an adoption clause and does not alter the adoption rule of Amendment 1 item 2 or the readings of Amendment 2 item 3.
+3. **Definition of coverage.** A molecule is covered when a verified CYP3A4 screening value exists under the verified-value rule of Amendment 2 item 2; otherwise it is not covered. This reading is open to correction. The grouping is built once from the screening inputs for the molecules in the baseline predictions and hash-pinned before any penalty-arm result exists.
+
+### Not authorized
+
+- any use of the coverage split in the adoption decision, or any additional adoption criterion;
+- any change to the penalty definitions, weights, lambda or tail cohorts;
+- any training, inference, GPU job, SLURM submission, transfer or commit.
+
+### Limitations
+
+The coverage split is descriptive. It does not close the coverage and direction check for CYP2C9 and CYP3A4 left open by Amendment 2.
+

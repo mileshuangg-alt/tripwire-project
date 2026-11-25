@@ -1,0 +1,32 @@
+{
+  "decision": "D024",
+  "arm": "q3",
+  "arm_label": "updated_t121_q3_penalty_from_screen_checkpoint",
+  "rule": "q3_cutoff",
+  "lambda": 1.0,
+  "quantile": 0.75,
+  "quantile_method": "linear",
+  "flag": "strictly_above",
+  "minimum_population": 2,
+  "tasks": {
+    "CYP1A2_pIC50_direct_inhibition": "CYP1A2",
+    "CYP2C9_pIC50_direct_inhibition": "CYP2C9",
+    "CYP2D6_pIC50_direct_inhibition": "CYP2D6",
+    "CYP3A4_pIC50_direct_inhibition": "CYP3A4"
+  },
+  "screen": {
+    "molecule_column": "Molecule_Name",
+    "smiles_column": "SMILES",
+    "enzyme_column": "enzyme",
+    "value_column": "log2fc_estimate",
+    "condition_guard_columns": ["concentration_M"]
+  },
+  "identity": {
+    "molecule_column": "molecule_name",
+    "smiles_column": "smiles",
+    "class_column": "class",
+    "tier_column": "tiers",
+    "accepted_classes": ["full_key_match", "largest_fragment_match"],
+    "protected_tiers": ["internal_test", "challenge_blinded_test"]
+  }
+}

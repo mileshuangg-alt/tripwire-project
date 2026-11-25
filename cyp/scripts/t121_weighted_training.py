@@ -180,7 +180,24 @@ def build_screen_dataset(
 
 
 class T121WeightedTrainingMPNN(EncoderRatioOptimizerMixin, CYP002ValidationMPNN):
-    """Override training only; retain the existing validation implementation."""
+    """Override training only; retain the existing validation implementation.
+
+    screening_penalty (D024, opt-in): a t121_screening_penalty.ScreeningPenalty
+    attached after construction. It is not a module or buffer, so model state
+    and checkpoints are unchanged. None leaves the loss exactly as before.
+    """
+
+    screening_penalty = None
+
+    def on_train_epoch_start(self):
+        super().on_train_epoch_start()
+        if self.screening_penalty is not None:
+            self.screening_penalty.reset_epoch()
+
+    def on_train_epoch_end(self):
+        super().on_train_epoch_end()
+        if self.screening_penalty is not None:
+            self.screening_penalty.flush_epoch(self.current_epoch)
 
     def training_step(self, batch, batch_idx):
         molecular = batch["chemprop_batch"]
@@ -210,6 +227,12 @@ class T121WeightedTrainingMPNN(EncoderRatioOptimizerMixin, CYP002ValidationMPNN)
             self.criterion, predictions, targets, raw, row_weights,
             lt_mask, gt_mask,
         )
+        # getattr: the screening model borrows this method and never has one.
+        penalty = getattr(self, "screening_penalty", None)
+        if penalty is not None:
+            result = penalty.apply(
+                result, predictions, targets, raw, row_weights, ids
+            )
         self.log(
             "train_loss", result,
             batch_size=targets.shape[0],

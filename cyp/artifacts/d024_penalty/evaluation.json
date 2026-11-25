@@ -1,0 +1,17 @@
+{
+  "decision": "D024",
+  "isoforms": ["CYP1A2", "CYP2C9", "CYP2D6", "CYP3A4"],
+  "task_suffix": "_pIC50_direct_inhibition",
+  "cell_seeds": [20261101, 20261102, 20261103],
+  "cells_per_seed": 50,
+  "predictions_per_molecule": 15,
+  "tail_fraction": 0.1,
+  "arm_labels": {
+    "unchanged": "updated_t121_from_screen_checkpoint",
+    "q3": "updated_t121_q3_penalty_from_screen_checkpoint",
+    "rank": "updated_t121_rank_penalty_from_screen_checkpoint"
+  },
+  "tie_preference": "q3",
+  "baseline_o150": 0.6769540372619428,
+  "baseline_o150_tolerance": 1e-12
+}

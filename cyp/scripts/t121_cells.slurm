@@ -42,6 +42,15 @@ if [ -n "${CHEMELEON_CONFIG:-}" ] || [ -n "${CHEMELEON_CONFIG_SHA256:-}" ] || [ 
                   --chemeleon-weights "${CHEMELEON_WEIGHTS}")
 fi
 
+# D024 penalty arms only: both or neither (the cell runner enforces the same rule).
+PENALTY_ARGS=()
+if [ -n "${PENALTY_CONFIG:-}" ] || [ -n "${PENALTY_CONFIG_SHA256:-}" ]; then
+  : "${PENALTY_CONFIG:?set both PENALTY_CONFIG and PENALTY_CONFIG_SHA256}"
+  : "${PENALTY_CONFIG_SHA256:?set both PENALTY_CONFIG and PENALTY_CONFIG_SHA256}"
+  PENALTY_ARGS=(--penalty-config "${PENALTY_CONFIG}" \
+                --penalty-config-sha256 "${PENALTY_CONFIG_SHA256}")
+fi
+
 SCRATCH_RUNTIME="/scratch/user/mhuang8/actfound/runtime/t121cell_${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}"
 mkdir -p "${SCRATCH_RUNTIME}"/{tmp,xdg_cache,torch,cuda_cache}
 export TMPDIR="${SCRATCH_RUNTIME}/tmp" XDG_CACHE_HOME="${SCRATCH_RUNTIME}/xdg_cache"
@@ -59,4 +68,5 @@ cd "${PACKAGE_ROOT}"
   --similarity "${SCREEN_SIMILARITY}" --contract "${SCREEN_CONTRACT}" \
   --executor-source-dir "${PACKAGE_ROOT}/executor_source" \
   --executor-source-sha256 "${EXECUTOR_SOURCE_SHA256}" ${DESCRIPTOR_ARGS[@]+"${DESCRIPTOR_ARGS[@]}"} \
-  ${CHEMELEON_ARGS[@]+"${CHEMELEON_ARGS[@]}"} --authorize-training
+  ${CHEMELEON_ARGS[@]+"${CHEMELEON_ARGS[@]}"} \
+  ${PENALTY_ARGS[@]+"${PENALTY_ARGS[@]}"} --authorize-training
