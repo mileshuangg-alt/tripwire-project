@@ -1,0 +1,49 @@
+{
+  "counts": {
+    "cyp_potency_ids_not_in_mapping": [],
+    "cyp_potency_rows": 208,
+    "cyp_smiles_disagree_with_screen": [],
+    "duplicate_key_counts": {
+      "cyp_potency.input_id": 0,
+      "mapping.OCNT_ID": 0,
+      "mapping.cyp_molecule_name": 0,
+      "mapping.pxr_row_id": 0,
+      "pxr_potency.row_id": 0,
+      "screen.input_id": 0
+    },
+    "duplicates": {
+      "cyp_potency.input_id": {},
+      "mapping.OCNT_ID": {},
+      "mapping.cyp_molecule_name": {},
+      "mapping.pxr_row_id": {},
+      "pxr_potency.row_id": {},
+      "screen.input_id": {}
+    },
+    "join_status_cyp_counts": {
+      "matched": 208
+    },
+    "join_status_pxr_counts": {
+      "matched": 208
+    },
+    "mapping_cyp_name_differs_from_ocnt": [],
+    "mapping_rows": 208,
+    "mapping_rows_without_screen_row": [],
+    "pxr_potency_ids_not_in_mapping": [],
+    "pxr_potency_rows": 208,
+    "report_rows": 208,
+    "screen_ids_not_in_mapping": [],
+    "screen_rows": 208,
+    "screen_status_counts": {
+      "ok": 208
+    }
+  },
+  "input_sha256": {
+    "cyp_potency": "4032dc19e2a192f721ecedb6d7dd7efc24a1dd7a58dbe5577ee29ea466504499",
+    "mapping": "fd9ab197b736039f497c62085ce0617e8ce3d4f0631729f8c93fa761887111e3",
+    "pxr_potency": "1255e03d602448697356d7f4f0fae6879dfddc84fd8c26695c4161859825badb",
+    "screen_predictions": "0a04fe735ea5d55e2fbd0ad72ab62e7f696d137f2865cec1213211a48eeb5d1f"
+  },
+  "notes": "CYP potency values are deployment predictions of the 150-member updated-T121 pool (D028); most members trained on these molecules, so they are not held-out predictions. Screen and potency values are reported side by side and are not blended into a combined score (D027). No trigger, flag, queue or cutoff is part of this report.",
+  "report_sha256": "8dff51a1a2b00c77fbae6e02b315714b9c387c1de07b06fabc2d29e76fa7dd33",
+  "script_sha256": "21a98e82e95eb9cd77d2da43dc41e60e5ea3b89c86c1ab2f596284b503d910e8"
+}

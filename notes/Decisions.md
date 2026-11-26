@@ -6243,3 +6243,151 @@ Existing predictions are evaluated descriptively on a fixed, protected-material-
 - any input beyond the two files named in item 2;
 - any other change to D026 or Amendment 1.
 
+# D027 — Descriptive Screen-Response Reporting Scope (CYP and PXR)
+
+**Decision date:** 2026-11-26
+
+**Status:** Approved as a reporting scope for the screen-response report version now being prepared. **This record authorizes no code writing, edit, inference, run, SLURM submission or protected-data use, and no trigger, review flag or threshold.**
+
+## Decision and scope
+
+Context: D025 and its Amendments 1-3, D026 and its Amendments 1-2, and `notes/Tripwire_CYP_010.md` section 11.
+
+1. **Reported values.** The report shows the four native-unit CYP screen log2fc predictions from the r1 screening checkpoint `epoch_016`, and the PXR 8.25 uM log2fc values of the three stage-1 seeds together with their mean (mean3). There is no separate spread column. Seed differences may be described only as model disagreement, not as a warning, a confidence interval or an out-of-domain flag.
+2. **Placement.** These values are placed beside the five unchanged potency outputs. Screen and potency predictions are not blended into a combined score.
+3. **No trigger.** This version has no automatic trigger, review flag, top-fraction queue or native-unit cutoff, and makes no claim of confirmed PXR-specific activity.
+4. **Supported evidence and its limits.** D026 supports descriptive error and ranking performance on the selected 197 molecules. They were excluded from training and selection of both screen heads; pretrained-encoder overlap is unchecked. This does not validate the combined report or any trigger. The CYP train and validation tiers of those molecules refer to the potency models, not to screen-head membership; this supersedes, to that extent, the earlier tier-split concern recorded in `notes/Tripwire_CYP_010.md` section 11.
+
+## Not decided
+
+- the review trigger and thresholds, and the PXR hit definition;
+- the explicit CYP/PXR join for the potency report;
+- a training-only median baseline or confidence intervals;
+- the D025 Amendment 3 / D026 label-use reconciliation (carried unanswered).
+
+An explicit decision entry is required for each.
+
+## Relation to existing records
+
+D025, D026 and their amendments are referenced and unchanged. The approved A/B penalty experiments (D024) are unchanged.
+
+## Not authorized
+
+- any automatic trigger, review flag, top-fraction queue, native-unit cutoff or hit or specific-activity label;
+- any combined or blended score of screen and potency predictions;
+- any interpretation of seed differences as a warning, confidence interval or out-of-domain flag;
+- any claim that D026 validates the combined report or any trigger;
+- any code writing, edit, inference, run or SLURM submission under this record.
+
+## Governing principle
+
+Screen-response predictions are reported descriptively and unblended beside the unchanged potency outputs, with no decision rule attached.
+
+# D028 — CYP Potency Values for the Screen-Response Report: Updated-T121 150-Member Ensemble Mean
+
+**Decision date:** 2026-11-26
+
+**Status:** Approved as a report-input scope for the CYP potency columns of the screen-response report only, and as a writing authorization for the files named below. **This record authorizes no training, inference run, transfer, SLURM submission or execution by the assistant.**
+
+## Decision and scope
+
+Context: D007 and D008 (post-deadline blind-inference ensemble rule), D018 Amendment 6, D024, D027, and `notes/Tripwire_CYP_011.md`.
+
+1. **Pool.** The updated-T121 pool of 150 checkpoints (array job 3105880; cell root `/scratch/user/mhuang8/tripwire_staging/t121_production_chain_20261117_cells_run/trials/trial_121/cells`) is reused without training.
+2. **CYP potency value.** The CYP potency value per enzyme is the equal-weight arithmetic mean over all 150 members on the original pIC50 scale. All 150 members are required; no member is substituted, excluded or reweighted. A member failing its hash or identity check stops the run. The member standard deviation (ddof=1) is descriptive and is not a report column.
+3. **Extension of the D007 rule.** This applies the D007 post-deadline blind-inference ensemble rule (equal-weight mean of exactly 150 members) to the updated-T121 pool as an explicit extension. That rule's own text covers only the frozen D007-T121 checkpoints. This is a report-input choice. It selects no final challenger, does not make the comparison final, and does not alter D007 or D008.
+4. **PXR potency columns.** The PXR potency columns follow D018 Amendment 6 (five-seed multitask mean; auxiliary-off mean secondary) and D027. No new PXR decision is made.
+5. **Labelling.** The 208 input molecules are CYP train/validation-tier molecules, so most CYP members trained on each of them. The CYP values are deployment predictions of this pool, not held-out predictions, and the report labels them so.
+6. **Writing scope (approval status).** Implementation of the following new files is approved, these files only: `cyp/scripts/t121_potency_predict.py`, `pxr/scripts/pxr002_predict_frame.py`, `cyp/scripts/build_screen_report.py`, a test file for each, and a PXR input-artifact builder. Inference jobs, transfers and SLURM submissions remain separately unapproved. Per-unit timing and extrapolated total against requested wall time are required before any submission.
+
+## Not decided
+
+- the executor-source and dataset/split hash-check lookup on CoreHPC (an open lookup, not a decision);
+- the review trigger and thresholds, the PXR hit definition and the explicit CYP/PXR join for the report (an explicit decision entry is required for each).
+
+## Relation to existing records
+
+D007, D008, D018 and its amendments, D024, D025, D026 and D027 are referenced and unchanged. No existing frozen artifact is altered.
+
+## Not authorized
+
+- any training, inference run, transfer, SLURM submission or execution by the assistant;
+- any substitution, exclusion or reweighting of ensemble members, or any run with fewer than 150 verified members;
+- any member standard deviation column in the report;
+- any claim that the CYP values are held-out predictions, or that this selects a final challenger or makes a comparison final;
+- any change to D007, D008 or D018.
+
+## Governing principle
+
+The CYP potency columns are the unmodified equal-weight mean of the full verified 150-member pool, labelled as deployment predictions.
+
+# D029 — Two-Sided and Huber Screening-Penalty Arms versus Unchanged Updated T121 (CYP)
+
+**Decision date:** 2026-11-26
+
+**Status:** Approved as design and evaluation definitions, and as the record of the writing approval for the penalty code, configs and tests (writing already done in Session 011). **This record authorizes no training, inference, transfer, benchmarking, GPU job, SLURM submission or commit, and no execution by the assistant.**
+
+## Decision and scope
+
+Context: in Session 010 (D024) the response-rank arm improved mean macro ST-RAE but failed the full adoption rule, so unchanged updated T121 remains selected. Design source: `notes/Handoffs/Tripwire_CYP_010_Handoff_20261126.md` section 3.1.
+
+1. **Arms.** Two separate exploratory arms against unchanged updated T121: A (`twosided`) and B (`huber`).
+2. **Common settings.** Both arms use the existing D024 response-rank screening weights and lambda = 1. Base loss, masks, task and uncertainty weighting, observed-cell denominator, splits, scaling and missing-screen handling are preserved. CI-width weights are not applied to the extra term again. Predictions and bounds use the existing training-fold target scaler.
+3. **Arm A, two-sided squared confidence-band penalty.** `P_A = sum w_i [max(yhat_i - U_i, 0)^2 + max(L_i - yhat_i, 0)^2] / N_obs`. Only the existing saved lower bounds are used; missing or incompatible bounds stop A, and bounds are not reconstructed. Purpose: to add upward correction below the lower bound while leaving predictions inside the band unpenalized.
+4. **Arm B, robust one-sided upper penalty.** `e_i = max(yhat_i - U_i, 0)`; `P_B = sum w_i H_delta(e_i) / N_obs`; `H_delta(e) = e^2` for `e <= delta`, else `2*delta*e - delta^2` (2 x ordinary PyTorch Huber, preserving the squared penalty below delta). delta is set per enzyme per training fold to the median standardized CI half-width `(U - L)/2` over observed training cells. There is no sweep. A missing, non-finite or zero delta stops that branch and is reported; there is no floor and no silent disabling.
+5. **Implementation readings** (introduced as proposals during implementation; the implementation is approved without change to them). An incompatible bound is lower >= upper on any observed training cell, matching the base loss's rejection of zero or negative widths. Any non-finite bound on an observed cell stops B even if the median would be finite. A bound or delta stop affects only the arm concerned. The D024 logged switch-off for degenerate screening weights is retained and is separate from these stops.
+6. **Scope.** All 150 matched r1 cells and all three downstream seeds, using the saved unchanged baseline artifacts. There are no new baseline fits.
+7. **Evaluation and adoption.** Evaluation is development-only, with primary metric macro ST-RAE and the fixed tail cohorts `analysis/cyp_010_tail_cohorts_20261124.json` (SHA-256 `cc336d4ab3de85a5c8da0ccfd2408b43a27e02c7b5ea2ee41b407388c0d73e7e`). An arm passes only if all four of the following hold relative to unchanged updated T121: (a) lower mean macro ST-RAE; (b) no worse mean in any enzyme x seed comparison (equality passes); (c) lower over-tail MAE for every enzyme; (d) no higher under-tail MAE for any enzyme. If both arms pass, the arm with the lower macro ST-RAE wins; an exact tie goes to `twosided`. If neither passes, unchanged updated T121 stays. Any r2/r3 confirmation requires separate approval.
+
+## Not decided
+
+- the timing method and wall-time sizing before any submission (the D024 sizing from past batch timings was a one-off deviation, not a standing permission). The existing requirement stands: before submission, measured per-unit timing and the extrapolated total against the requested wall time are required, with no SLURM benchmarking;
+- the r2/r3 confirmation stage;
+- keeping the D024 Amendment 3 CYP3A4 coverage split: the aggregator retains it (descriptive, not an adoption clause); keeping it has been proposed and not explicitly answered.
+
+## Relation to existing records
+
+D024 and its amendments are referenced and unchanged. D027 and D028 are unrelated and unchanged. The penalty files were written under provisional `d027` and then `d028` names before the number D029 was assigned.
+
+## Not authorized
+
+- any training, inference, transfer, benchmarking through SLURM, GPU job, SLURM submission, commit or execution by the assistant;
+- any lambda or delta sweep;
+- any new baseline fit;
+- any use of protected data;
+- any change to D024 or other existing records or frozen artifacts.
+
+## Governing principle
+
+The two arms differ from unchanged updated T121 only in the extra penalty term, computed from training-fold information.
+
+## Amendment 1 (2026-11-26) — Wall-time sizing for the D029 comparison (one-off deviation)
+
+**Status:** Approved as a sizing decision only. **This amendment authorizes no transfer, training, inference, GPU job, SLURM submission or commit.** D029's text above is unchanged. This amendment closes the D029 "Not decided" item on the timing method and wall-time sizing.
+
+1. **Runtime sizing (one-off deviation).** The measured-interactive-runtime rule is deviated from once, for the D029 comparison only: wall time is sized from the past D024 batch timings, cell 0 of each D029 arm is run first (its timing, used to confirm the sizing, is a form of batch timing), and the existing 12 h (43200 s) per-cell request is retained. This is not a standing permission.
+2. **Sizing basis.** CoreHPC `sacct` summary of D024 jobs 3254977, 3254978, 3255867 and 3255868, all COMPLETED. For cells 1-149, `q3` took 85-170 s per cell (total 17392 s) and `rank` took 86-163 s per cell (total 17140 s). Cell 0 took 137 s (`q3`) and 120 s (`rank`).
+3. **Extrapolation.** About 4.8-4.9 GPU-hours per 150-cell D029 arm and about 9.7 GPU-hours for both arms; at 170 s for every cell, 7.1 GPU-hours per arm. The 12 h per-cell request is about 254 times the longest observed cell.
+
+### Limitations
+
+The timings are from the D024 one-sided squared penalty. The added compute of the D029 terms is not measured.
+
+## Amendment 2 (2026-11-26) — Execution scope for the D029 comparison
+
+**Status:** Approved as an execution scope for the D029 comparison only. **Execution stays with the project owner; the assistant executes nothing. This amendment authorizes no r2/r3 confirmation stage and no commit.** The text of D029 and Amendment 1 is unchanged. This amendment closes, to the extent of item 1, the earlier bar on training, inference and SLURM submission in D029 and Amendment 1.
+
+1. **Approved execution.** For both D029 arms: cells 1-149 of each arm; then validation-only inference from each cell's best checkpoint with the existing inference script (cells 0-149); then aggregation under the D029 evaluation config and adoption rule.
+2. **Condition (met).** Cell 0 of both arms passed the integrity check.
+3. **Cell 0.** Cell 0 of each arm is already submitted under the Amendment 1 sizing. That submission settles the question of approval for cell 0.
+4. **Failed cells.** A rerun of a failed cell requires separate adjudication. The existing rule applies: a failed cell needs human adjudication, never a blind retry.
+
+### Not authorized
+
+- the r2/r3 confirmation stage;
+- any commit;
+- execution by the assistant;
+- any use of protected data;
+- any rerun of a failed cell without separate adjudication;
+- any change to arm definitions, lambda, delta, tail cohorts or the adoption rule.
+

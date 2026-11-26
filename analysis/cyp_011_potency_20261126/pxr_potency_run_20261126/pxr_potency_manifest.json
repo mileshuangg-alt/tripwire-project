@@ -1,0 +1,124 @@
+{
+  "checkpoint_sha256": {
+    "aux_off_seed20261120": "9bc6b9fb9492bb97ad5aef5174b7559522371ba8149c79094348d662ea7a1375",
+    "aux_off_seed20261121": "c7076c31d9ce05c6f7249979a55cd1ddbcd4632d6825ba8a5481b336464845b3",
+    "aux_off_seed20261122": "da8eb663427f21454427383b8a51329b81299e78f9ebf721efe3de51436c336d",
+    "aux_off_seed20261123": "1269f7f45bfbb875c5181736d959486a38453008364661139b47eb30ebae833a",
+    "aux_off_seed20261124": "615ecf0de27964bbb7cb25b074ca5aef175834a651d482668d47ff7232d5748d",
+    "multitask_seed20261120": "7bb1cfc9228c5af5d763d4a302b313e9f5b0a74946fc4d91845ccb904b0585b4",
+    "multitask_seed20261121": "7fdf6ea83a84be86efdb2d42ddb1da55c8b340772fff5e4ce4659a74ce7ddd7f",
+    "multitask_seed20261122": "c1795e4badb916b9242c079ab323496155d4c60c4f806b1886c8fa92aeada6e1",
+    "multitask_seed20261123": "0c8ffffa32ae9c6c0b87300d7fba4d65e98887ac3f476829b9d90603aa465b5a",
+    "multitask_seed20261124": "c4206d67050e8eeac2f47abc0d6deb3f2ef23a983f97f97cfdc50a0f2dbbe101"
+  },
+  "configuration": "h600_d4_f2_p0.2",
+  "decision": "D018 Amendment 6 (models); D027 and CYP-011 report scope",
+  "final_plan_sha256": "3862c5dc38f93952337bfea4edbb60be74614373b4fd6fc88dbd2d9e68455dcf",
+  "gate_tolerance": 0.001,
+  "gates": [
+    {
+      "abs_difference": 1.3260833653383486e-08,
+      "recorded_val_mae": 0.5490965845120318,
+      "replicated_val_mae": 0.5490965977728655,
+      "seed": 20261120,
+      "variant": "multitask"
+    },
+    {
+      "abs_difference": 6.8722907364815455e-09,
+      "recorded_val_mae": 0.5408410885867673,
+      "replicated_val_mae": 0.5408410817144765,
+      "seed": 20261121,
+      "variant": "multitask"
+    },
+    {
+      "abs_difference": 1.508832547791883e-08,
+      "recorded_val_mae": 0.5517003054396158,
+      "replicated_val_mae": 0.5517002903512903,
+      "seed": 20261122,
+      "variant": "multitask"
+    },
+    {
+      "abs_difference": 2.189150938303186e-08,
+      "recorded_val_mae": 0.5499550622442494,
+      "replicated_val_mae": 0.54995504035274,
+      "seed": 20261123,
+      "variant": "multitask"
+    },
+    {
+      "abs_difference": 9.206566065067534e-09,
+      "recorded_val_mae": 0.5374431420063627,
+      "replicated_val_mae": 0.5374431327997966,
+      "seed": 20261124,
+      "variant": "multitask"
+    },
+    {
+      "abs_difference": 9.375493825736214e-09,
+      "recorded_val_mae": 0.5627113331151278,
+      "replicated_val_mae": 0.562711323739634,
+      "seed": 20261120,
+      "variant": "aux_off"
+    },
+    {
+      "abs_difference": 4.077303161764689e-09,
+      "recorded_val_mae": 0.5412853672116659,
+      "replicated_val_mae": 0.5412853631343627,
+      "seed": 20261121,
+      "variant": "aux_off"
+    },
+    {
+      "abs_difference": 9.982092930016506e-11,
+      "recorded_val_mae": 0.5421333042319846,
+      "replicated_val_mae": 0.5421333041321637,
+      "seed": 20261122,
+      "variant": "aux_off"
+    },
+    {
+      "abs_difference": 2.0040982207092384e-09,
+      "recorded_val_mae": 0.5613358030380642,
+      "replicated_val_mae": 0.5613358050421624,
+      "seed": 20261123,
+      "variant": "aux_off"
+    },
+    {
+      "abs_difference": 1.2707979002435366e-08,
+      "recorded_val_mae": 0.542112442030423,
+      "replicated_val_mae": 0.542112429322444,
+      "seed": 20261124,
+      "variant": "aux_off"
+    }
+  ],
+  "labels_read_for_prediction_frame": false,
+  "molecules": 208,
+  "outputs": {
+    "pxr_potency_means.csv": "1255e03d602448697356d7f4f0fae6879dfddc84fd8c26695c4161859825badb",
+    "pxr_potency_seed_predictions.csv": "1ac9c94db2e7bf995a48cdb3e6fd2c6bd87d9b3dbbe48024628d5da36525b616"
+  },
+  "predict_artifact_hashes": {
+    "pxr002_predict_descriptors.npy": "9db717e6cd47f48a1c33275c4d42908d1a14edd3d7d7e94ee24798a902ec350c",
+    "pxr002_predict_frame.csv": "8568661bada03180057236dc1b2c5f7de3bb26ccd47b62698d765a47266cb9f5"
+  },
+  "predict_sums_sha256": "c42fd4a36605e1c7512cd072f953d7086da9589f979638aa005ea0a949884b4c",
+  "primary_column": "PXR_pEC50_multitask_mean5",
+  "script_sha256": "561274ce955761801c716c05e3a95ab7b14b8a4c0febb640e11aaa36f25b5d3b",
+  "secondary_column": "PXR_pEC50_aux_off_mean5",
+  "seeds": [
+    20261120,
+    20261121,
+    20261122,
+    20261123,
+    20261124
+  ],
+  "training_performed": false,
+  "v2_artifact_hashes": {
+    "pxr002_counts.json": "ab87005ff9c879067e6ee67e44984c798c3c763bcc684dba0c3e3b52d807f981",
+    "pxr002_eligibility_amendment_v1.csv": "78930b8081c84cdd2f7966b724cd4ca3c872e68792fa942fe4f2e0251836ec5c",
+    "pxr002_train_descriptors.npy": "aee07acedd64f549c9b262a0c4a2a3b13de2603b825ccc40eca790bf0ed28d9a",
+    "pxr002_train_frame.csv": "7f3552c3f6e88ced8efe8c9dd6734a480ca2af33be334e634f841ca19a2edd8f",
+    "pxr002_validation_descriptors.npy": "ee959ffea047b0400acb3938a7c3b797494f88aa49ea68b0cb44717bf27de0f4",
+    "pxr002_validation_frame.csv": "09bab2a2f76003432692942d84b731b9ad0376585c494360fb66f4c6ec19ff82"
+  },
+  "variants": [
+    "multitask",
+    "aux_off"
+  ]
+}
