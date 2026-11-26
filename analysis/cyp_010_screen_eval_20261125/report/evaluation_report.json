@@ -1,0 +1,233 @@
+{
+  "baselines": {
+    "cyp": {
+      "CYP1A2": {
+        "constant": -0.19318592839327497,
+        "definition": "unweighted mean of observed native log2fc over the screening-training partition (partition train, 6,252 molecules)",
+        "n_train_labels": 6251
+      },
+      "CYP2C9": {
+        "constant": -0.3715463623959404,
+        "definition": "unweighted mean of observed native log2fc over the screening-training partition (partition train, 6,252 molecules)",
+        "n_train_labels": 6251
+      },
+      "CYP2D6": {
+        "constant": 0.34567141020928394,
+        "definition": "unweighted mean of observed native log2fc over the screening-training partition (partition train, 6,252 molecules)",
+        "n_train_labels": 6251
+      },
+      "CYP3A4": {
+        "constant": -0.9739445876887004,
+        "definition": "unweighted mean of observed native log2fc over the screening-training partition (partition train, 6,252 molecules)",
+        "n_train_labels": 6251
+      }
+    },
+    "note": "Constants come from training-only data; no evaluation label enters them. An unweighted mean is a floor, not the MAE-optimal constant.",
+    "pxr_8p25uM": {
+      "constant": 0.301972839854651,
+      "source": "pxr_stage1_pins.json expected.scaler_mean[0]: mean of the 8,763 stage-1 training labels at 8.25 uM"
+    }
+  },
+  "crosswalk": {
+    "all_status_ok": true,
+    "cyp_molecule_name_equals_ocnt_id": true,
+    "recorded_structure_matches": true,
+    "rows": 208,
+    "smiles_equal_to_mapping": true,
+    "unique_ids": 208,
+    "unique_pxr_row_id": true
+  },
+  "decision": "D026 and Amendment 1",
+  "environment": {
+    "python": "3.12.14",
+    "rdkit": "2026.03.6"
+  },
+  "inputs": {
+    "cyp_train_split": {
+      "path": "/Users/mileshuang/Desktop/tripwire-project/analysis/cyp_010_screen_eval_20261125/inputs/split_assignments.csv",
+      "sha256": "d26da9ce522653816dab0876cee082e63f7a49c7fe486e863c1d77c5c7a27544"
+    },
+    "mapping": {
+      "path": "/Users/mileshuang/Desktop/tripwire-project/analysis/cyp_010_screen_input_set_20261125/screen_input_mapping.csv",
+      "sha256": "fd9ab197b736039f497c62085ce0617e8ce3d4f0631729f8c93fa761887111e3"
+    },
+    "predictions": {
+      "path": "/Users/mileshuang/Desktop/tripwire-project/analysis/cyp_010_screen_eval_20261125/inputs/screen_predictions.csv",
+      "sha256": "0a04fe735ea5d55e2fbd0ad72ab62e7f696d137f2865cec1213211a48eeb5d1f"
+    },
+    "pxr_pins": {
+      "path": "/Users/mileshuang/Desktop/tripwire-project/pxr/artifacts/screen_heads_smoke/pxr_stage1_pins.json",
+      "sha256": "144695415cb940d52f47717d26d7eae07a4297850b7a0f838886398c58d7257d"
+    },
+    "pxr_single_concentration": {
+      "path": "/Users/mileshuang/Desktop/tripwire-project/pxr/data/openadmet_pxr_release_2026-11-15/pxr-challenge_single_concentration_TRAIN.csv",
+      "sha256": "e781f8405e919a248b9b832a7cb24e8a615d400ee9dc50beea0d70d8aeaa8c2f"
+    },
+    "screen_member": {
+      "member": "inputs/screen_full.csv",
+      "sha256": "4f61be8ffdec767a61981ab89e3f06d28850603c3fa4ad0715a2183d4261a706",
+      "tarball": "/Users/mileshuang/Desktop/tripwire-project/actfound_screen_loader_20261117.tar.gz"
+    }
+  },
+  "labels": {
+    "labels_read_for_evaluated_molecules_only": true,
+    "set_aside_molecules_scored": false,
+    "training_labels_read_for_baseline_only": true
+  },
+  "limits": [
+    "descriptive only; molecules share scaffold groups and are not independent; no confidence intervals",
+    "not challenge performance, not validation of the full potency-plus-screen report, not evidence of confirmed PXR-specific activity",
+    "no review threshold is chosen or tuned from these results"
+  ],
+  "metric_definitions": {
+    "baseline_mae": "mean |label - constant| with the training-only constant",
+    "mae": "mean |prediction - label| in native log2fc units over molecules with finite prediction and label",
+    "mae_over_baseline": "mae / baseline_mae; a constant has no meaningful Spearman",
+    "spearman": "average-rank Spearman; null if n < 3 or either input is constant; no p-value, no significance claim"
+  },
+  "metrics": {
+    "all": {
+      "CYP1A2": {
+        "baseline_constant": -0.19318592839327497,
+        "baseline_mae": 0.6333553195941514,
+        "mae": 0.508960994265572,
+        "mae_over_baseline": 0.8035947256142252,
+        "n": 197,
+        "spearman": 0.5674574398287233
+      },
+      "CYP2C9": {
+        "baseline_constant": -0.3715463623959404,
+        "baseline_mae": 0.514228745462603,
+        "mae": 0.2829010720407574,
+        "mae_over_baseline": 0.5501463590610012,
+        "n": 197,
+        "spearman": 0.6813614232033376
+      },
+      "CYP2D6": {
+        "baseline_constant": 0.34567141020928394,
+        "baseline_mae": 0.7943102846351764,
+        "mae": 0.7447609889561296,
+        "mae_over_baseline": 0.9376197228746641,
+        "n": 197,
+        "spearman": 0.4777177137583229
+      },
+      "CYP3A4": {
+        "baseline_constant": -0.9739445876887004,
+        "baseline_mae": 1.5424935250293181,
+        "mae": 0.9027772426645407,
+        "mae_over_baseline": 0.5852713337304815,
+        "n": 197,
+        "spearman": 0.700796423784096
+      },
+      "PXR_8p25uM": {
+        "baseline_constant": 0.301972839854651,
+        "baseline_mae": 0.5646434709185112,
+        "mae": 0.35676819572891205,
+        "mae_over_baseline": 0.6318468451402681,
+        "n": 197,
+        "spearman": 0.6405450966727254
+      }
+    },
+    "aux_only": {
+      "CYP1A2": {
+        "baseline_constant": -0.19318592839327497,
+        "baseline_mae": 0.5810785171272533,
+        "mae": 0.48190579819420537,
+        "mae_over_baseline": 0.8293299166808991,
+        "n": 37,
+        "spearman": 0.595542911332385
+      },
+      "CYP2C9": {
+        "baseline_constant": -0.3715463623959404,
+        "baseline_mae": 0.3862973711897455,
+        "mae": 0.24868932954392073,
+        "mae_over_baseline": 0.6437769140856177,
+        "n": 37,
+        "spearman": 0.7956377430061641
+      },
+      "CYP2D6": {
+        "baseline_constant": 0.34567141020928394,
+        "baseline_mae": 0.6528945056041888,
+        "mae": 0.608880821673858,
+        "mae_over_baseline": 0.9325868366902544,
+        "n": 37,
+        "spearman": 0.6351351351351351
+      },
+      "CYP3A4": {
+        "baseline_constant": -0.9739445876887004,
+        "baseline_mae": 1.072790432400192,
+        "mae": 0.6259622580387625,
+        "mae_over_baseline": 0.5834897843358604,
+        "n": 37,
+        "spearman": 0.8525367472735894
+      },
+      "PXR_8p25uM": {
+        "baseline_constant": 0.301972839854651,
+        "baseline_mae": 0.1858312168616827,
+        "mae": 0.16934760398547966,
+        "mae_over_baseline": 0.9112979339285494,
+        "n": 37,
+        "spearman": 0.35443338074917025
+      }
+    },
+    "primary_validation": {
+      "CYP1A2": {
+        "baseline_constant": -0.19318592839327497,
+        "baseline_mae": 0.6454443301646215,
+        "mae": 0.5152175083570755,
+        "mae_over_baseline": 0.7982369420235955,
+        "n": 160,
+        "spearman": 0.497149302707137
+      },
+      "CYP2C9": {
+        "baseline_constant": -0.3715463623959404,
+        "baseline_mae": 0.5438128757632013,
+        "mae": 0.29081253749315084,
+        "mae_over_baseline": 0.5347658182697805,
+        "n": 160,
+        "spearman": 0.5856644790812141
+      },
+      "CYP2D6": {
+        "baseline_constant": 0.34567141020928394,
+        "baseline_mae": 0.8270126835360923,
+        "mae": 0.7761832776401549,
+        "mae_over_baseline": 0.9385385412970888,
+        "n": 160,
+        "spearman": 0.42873256767842494
+      },
+      "CYP3A4": {
+        "baseline_constant": -0.9739445876887004,
+        "baseline_mae": 1.6511123651998034,
+        "mae": 0.9667907078592519,
+        "mae_over_baseline": 0.585539014930858,
+        "n": 160,
+        "spearman": 0.6113793507558889
+      },
+      "PXR_8p25uM": {
+        "baseline_constant": 0.301972839854651,
+        "baseline_mae": 0.6522438046691528,
+        "mae": 0.4001092075695808,
+        "mae_over_baseline": 0.613435044848811,
+        "n": 160,
+        "spearman": 0.4935778741357084
+      }
+    }
+  },
+  "script_sha256": "5eaafb5f3338737d48422902bf01c55ecb75bc54b9d608735fbec4e9f73a1dcb",
+  "set": {
+    "evaluated": 197,
+    "pxr_roles": {
+      "aux_only": 37,
+      "primary_validation": 160
+    },
+    "rows": 208,
+    "set_aside_not_scored": 11
+  },
+  "tier_role_counts": {
+    "train|aux_only": 32,
+    "train|primary_validation": 137,
+    "validation|aux_only": 5,
+    "validation|primary_validation": 23
+  },
+  "tool": "cyp/scripts/evaluate_screen_predictions.py"
+}

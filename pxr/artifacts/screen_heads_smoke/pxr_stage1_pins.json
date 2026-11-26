@@ -1,0 +1,106 @@
+{
+  "artifact_dir_relative": "pxr/artifacts/pxr002_aux",
+  "assignments_relative": "pxr/artifacts/pxr001_split/pxr001_split_assignments.csv",
+  "expected": {
+    "head_order": [
+      "log2fc_8p25uM",
+      "log2fc_33uM",
+      "log2fc_99uM"
+    ],
+    "monitor_label_counts": {
+      "log2fc_33uM": 848,
+      "log2fc_8p25uM": 974,
+      "log2fc_99uM": 67
+    },
+    "n_monitor_molecules_labelled": 985,
+    "n_outputs": 3,
+    "n_stage1_train_molecules": 8862,
+    "scaler_mean": [
+      0.301972839854651,
+      0.5814180428191748,
+      1.16459734781899
+    ],
+    "scaler_scale": [
+      0.37739070416368464,
+      0.5379514342062427,
+      0.6199903188725561
+    ],
+    "screen_head_index": 0,
+    "train_label_counts": {
+      "log2fc_33uM": 7692,
+      "log2fc_8p25uM": 8763,
+      "log2fc_99uM": 539
+    }
+  },
+  "frozen_split_sha256": "c6028f1b7216ab2ea4bab96616fc02b95ce011be20b1b96f807d1e7d582ece46",
+  "monitor_dir_relative": "pxr/artifacts/pxr004_monitor",
+  "provenance": "Values transcribed from CoreHPC output reported 2026-11-24 (stage-1 metrics.json and manifest.json fields; sha256sum of each best.ckpt; sha256sum -c of the staged package: 16/16 OK).",
+  "purpose": "Tripwire-CYP-010 PXR-004 stage-1 screen-head loading smoke (verification only; stage-2 potency checkpoints are never opened)",
+  "seeds": {
+    "20261125": {
+      "best_checkpoint_sha256": "56ba8157de3285b7c7c94e3f3242ed1dbdda171e8c3b745a17b3935e4a3cff1d",
+      "best_epoch": 2,
+      "epochs_run": 23,
+      "head_8p25": {
+        "mae": 0.19876082436789758,
+        "n": 974,
+        "spearman": 0.5713548514033054
+      },
+      "pooled_mse": 0.5606804132150986,
+      "run_dir": "/scratch/user/mhuang8/pxr004_pilot_20261119/seed20261125/sequential_seed20261125"
+    },
+    "20261126": {
+      "best_checkpoint_sha256": "15eabba65475cbfad748d8a902cf8f8066dcbc1270614d32f6e262a11b9e17b2",
+      "best_epoch": 4,
+      "epochs_run": 25,
+      "head_8p25": {
+        "mae": 0.19447852186423983,
+        "n": 974,
+        "spearman": 0.5704787434803834
+      },
+      "pooled_mse": 0.5588789975435186,
+      "run_dir": "/scratch/user/mhuang8/pxr004_pilot_20261119/seed20261126/sequential_seed20261126"
+    },
+    "20261127": {
+      "best_checkpoint_sha256": "6fabe68ba493c53798defc7f006832b22aeb07663566921f5148223d15acbf98",
+      "best_epoch": 20,
+      "epochs_run": 41,
+      "head_8p25": {
+        "mae": 0.2069821233249088,
+        "n": 974,
+        "spearman": 0.5440995976826861
+      },
+      "pooled_mse": 0.5814922265129593,
+      "run_dir": "/scratch/user/mhuang8/pxr004_pilot_20261119/seed20261127/sequential_seed20261127"
+    }
+  },
+  "smoke": {
+    "n_molecules": 16,
+    "note": "plausible_abs_max is a loose sanity bound on native log2fc predictions, not a scientific threshold",
+    "plausible_abs_max": 10.0,
+    "scaler_tolerance_float32": 1e-06,
+    "scaler_tolerance_float64": 1e-09,
+    "unscale_tolerance": 1e-05
+  },
+  "stage_files": {
+    "pxr/artifacts/pxr001_split/pxr001_split_assignments.csv": "c6028f1b7216ab2ea4bab96616fc02b95ce011be20b1b96f807d1e7d582ece46",
+    "pxr/artifacts/pxr002_aux/PROVENANCE.txt": "24d41f138fbf74388df4d6bcb197b91f105bf311da7a07069e134e89b254e685",
+    "pxr/artifacts/pxr002_aux/SHA256SUMS": "29e6bd3495a3bb50354ec1d0fc969ad2957e422aafc966b2055e39a144a81c3a",
+    "pxr/artifacts/pxr002_aux/pxr002_counts.json": "7e030365542b8f583d4e5b166152a7c1c4910db71de27bd7f91cb6b13c6d500a",
+    "pxr/artifacts/pxr002_aux/pxr002_eligibility.csv": "0d5f2d0093ee46763323f801f155730ec591890fd96a835ff4b51ef24ac7e7a9",
+    "pxr/artifacts/pxr002_aux/pxr002_train_frame.csv": "024ed1072a399fc13df0fac5dc26b0d913416c0fb62fef1c8b66547907feec06",
+    "pxr/artifacts/pxr002_aux/pxr002_validation_frame.csv": "09bab2a2f76003432692942d84b731b9ad0376585c494360fb66f4c6ec19ff82",
+    "pxr/artifacts/pxr004_monitor/PROVENANCE.txt": "c57d84732d75b1f01bf70428a3c85fb2777d4871f1a6ffe72ff4919511f1c391",
+    "pxr/artifacts/pxr004_monitor/SHA256SUMS": "1209750a52f5d37ff81908e824e4924eabeaf8b5a408b818e6aec8e8eb999934",
+    "pxr/artifacts/pxr004_monitor/pxr004_monitor_assignments.csv": "3ad2d8bf9f766d9283798216b68ffc25b96f7d9ddef802dd13c56a2738f2b030",
+    "pxr/artifacts/pxr004_weights/PROVENANCE.txt": "b3c14889e5930e76eb438c3e500851807c68f520881a8ec302ef9b0970ecc2e4",
+    "pxr/artifacts/pxr004_weights/SHA256SUMS": "7e0f7dc0ffa49433ed9399e82c68716f8bddc954bacfd6dea43917ab9df8f764",
+    "pxr/artifacts/pxr004_weights/chemeleon_mp.pt": "c376624d3407204e780a0ed13a9ac097cc9bb1c13ef89cdbc633c1715c183651",
+    "pxr/scripts/pxr004_data.py": "430c7e968f4a3baaec310e175903f787d255dec9415baf2d1e383d277cfa1fbd",
+    "pxr/scripts/pxr004_timing.py": "63a7933d542d90b17c5894c7dcb3eebc191d66c0f9563ae662ac1de61c41f208",
+    "pxr/scripts/pxr004_train.py": "afb5d1e9d94e9ebb6d106f76409b771c6bbd5f7ccd5b652768999654e0e44385"
+  },
+  "stage_root": "/scratch/user/mhuang8/tripwire_staging/pxr004_stage_20261119",
+  "weights_relative_path": "pxr/artifacts/pxr004_weights/chemeleon_mp.pt",
+  "weights_sha256": "c376624d3407204e780a0ed13a9ac097cc9bb1c13ef89cdbc633c1715c183651"
+}

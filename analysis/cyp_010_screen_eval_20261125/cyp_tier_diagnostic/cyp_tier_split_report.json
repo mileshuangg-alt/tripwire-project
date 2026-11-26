@@ -1,0 +1,24 @@
+{
+  "inputs": {
+    "evaluation_rows": {
+      "path": "analysis/cyp_010_screen_eval_20261125/report/evaluation_rows.csv",
+      "sha256": "919f86799938dbe8d58491b355db8e2936e1a57bdcaca40b1431e68811c7945a"
+    },
+    "evaluation_metrics": {
+      "path": "analysis/cyp_010_screen_eval_20261125/report/evaluation_metrics.csv",
+      "sha256": "27b00b3a925212b25a8fb07fb740c535acc909ef9b1b15aeadd510f5d2960156"
+    }
+  },
+  "molecules_by_cyp_tier": {
+    "train": 169,
+    "validation": 28
+  },
+  "baseline_constants": {
+    "CYP1A2": -0.19318592839327497,
+    "CYP2C9": -0.3715463623959404,
+    "CYP2D6": 0.34567141020928394,
+    "CYP3A4": -0.9739445876887004
+  },
+  "pooled_consistency_check": "passed (n, MAE, Spearman, baseline MAE and ratio equal the recorded all-stratum rows)",
+  "limits": "the constants are the existing training-only constants from the D026\nevaluation, unchanged; they are not bounds on achievable error and have no Spearman. The signed\nmean residual measures aggregate offset only; by itself it does not separate bias from noise.\nThe validation tier is small, molecules share scaffold groups, and there are no confidence\nintervals. Descriptive only; not challenge performance; no threshold is chosen."
+}

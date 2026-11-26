@@ -1,0 +1,93 @@
+{
+  "counts": {
+    "after_bridges": 209,
+    "after_protected_and_holdout": 213,
+    "after_smiles_rule": 208,
+    "base": 449
+  },
+  "counts_match_records": true,
+  "decision": "D025 Amendment 3",
+  "environment": {
+    "numpy": "2.5.3",
+    "python": "3.12.14",
+    "rdkit": "2026.03.6"
+  },
+  "exact_file_guard_note": "The screen_predict.py hash guard does not cover this derived file; protection is by construction and the final assertions.",
+  "expected_counts_from_records": {
+    "after_bridges": 209,
+    "after_protected_and_holdout": 213,
+    "base": 449
+  },
+  "input_columns": {
+    "id_column": "OCNT_ID",
+    "smiles_column": "SMILES"
+  },
+  "inputs": {
+    "eligibility": {
+      "path": "/Users/mileshuang/Desktop/tripwire-project/pxr/artifacts/pxr002_aux/pxr002_eligibility.csv",
+      "sha256": "0d5f2d0093ee46763323f801f155730ec591890fd96a835ff4b51ef24ac7e7a9"
+    },
+    "members": {
+      "inputs/adjudication.tsv": "2f3045124dbf138ec535abfd8b697a6e2e2cd605d2bccd9f30a58f4ba5464f54",
+      "inputs/cluster_adjudication.tsv": "eadd679fc7de66f0b2bc02d8b4913f1fccb0f08566884cb50ebfbdcc70002783",
+      "inputs/screen_full.csv": "4f61be8ffdec767a61981ab89e3f06d28850603c3fa4ad0715a2183d4261a706"
+    },
+    "pxr_single_concentration": {
+      "path": "/Users/mileshuang/Desktop/tripwire-project/pxr/data/openadmet_pxr_release_2026-11-15/pxr-challenge_single_concentration_TRAIN.csv",
+      "sha256": "e781f8405e919a248b9b832a7cb24e8a615d400ee9dc50beea0d70d8aeaa8c2f"
+    },
+    "pxr_train": {
+      "path": "/Users/mileshuang/Desktop/tripwire-project/pxr/data/openadmet_pxr_release_2026-11-15/pxr-challenge_TRAIN.csv",
+      "sha256": "fdc2252bb5763ab5742e78cb1ba692bebe131a972cf83aa1bd45e43d8c5bc223"
+    },
+    "screen_tarball": {
+      "path": "/Users/mileshuang/Desktop/tripwire-project/actfound_screen_loader_20261117.tar.gz",
+      "sha256": "9238985ee22fa9de365349707f37659dea159b689b974760fad48319530bdba8"
+    }
+  },
+  "join_note": "A later join needs the mapping file reviewed; CYP Molecule_Name and PXR row_id are not assumed interchangeable.",
+  "label_values_read_into_any_computation": false,
+  "labels_used": false,
+  "outputs": {
+    "exclusions": {
+      "path": "analysis/cyp_010_screen_input_set_20261125/screen_input_exclusions.csv",
+      "sha256": "7934255e9b9ac4b310d8cc78b597f176284d23f213790dad459227a879dd0815"
+    },
+    "input": {
+      "path": "analysis/cyp_010_screen_input_set_20261125/screen_input_set.csv",
+      "sha256": "ec85098928d21928f59002b32985ae7db530fbe0dc9f15bfe9405e7c90f91537"
+    },
+    "mapping": {
+      "path": "analysis/cyp_010_screen_input_set_20261125/screen_input_mapping.csv",
+      "sha256": "fd9ab197b736039f497c62085ce0617e8ce3d4f0631729f8c93fa761887111e3"
+    }
+  },
+  "protected_sets_excluded_by_construction": true,
+  "rule": "molecules with a measured CYP3A4 screening value AND a measured PXR 8.25 uM\nsingle-concentration value that both screen models excluded from training and checkpoint\nselection:\n  * CYP: not in the 6,947-molecule screening stage, i.e. identity-linked (full_key_match or\n    largest_fragment_match) or bridges_protected (the screening loader's own exclusion rules);\n  * PXR: auxiliary labels not in the stage-1 training frame (pxr002_eligibility eligible False)\n    and has auxiliary labels.\nRemoved by construction, in this order (each molecule is recorded with all of its reasons):\n  1. CYP tiers internal_test or challenge_blinded_test (protected);\n  2. PXR role primary_holdout (the consumed holdout);\n  3. CYP adjudication bridges_protected (near protected clusters);\n  4. SMILES rule: the CYP screening-file SMILES must give the same canonical isomeric structure\n     as the PXR source SMILES (released TRAIN.csv for PXR primary roles, the single-concentration\n     file for aux-only molecules); a molecule that fails to parse, or whose structures differ, is\n     removed.\nThe input SMILES written is the CYP screening-file string. input_id is OCNT_ID, which equals the\nCYP Molecule_Name. An explicit mapping file lists OCNT_ID, CYP Molecule_Name, PXR row_id and both\nSMILES strings; a later join with the potency report still needs that mapping to be reviewed.",
+  "script_sha256": "6d0682a18477596726ecd7ae2481b3b4fd87b22d3630e3edb6162755d6ba2429",
+  "summary": {
+    "excluded_by_reason": {
+      "cyp_bridges_protected": 5,
+      "cyp_protected_tier": 77,
+      "pxr_holdout_role": 190,
+      "smiles_structure_mismatch_or_unparseable": 1
+    },
+    "selected_by_cyp_tier": {
+      "train": 178,
+      "validation": 30
+    },
+    "selected_by_pxr_reason": {
+      "aux_only_group_contains_test_structure": 11,
+      "aux_only_group_contains_validation_or_holdout": 37,
+      "primary_validation_aux_excluded": 160
+    },
+    "selected_by_pxr_role": {
+      "aux_only": 48,
+      "primary_validation": 160
+    },
+    "selected_pxr_aux_only_touching_official_test_structures": 11,
+    "smiles_canonical_equal_but_string_differs_among_selected": 7,
+    "smiles_string_equal_among_selected": 201
+  },
+  "tool": "cyp/scripts/build_screen_input_set.py"
+}

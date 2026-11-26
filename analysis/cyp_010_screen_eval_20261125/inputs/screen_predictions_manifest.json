@@ -1,0 +1,230 @@
+{
+  "checkpoints": {
+    "cyp_r1_epoch_016": {
+      "path": "/mnt/scratch/user/mhuang8/tripwire_staging/t121_production_chain_20261117_screen_run/preparation/epoch_checkpoints/epoch_016.ckpt",
+      "sha256": "96b75ceb4ddd629373e2356ba5cff3ae8ba58d27a4de1c48db0091646bcd5e7c",
+      "zero_based_epoch": 16
+    },
+    "pxr_stage1_seed20261125": {
+      "path": "/mnt/scratch/user/mhuang8/pxr004_pilot_20261119/seed20261125/sequential_seed20261125/stage1/best.ckpt",
+      "seed": 20261125,
+      "sha256": "56ba8157de3285b7c7c94e3f3242ed1dbdda171e8c3b745a17b3935e4a3cff1d"
+    },
+    "pxr_stage1_seed20261126": {
+      "path": "/mnt/scratch/user/mhuang8/pxr004_pilot_20261119/seed20261126/sequential_seed20261126/stage1/best.ckpt",
+      "seed": 20261126,
+      "sha256": "15eabba65475cbfad748d8a902cf8f8066dcbc1270614d32f6e262a11b9e17b2"
+    },
+    "pxr_stage1_seed20261127": {
+      "path": "/mnt/scratch/user/mhuang8/pxr004_pilot_20261119/seed20261127/sequential_seed20261127/stage1/best.ckpt",
+      "seed": 20261127,
+      "sha256": "6fabe68ba493c53798defc7f006832b22aeb07663566921f5148223d15acbf98"
+    }
+  },
+  "code_provenance": {
+    "cyp_pinned_sources": {
+      "cyp002_config": {
+        "path": "/mnt/scratch/user/mhuang8/tripwire_staging/t121_production_chain_20261117/cyp/scripts/cyp002_config.py",
+        "sha256": "0d70e925de7fafb9d09411339f865baab9c865b285e1e44abf8d52208eb21f7b"
+      },
+      "cyp002_model": {
+        "path": "/mnt/scratch/user/mhuang8/tripwire_staging/t121_production_chain_20261117/cyp/scripts/cyp002_model.py",
+        "sha256": "a96c2ba6b3ad0a68e21a7bbb7d34e3b29e7191ef1b6dafafe3eb7680fd560154"
+      },
+      "cyp002_train": {
+        "path": "/mnt/scratch/user/mhuang8/tripwire_staging/t121_production_chain_20261117/cyp/scripts/cyp002_train.py",
+        "sha256": "76c925dd36784f02404c9bd00268b9381073b8297515382d7fd4c25ed5bddde7"
+      },
+      "cyp002_validation": {
+        "path": "/mnt/scratch/user/mhuang8/tripwire_staging/t121_production_chain_20261117/cyp/scripts/cyp002_validation.py",
+        "sha256": "f0693b9294be0570988f08cc28256bf8ae995ea0cb82b421c45d40acb8bbc81e"
+      },
+      "cyp007_infrastructure": {
+        "path": "/mnt/scratch/user/mhuang8/tripwire_staging/t121_production_chain_20261117/cyp/scripts/cyp007_infrastructure.py",
+        "sha256": "521469efc448af749a0849921d903d7c96e8e162ac8efbbc3e278abc367576fd"
+      },
+      "executor_cell_fit": {
+        "path": "/mnt/scratch/user/mhuang8/tripwire_staging/t121_production_chain_20261117/executor_source/cyp007_cell_fit.py",
+        "sha256": "625a64fae191573b5a860cdba9a6ae9456d17bc6cd5b0337cc0b7cff1df1a00b"
+      },
+      "executor_production_execution": {
+        "path": "/mnt/scratch/user/mhuang8/tripwire_staging/t121_production_chain_20261117/executor_source/cyp007_production_execution.py",
+        "sha256": "4b6d13f7488da9320e7607624609a54e482380e7a94759df9c056fdaf9cb42fe"
+      },
+      "launcher_base": {
+        "path": "/mnt/scratch/user/mhuang8/tripwire_staging/t121_production_chain_20261117/cyp/scripts/actfound_stage_chain_run.py",
+        "sha256": "fdc6563230801dbba26587fe82b972cbf2d9f1bf50cf4a88a4874f7eb4594798"
+      },
+      "model_side": {
+        "path": "/mnt/scratch/user/mhuang8/tripwire_staging/t121_production_chain_20261117/cyp/scripts/actfound_model_side.py",
+        "sha256": "86ccf4b135a0388c147d2838e5d12ead2b5aaf5968f7140ec341e7950d3a62fd"
+      },
+      "proposal": {
+        "path": "/mnt/scratch/user/mhuang8/tripwire_staging/t121_production_chain_20261117/inputs/trial_121_proposal.json",
+        "sha256": "71f4cad969981cbe60a0b5eccc904089ffe8b9b029d023cda6678661fe27dbe6"
+      },
+      "screen": {
+        "path": "/mnt/scratch/user/mhuang8/tripwire_staging/actfound_screen_loader_20261117/inputs/screen_full.csv",
+        "sha256": "4f61be8ffdec767a61981ab89e3f06d28850603c3fa4ad0715a2183d4261a706"
+      },
+      "screen_contract": {
+        "path": "/mnt/scratch/user/mhuang8/tripwire_staging/actfound_screen_loader_20261117/qualification/actfound/screen_loader_20261117/contract.json",
+        "sha256": "df3090f3e2eefe6d36e24336d83ce67e62132ac201021c2e6b912b810434bfa3"
+      },
+      "screen_identity": {
+        "path": "/mnt/scratch/user/mhuang8/tripwire_staging/actfound_screen_loader_20261117/inputs/adjudication.tsv",
+        "sha256": "2f3045124dbf138ec535abfd8b697a6e2e2cd605d2bccd9f30a58f4ba5464f54"
+      },
+      "screen_similarity": {
+        "path": "/mnt/scratch/user/mhuang8/tripwire_staging/actfound_screen_loader_20261117/inputs/cluster_adjudication.tsv",
+        "sha256": "eadd679fc7de66f0b2bc02d8b4913f1fccb0f08566884cb50ebfbdcc70002783"
+      },
+      "screen_stage": {
+        "path": "/mnt/scratch/user/mhuang8/tripwire_staging/t121_production_chain_20261117/cyp/scripts/t121_screen_stage.py",
+        "sha256": "def6ddb68d6dc56caa01e6860d597f34ce12e678e5179a3df08a369cf6d106d5"
+      },
+      "stage_controller": {
+        "path": "/mnt/scratch/user/mhuang8/tripwire_staging/t121_production_chain_20261117/cyp/scripts/actfound_stage_controller.py",
+        "sha256": "fd8711b23b0c1a878d5353a984a0dd6b0b47af6fa04ff8a95c0be01fa3133413"
+      },
+      "weighted_training": {
+        "path": "/mnt/scratch/user/mhuang8/tripwire_staging/t121_production_chain_20261117/cyp/scripts/t121_weighted_training.py",
+        "sha256": "cf8f0321bb6d8a027b6db19b9e87690558d9162d8cdaa5b46ca58d24abd9af8f"
+      }
+    },
+    "pxr_imported_modules": {
+      "pxr004_data": {
+        "path": "/mnt/scratch/user/mhuang8/tripwire_staging/pxr004_stage_20261119/pxr/scripts/pxr004_data.py",
+        "sha256": "430c7e968f4a3baaec310e175903f787d255dec9415baf2d1e383d277cfa1fbd"
+      },
+      "pxr004_train": {
+        "path": "/mnt/scratch/user/mhuang8/tripwire_staging/pxr004_stage_20261119/pxr/scripts/pxr004_train.py",
+        "sha256": "afb5d1e9d94e9ebb6d106f76409b771c6bbd5f7ccd5b652768999654e0e44385"
+      }
+    },
+    "pxr_stage_files_verified": 16,
+    "pxr_stage_root": "/scratch/user/mhuang8/tripwire_staging/pxr004_stage_20261119"
+  },
+  "cyp": {
+    "builder_disclosure": "The pinned builder build_t121_screen_prefit_state reads the pinned screening input files to construct the model and dataset object; no prediction is made on those molecules and nothing from them is written.",
+    "checkpoint_selection": "single r1 epoch_016.ckpt (zero-based epoch 16)",
+    "head": {
+      "final_projection": "ffn.1.2",
+      "out_features": 4,
+      "output_transform": "Identity"
+    },
+    "screen_inputs": {
+      "contract_path": "/scratch/user/mhuang8/tripwire_staging/actfound_screen_loader_20261117/qualification/actfound/screen_loader_20261117/contract.json",
+      "identity_path": "/scratch/user/mhuang8/tripwire_staging/actfound_screen_loader_20261117/inputs/adjudication.tsv",
+      "screen_path": "/scratch/user/mhuang8/tripwire_staging/actfound_screen_loader_20261117/inputs/screen_full.csv",
+      "similarity_path": "/scratch/user/mhuang8/tripwire_staging/actfound_screen_loader_20261117/inputs/cluster_adjudication.tsv"
+    },
+    "task_names_from_model": [
+      "CYP1A2",
+      "CYP2C9",
+      "CYP2D6",
+      "CYP3A4"
+    ],
+    "task_order": [
+      "CYP1A2",
+      "CYP2C9",
+      "CYP2D6",
+      "CYP3A4"
+    ],
+    "units": "native log2fc (identity output transform; no target scaler)"
+  },
+  "decision": "D025",
+  "environment": {
+    "chemprop": "2.3.1",
+    "host": "chpc-ucsf-login-vm1.corehpc.ucsf.edu",
+    "numpy": "2.5.3",
+    "python": "3.12.14",
+    "torch": "2.14.1+cu126"
+  },
+  "input": {
+    "duplicate_ids": {},
+    "id_column": "OCNT_ID",
+    "ids_preserved_as_literal_text": true,
+    "n_rows": 208,
+    "path": "/mnt/scratch/user/mhuang8/tripwire_staging/screen_predict_20261124/real_input_20261125/screen_input_set.csv",
+    "protected_guard": {
+      "n_entries": 13,
+      "protected_list_sha256": "d40fe73ade3fe53b1c34bed0e38ca37ca72d9113315c447cf57b4ea872cb5c2c",
+      "scope": "exact-file SHA-256 match only; derived or excerpted protected data is not detected"
+    },
+    "sha256": "ec85098928d21928f59002b32985ae7db530fbe0dc9f15bfe9405e7c90f91537",
+    "smiles_column": "SMILES",
+    "smiles_standardized": false,
+    "status_counts": {
+      "invalid_empty_smiles": 0,
+      "invalid_missing_id": 0,
+      "invalid_structure": 0,
+      "ok": 208
+    }
+  },
+  "join_note": "CYP potency is keyed by Molecule_Name and PXR potency by row_id. They are not assumed interchangeable with input_id. A later join needs an explicit, reviewed mapping table. The CYP upload file has an exact six-column contract (D003) and must never be extended with these columns.",
+  "labels_used": false,
+  "not_predictive_validation": true,
+  "output_csv_sha256": "0a04fe735ea5d55e2fbd0ad72ab62e7f696d137f2865cec1213211a48eeb5d1f",
+  "outputs": {
+    "columns": [
+      "input_row",
+      "input_id",
+      "input_smiles",
+      "status",
+      "invalid_reason",
+      "warnings",
+      "CYP1A2_screen_log2fc",
+      "CYP2C9_screen_log2fc",
+      "CYP2D6_screen_log2fc",
+      "CYP3A4_screen_log2fc",
+      "PXR_screen_8p25uM_log2fc_seed20261125",
+      "PXR_screen_8p25uM_log2fc_seed20261126",
+      "PXR_screen_8p25uM_log2fc_seed20261127",
+      "PXR_screen_8p25uM_log2fc_mean3"
+    ],
+    "csv": "screen_predictions.csv"
+  },
+  "pins": {
+    "cyp_pins_sha256": "0e5160782f3289924d77acaa78d33798e3916a30583bb45d73cd4405d2e147f9",
+    "pxr_pins_sha256": "144695415cb940d52f47717d26d7eae07a4297850b7a0f838886398c58d7257d"
+  },
+  "potency_outputs_read_or_changed": false,
+  "pxr": {
+    "head": "log2fc_8p25uM",
+    "head_index": 0,
+    "head_order": [
+      "log2fc_8p25uM",
+      "log2fc_33uM",
+      "log2fc_99uM"
+    ],
+    "mean": "arithmetic mean over the three seeds in float64, only when all three are present",
+    "scaler_source": "pinned constants, confirmed against the checkpoint buffers before the strict load",
+    "seeds": [
+      20261125,
+      20261126,
+      20261127
+    ],
+    "stage": "stage-1 only; stage-2 potency checkpoints are never loaded",
+    "units": "native log2fc (eval mode applies the stage-1 UnscaleTransform)",
+    "weights_sha256": "c376624d3407204e780a0ed13a9ac097cc9bb1c13ef89cdbc633c1715c183651"
+  },
+  "pxr_transform_check": null,
+  "run": {
+    "batch_size": 64,
+    "device": "cpu",
+    "model_mode": "eval and inference_mode on every inference batch; no training-mode toggling",
+    "order": "PXR seeds first, then the CYP builder",
+    "threads": 2,
+    "verify_pxr_transform_requested": false
+  },
+  "scored": false,
+  "script_sha256": "40c27c155bf5bd87395ffed22184b571bf4a0e7dbd2d16e1597509e649ef4208",
+  "stage2_potency_checkpoints_used": false,
+  "status": "completed",
+  "timing_seconds": {
+    "note": "single run timing; not a benchmark and not a production estimate",
+    "total": 34.29086518287659
+  },
+  "tool": "cyp/scripts/screen_predict.py"
+}

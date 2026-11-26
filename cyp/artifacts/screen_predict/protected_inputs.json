@@ -1,0 +1,20 @@
+{
+  "purpose": "Exact-file guard for screen_predict.py: an input file whose SHA-256 equals one of these is refused. It catches exact-file mistakes only; it does not detect derived or excerpted protected data.",
+  "provenance": "SHA-256 values computed locally from the repository files on 2026-11-24 and cross-checked against the recorded SHA256SUMS of the CYP unblinded release and the PXR release where those list the file. The screening file hash is the one pinned in the reviewed r1 screening manifest.",
+  "entries": [
+    {"sha256": "a342f8444a8dcb531ca12f3685293f0bd6c36ae9073f491e44a9bc1cc4b741f9", "path": "cyp/data/cyp-challenge-TEST-BLINDED.csv", "reason": "CYP challenge blinded test set (750 compounds)"},
+    {"sha256": "b8f79addd266fb6f9f4c222c5e4e73d926362328b6a8d2841871a54e46bd2278", "path": "cyp/data/cyp-challenge-TRAIN_inhibition.csv", "reason": "CYP training file that contains the protected internal-test partition"},
+    {"sha256": "104c6466382b61eaadb45c7a61c3906aa3e78cae9b7f5bf21183307564cd543c", "path": "cyp/data/openadmet_unblinded_release_2026-11-06/cyp-challenge-TEST-UNBLINDED_Emax.csv", "reason": "CYP challenge unblinded labels"},
+    {"sha256": "b88b67961a1ae839be9eec25d4edc608a1ccb748dc61a4af75bd36810b994a3c", "path": "cyp/data/openadmet_unblinded_release_2026-11-06/cyp-challenge-TEST-UNBLINDED_TDI.csv", "reason": "CYP challenge unblinded labels"},
+    {"sha256": "6551eba506c90cf51434bc1764424e928cfa19b45854148d692247b8eb49f74c", "path": "cyp/data/openadmet_unblinded_release_2026-11-06/cyp-challenge-TEST-UNBLINDED_inhibition.csv", "reason": "CYP challenge unblinded labels"},
+    {"sha256": "4f61be8ffdec767a61981ab89e3f06d28850603c3fa4ad0715a2183d4261a706", "path": "actfound_screen_loader_20261117/inputs/screen_full.csv", "reason": "CYP screening file; includes identity-linked rows of the protected internal-test and challenge compounds"},
+    {"sha256": "fdc2252bb5763ab5742e78cb1ba692bebe131a972cf83aa1bd45e43d8c5bc223", "path": "pxr/data/openadmet_pxr_release_2026-11-15/pxr-challenge_TRAIN.csv", "reason": "PXR training file that contains the consumed holdout and validation partitions"},
+    {"sha256": "e8a8eed3e81e4fb6c443cba2200a89f855f769541ce786508f7efc2b4edb517c", "path": "pxr/data/openadmet_pxr_release_2026-11-15/pxr-challenge_TEST_BLINDED.csv", "reason": "PXR official blinded test set"},
+    {"sha256": "e781f8405e919a248b9b832a7cb24e8a615d400ee9dc50beea0d70d8aeaa8c2f", "path": "pxr/data/openadmet_pxr_release_2026-11-15/pxr-challenge_single_concentration_TRAIN.csv", "reason": "PXR single-concentration file that contains validation and holdout molecules"},
+    {"sha256": "65017e7487b349b7c56f137265e30e0ac218fdd7d8036fc56512eb30c0e01a5e", "path": "pxr/data/openadmet_pxr_release_2026-11-15/pxr-challenge_counter-assay_TRAIN.csv", "reason": "PXR counter-assay file; its molecules are all in the training file, including validation and holdout molecules"},
+    {"sha256": "5428632361f598376fece2ebb3a8f247b71777b708bceb4254e36a2cb3430c75", "path": "pxr/data/openadmet_pxr_heldout_labels_2026-11-15/pxr-challenge_TEST_PHASE_1_UNBLINDED.csv", "reason": "PXR official test labels (firewalled)"},
+    {"sha256": "f875351862965f85bbf9aad38b3910a9506c40f293f4d7b90fd2562d55bd63ff", "path": "pxr/data/openadmet_pxr_heldout_labels_2026-11-15/pxr-challenge_TEST_PHASE_2_UNBLINDED.csv", "reason": "PXR official test labels (firewalled)"},
+    {"sha256": "115dd15d4b2c82b83b8f9801989505fa3904c7aa67974051ff1a3aae92e7fdfb", "path": "pxr/data/openadmet_pxr_heldout_labels_2026-11-15/pxr-challenge_DRC_plot_data_TEST_UNBLINDED.parquet", "reason": "PXR official test dose-response data (firewalled)"}
+  ],
+  "not_listed": "Files that may overlap protected molecules but were not shown to contain a protected partition as a whole (for example the PXR crude and semi-pure HT-chem files and the PXR training-set dose-response parquet) are not listed; derived or excerpted files are never detected by this guard."
+}

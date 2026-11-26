@@ -1,0 +1,136 @@
+{
+  "expected": {
+    "cyp3a4_index": 3,
+    "enzyme_order": [
+      "CYP1A2",
+      "CYP2C9",
+      "CYP2D6",
+      "CYP3A4"
+    ],
+    "n_epoch_records": 50,
+    "n_outputs": 4,
+    "output_transform": "identity",
+    "selected_epoch_zero_based": 16,
+    "selected_per_enzyme": [
+      0.10042278332384545,
+      0.10268352820917172,
+      0.07421386418979108,
+      0.5345079333898188
+    ],
+    "selected_score": 0.2029570272781568,
+    "split_counts": {
+      "train": 6252,
+      "validation": 695
+    },
+    "split_seed": 20261001,
+    "target_scaler": null
+  },
+  "package_root": "/scratch/user/mhuang8/tripwire_staging/t121_production_chain_20261117",
+  "pinned_files": {
+    "cyp002_config": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_production_chain_20261117/cyp/scripts/cyp002_config.py",
+      "sha256": "0d70e925de7fafb9d09411339f865baab9c865b285e1e44abf8d52208eb21f7b"
+    },
+    "cyp002_model": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_production_chain_20261117/cyp/scripts/cyp002_model.py",
+      "sha256": "a96c2ba6b3ad0a68e21a7bbb7d34e3b29e7191ef1b6dafafe3eb7680fd560154"
+    },
+    "cyp002_train": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_production_chain_20261117/cyp/scripts/cyp002_train.py",
+      "sha256": "76c925dd36784f02404c9bd00268b9381073b8297515382d7fd4c25ed5bddde7"
+    },
+    "cyp002_validation": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_production_chain_20261117/cyp/scripts/cyp002_validation.py",
+      "sha256": "f0693b9294be0570988f08cc28256bf8ae995ea0cb82b421c45d40acb8bbc81e"
+    },
+    "cyp007_infrastructure": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_production_chain_20261117/cyp/scripts/cyp007_infrastructure.py",
+      "sha256": "521469efc448af749a0849921d903d7c96e8e162ac8efbbc3e278abc367576fd"
+    },
+    "executor_cell_fit": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_production_chain_20261117/executor_source/cyp007_cell_fit.py",
+      "sha256": "625a64fae191573b5a860cdba9a6ae9456d17bc6cd5b0337cc0b7cff1df1a00b"
+    },
+    "executor_production_execution": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_production_chain_20261117/executor_source/cyp007_production_execution.py",
+      "sha256": "4b6d13f7488da9320e7607624609a54e482380e7a94759df9c056fdaf9cb42fe"
+    },
+    "launcher_base": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_production_chain_20261117/cyp/scripts/actfound_stage_chain_run.py",
+      "sha256": "fdc6563230801dbba26587fe82b972cbf2d9f1bf50cf4a88a4874f7eb4594798"
+    },
+    "model_side": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_production_chain_20261117/cyp/scripts/actfound_model_side.py",
+      "sha256": "86ccf4b135a0388c147d2838e5d12ead2b5aaf5968f7140ec341e7950d3a62fd"
+    },
+    "proposal": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_production_chain_20261117/inputs/trial_121_proposal.json",
+      "sha256": "71f4cad969981cbe60a0b5eccc904089ffe8b9b029d023cda6678661fe27dbe6"
+    },
+    "screen": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/actfound_screen_loader_20261117/inputs/screen_full.csv",
+      "sha256": "4f61be8ffdec767a61981ab89e3f06d28850603c3fa4ad0715a2183d4261a706"
+    },
+    "screen_contract": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/actfound_screen_loader_20261117/qualification/actfound/screen_loader_20261117/contract.json",
+      "sha256": "df3090f3e2eefe6d36e24336d83ce67e62132ac201021c2e6b912b810434bfa3"
+    },
+    "screen_identity": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/actfound_screen_loader_20261117/inputs/adjudication.tsv",
+      "sha256": "2f3045124dbf138ec535abfd8b697a6e2e2cd605d2bccd9f30a58f4ba5464f54"
+    },
+    "screen_similarity": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/actfound_screen_loader_20261117/inputs/cluster_adjudication.tsv",
+      "sha256": "eadd679fc7de66f0b2bc02d8b4913f1fccb0f08566884cb50ebfbdcc70002783"
+    },
+    "screen_stage": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_production_chain_20261117/cyp/scripts/t121_screen_stage.py",
+      "sha256": "def6ddb68d6dc56caa01e6860d597f34ce12e678e5179a3df08a369cf6d106d5"
+    },
+    "stage_controller": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_production_chain_20261117/cyp/scripts/actfound_stage_controller.py",
+      "sha256": "fd8711b23b0c1a878d5353a984a0dd6b0b47af6fa04ff8a95c0be01fa3133413"
+    },
+    "weighted_training": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_production_chain_20261117/cyp/scripts/t121_weighted_training.py",
+      "sha256": "cf8f0321bb6d8a027b6db19b9e87690558d9162d8cdaa5b46ca58d24abd9af8f"
+    }
+  },
+  "provenance": "Hashes copied from the reviewed r1 screening manifest (screen_manifest_v2.json) and from CoreHPC outputs reported 2026-11-24 (sha256sum -c: 16/16 OK; model_side, run files and checkpoint hashed).",
+  "purpose": "Tripwire-CYP-010 screen-head loading smoke (verification only; no decision, no scoring, no fit)",
+  "run_files": {
+    "checkpoint": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_production_chain_20261117_screen_run/preparation/epoch_checkpoints/epoch_016.ckpt",
+      "sha256": "96b75ceb4ddd629373e2356ba5cff3ae8ba58d27a4de1c48db0091646bcd5e7c"
+    },
+    "preparation_json": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_production_chain_20261117_screen_run/preparation/preparation.json",
+      "sha256": "f3cb45708a4e1f0cb8386fcec66afd3343396207d74dbed8c500672a18599e20"
+    },
+    "selected_record": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_production_chain_20261117_screen_run/selected_screen_record.json",
+      "sha256": "4da7a07de2926a62894441da3cd0183b0e6c38f87902266fba40fc3195b1a0fc"
+    },
+    "selection_json": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_production_chain_20261117_screen_run/preparation/epoch_checkpoints/selection.json",
+      "sha256": "61c87012752cdfb722e83ceb1d13c4416bf96b08dca03ba1b59f6d9e213b69f1"
+    },
+    "split_assignments": {
+      "path": "/scratch/user/mhuang8/tripwire_staging/t121_production_chain_20261117_screen_run/preparation/split_assignments.csv",
+      "sha256": "d26da9ce522653816dab0876cee082e63f7a49c7fe486e863c1d77c5c7a27544"
+    }
+  },
+  "run_root": "/scratch/user/mhuang8/tripwire_staging/t121_production_chain_20261117_screen_run",
+  "screen_inputs": {
+    "contract_path": "/scratch/user/mhuang8/tripwire_staging/actfound_screen_loader_20261117/qualification/actfound/screen_loader_20261117/contract.json",
+    "identity_path": "/scratch/user/mhuang8/tripwire_staging/actfound_screen_loader_20261117/inputs/adjudication.tsv",
+    "screen_path": "/scratch/user/mhuang8/tripwire_staging/actfound_screen_loader_20261117/inputs/screen_full.csv",
+    "similarity_path": "/scratch/user/mhuang8/tripwire_staging/actfound_screen_loader_20261117/inputs/cluster_adjudication.tsv"
+  },
+  "smoke": {
+    "n_per_partition": 8,
+    "note": "plausible_abs_max is a loose sanity bound on native log2fc predictions, not a scientific threshold",
+    "plausible_abs_max": 10.0
+  },
+  "training_seed": 20261101
+}

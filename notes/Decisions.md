@@ -6065,3 +6065,181 @@ The bar this amendment states as lifted is the bar on implementation. No commit 
 
 The coverage split is descriptive. It does not close the coverage and direction check for CYP2C9 and CYP3A4 left open by Amendment 2.
 
+# D025 — Screen-Head Prediction Exposure: Checkpoints, Heads and Output Scope (CYP and PXR)
+
+**Decision date:** 2026-11-24
+
+**Status:** Approved as scope and design decisions only. **This record authorizes no code writing, inference, run, SLURM submission or use of protected data; an implementation plan is prepared separately and requires its own review.**
+
+## Decision and scope
+
+Context: the CoreHPC loading smoke recorded in `notes/Tripwire_CYP_010.md` section 11 and `notes/Tripwire_CYP_010_supporting.md`.
+
+1. **Tier-2 score reproduction.** Tier-2 score reproduction is not a mandatory gate. Settled checks (hashes, strict load, column order, units, eval-mode behaviour, as passed in the loading smoke) are not repeated unless a specific implementation change introduces a new failure mode, which must be named. The loading smoke is a loading-path verification and is not predictive validation.
+2. **CYP screen value.** The verified r1 screening checkpoint `epoch_016.ckpt` (SHA-256 `96b75ceb4ddd629373e2356ba5cff3ae8ba58d27a4de1c48db0091646bcd5e7c`; zero-based epoch 16), as a single checkpoint, produces all four CYP screen outputs in native log2fc, in the contract order CYP1A2, CYP2C9, CYP2D6, CYP3A4 (CYP3A4 is index 3). There is no r2 or r3 averaging.
+3. **PXR screen value.** The verified PXR-004 stage-1 checkpoints for seeds 20261125, 20261126 and 20261127 (SHA-256 `56ba8157de3285b7c7c94e3f3242ed1dbdda171e8c3b745a17b3935e4a3cff1d`, `15eabba65475cbfad748d8a902cf8f8066dcbc1270614d32f6e262a11b9e17b2` and `6fabe68ba493c53798defc7f006832b22aeb07663566921f5148223d15acbf98` respectively) supply the 8.25 uM head (output index 0) in native log2fc. Each seed's prediction is retained and their arithmetic mean is reported. There is no selection among seeds. Stage-2 potency checkpoints are never substituted for screen checkpoints.
+4. **No new fitting.** No new fit, tuning or checkpoint selection.
+5. **Input.** Any inference requires an explicit molecule input-file argument and has no default dataset. No project dataset is read or run on at this stage. No internal-test, challenge or other protected-set use is authorized. The target molecule set is not named.
+6. **Output.** Predictions are written to a new, separate output. The five existing potency outputs, existing result files and frozen artifacts stay unchanged. The new predictions are reported alongside the potency report without overwriting it. No thresholds, automatic flag logic or review-trigger implementation is part of this step; these stay separate from exposing the existing predictions.
+
+## Not decided
+
+- Where later inference runs: an explicit decision entry is required. The login-node CPU option with a five-minute extrapolation limit is not adopted; the five-minute figure is not a rule and the login node is not assumed to be permitted. The permitted location is to be resolved from CoreHPC policy documentation and project rules. No CoreHPC usage-policy or login-node document exists in the repository records (notes, handoffs, CLAUDE.md, references, external and qualification were searched); a web search did not locate a CoreHPC-specific policy (the older Wynton cluster's guidance that login nodes are for file handling and job submission concerns a different cluster and is not authoritative here); the loading smoke ran on the login host CPU as a precedent and not as a recorded permission; interactive `salloc` and `srun` fail on the login VM; batch runs so far were one-off approved deviations and not standing permissions.
+
+## Relation to existing records
+
+References the CYP-010 loading smoke and D024. Changes no earlier decision.
+
+## Not authorized
+
+- any code writing, inference, run, SLURM submission or checkpoint loading beyond what earlier records already authorize;
+- any use of a project dataset, internal-test, challenge or other protected set;
+- any r2 or r3 averaging, seed selection, new fit, tuning or checkpoint selection;
+- any substitution of a stage-2 potency checkpoint for a screen checkpoint;
+- any threshold, automatic flag logic or review-trigger implementation;
+- any overwrite or change of existing potency outputs, result files or frozen artifacts;
+- any assumption that the login node is a permitted inference location.
+
+## Governing principle
+
+Existing verified screen heads are exposed as additional, separate predictions from fixed checkpoints, with no new fitting and no change to existing outputs.
+
+## Amendment 1 (2026-11-24) — Implementation of screen-prediction exposure: code, tests and pins authorized, with corrections
+
+**Status:** Approved as an implementation-writing authorization only. **This amendment authorizes the writing of code, tests and frozen pins and input files. It authorizes no run, inference, transfer-and-run, SLURM submission, protected-data use, threshold or flag logic.** D025's text above is unchanged except that its bar on code writing is lifted for the files named here. The inference location remains open: an explicit decision entry is required.
+
+1. **CYP model construction.** The CYP model is built through the pinned r1 builder `build_t121_screen_prefit_state`, not a copied constructor. The builder reads the pinned screening input files to construct the model and dataset object; no prediction is made on those molecules.
+2. **Retained design.** A separate new output; a synthetic smoke input that is not a project dataset; per-row error reporting with no row dropped; and an exact-file SHA-256 protected-file guard. The guard catches exact-file mistakes only and does not catch derived or excerpted protected data.
+3. **Checkpoint manifest.** The manifest names four checkpoints: the r1 CYP screen checkpoint and the three PXR-004 stage-1 seeds. It does not name six.
+4. **Identifiers.** Input identifiers are preserved as literal text, with no type inference and no stripping, and duplicate identifiers are recorded. CYP `Molecule_Name` and PXR `row_id` are not assumed interchangeable with the input identifier; a later join requires an explicit, reviewed mapping. The earlier plan statements that the manifest names six checkpoints and that both potency keys are `input_id` are superseded by items 3 and 4.
+5. **Training mode.** Inference batches never switch a model or its output transform into training mode. The PXR stage-1 transform is verified separately in the smoke, on a deep copy.
+6. **Targeted comparison.** Because the PXR loading path differs from the loading smoke (scaler constants pinned instead of recomputed from training frames), the test plan includes a small comparison against the saved 16-molecule PXR smoke predictions. This is a targeted check of changed code and not the retired full-validation reproduction. The project-data reads it needs are the three PXR smoke `result.json` files and the staged PXR training frame `pxr/artifacts/pxr002_aux/pxr002_train_frame.csv` (read only to look up the SMILES of the 16 molecule ids); these are named here for review before any execution approval.
+7. **Commands.** Complete commands are provided before any execution approval is requested.
+
+### Not authorized
+
+- any run, inference, transfer-and-run, SLURM submission or checkpoint loading beyond what earlier records authorize;
+- any protected-data use, threshold or flag logic;
+- any resolution of the inference location;
+- any change to D025 items 1-6.
+
+## Amendment 2 (2026-11-25) — Execution location for screen-prediction inference
+
+**Status:** Approved as a record correction and command-preparation authorization only. **This amendment authorizes no run, no selection of a real input and no protected-data use.** D025's text and Amendment 1 above are unchanged. This amendment supersedes, to the extent stated below, the D025 "Not decided" item on where later inference runs and the D025 "Not authorized" bullet on assuming the login node is a permitted inference location.
+
+1. **Execution location.** The execution location for screen-prediction inference is not a new decision. Inference and evaluation runs for the existing screen heads use the established CoreHPC CPU evaluation and inference route through the existing environment, as used for the completed screen-head checks and the inference smokes: the CoreHPC login host, environment `/scratch/user/mhuang8/envs/tripwire_cyp002`, CPU, an explicit thread count, and outputs to new directories under `/scratch/user/mhuang8/tripwire_staging/`. This is a continuation of that route and not permission for unlimited login-host compute. SLURM training stays separate.
+2. **No new prerequisite.** No new interactive-allocation requirement and no further policy-search prerequisite is introduced unless a specific new restriction appears or the workload is materially different.
+3. **Five-minute limit.** The earlier proposal of a five-minute extrapolation limit remains not adopted as a rule.
+4. **Closed.** The following are closed and are not reopened, repeated or rebuilt: the verified checkpoints (r1 `epoch_016.ckpt` and the three PXR-004 stage-1 seeds), the loaders, native units, the seed package, and the tested `cyp/scripts/screen_predict.py` (38 of 38 local tests; CoreHPC synthetic smoke and the targeted PXR comparison passed; `notes/Tripwire_CYP_010.md` section 11 and `notes/Tripwire_CYP_010_supporting.md`). The loading smoke is not repeated and tier-2 score reproduction is not reopened.
+
+### Not decided by this amendment
+
+- the selection of a real input file;
+- the explicit CYP/PXR identifier mapping for any later join;
+- the review trigger and thresholds;
+- the PXR hit definition.
+
+An explicit decision entry is required for each.
+
+### Not authorized
+
+- any run, inference or SLURM submission;
+- the selection of a real input file, or any protected-data use;
+- unlimited login-host compute;
+- any change to D025 items 1-6 or to Amendment 1.
+
+## Amendment 3 (2026-11-25) — Real input set for the first screen-prediction run; input-builder writing authorized
+
+**Status:** Approved as an input-set definition and a writing authorization for a read-only input builder and its tests only. **This amendment authorizes no run of the builder, no transfer and no run of `screen_predict.py`; the first real inference run is not authorized by it.** D025's text, Amendment 1 and Amendment 2 are unchanged.
+
+1. **Real input set.** The first real screen-prediction run uses molecules with measured CYP3A4 and PXR 8.25 uM responses that both screen models excluded from training and checkpoint selection (CYP: not in the 6,947-molecule screening stage, i.e. identity-linked or `bridges_protected`; PXR: aux labels not in the stage-1 training frame), minus protected material by construction. The removals are: CYP internal-test and challenge-blinded tiers (77 molecules); all PXR holdout-role molecules (consumed holdout; 190); the 4 CYP `bridges_protected` molecules; and molecules whose CYP screening-file SMILES and PXR source SMILES do not give the same canonical isomeric structure (2 expected in the earlier analysis). Counts from the earlier read-only analysis: 449 base, 213 after the first two removals, 209 after removing bridges, about 207 after the SMILES rule. The exact final count is fixed when the file is built.
+2. **SMILES rule.** The input SMILES is the CYP screening-file string. The PXR comparison string is the released `TRAIN.csv` SMILES for PXR primary-role molecules and the single-concentration SMILES for aux-only molecules.
+3. **Identifier.** `input_id` is `OCNT_ID` (equal to the CYP `Molecule_Name`). An explicit mapping file lists `OCNT_ID`, CYP `Molecule_Name`, PXR `row_id` and both SMILES strings. Any later join still requires review of that mapping.
+4. **Writing authorization.** Writing a new read-only input-building script and its tests is authorized. The named project-data reads are: the screening file; `adjudication.tsv` and `cluster_adjudication.tsv` (read from `actfound_screen_loader_20261117.tar.gz` with member hashes checked); `pxr/artifacts/pxr002_aux/pxr002_eligibility.csv`; the PXR single-concentration file; and the PXR `TRAIN.csv`. Only measurement-presence flags, identities, tiers or roles and SMILES strings are used; no label values are used. The script writes only to a new directory.
+5. **Carried count.** The selected set will contain PXR aux-only molecules whose group touches official-test structures. The builder reports their count; excluding them is not part of this decision.
+
+### Not decided by this amendment
+
+The review trigger, thresholds, the PXR hit definition and any join of predictions to measurements. An explicit decision entry is required for each.
+
+### Not authorized
+
+- running the input builder, any transfer, or any run of `screen_predict.py` (the first real inference run), all of which are run by the project owner under separate authorization;
+- any use of label values, internal-test, challenge-blinded or holdout-role molecules, or any other protected material;
+- exclusion of PXR aux-only molecules whose group touches official-test structures;
+- any change to D025 items 1-6 or to Amendments 1 and 2.
+
+# D026 — Descriptive Evaluation of Existing Screen-Response Predictions on the Selected 208-Molecule Set
+
+**Decision date:** 2026-11-25
+
+**Status:** Approved as an evaluation scope. **This record authorizes planning and command preparation only. It authorizes no execution by the assistant; every command is run by the project owner.**
+
+## Decision and scope
+
+Context: D025 and its Amendments 1-3 (`notes/Decisions.md`); the first real screen-prediction run and the builder report recorded in `notes/Tripwire_CYP_010.md` section 11 and `notes/Tripwire_CYP_010_supporting.md`.
+
+1. **Unchanged inputs and predictions.** The 208-row input and any existing predictions stay unchanged.
+2. **Evaluation set.** The 11 PXR aux-only molecules whose group touches official-test structures (eligibility reason `aux_only_group_contains_test_structure`) are excluded from the primary descriptive evaluation, leaving 197 molecules: 160 PXR primary-validation and 37 aux-only. The two PXR strata are reported separately. The 11 excluded molecules stay identifiable in the mapping file and are not scored separately. Protected CYP tiers, PXR holdout-role molecules and bridging molecules are not reintroduced.
+3. **Existing predictions.** Existing predictions are used. No inference is rerun merely to select the 197. If predictions are missing, that is identified together with the required existing-script step.
+4. **Crosswalk.** The CYP/PXR crosswalk is verified from the builder's existing mapping file. `input_id`, `Molecule_Name` and `row_id` are not assumed interchangeable. Row coverage, duplicates and recorded structure matches are checked, and the actual CYP-tier by PXR-role counts after exclusions are reported.
+5. **Metrics (proposed).** Native-unit MAE and Spearman for each of the four CYP screen outputs and for the PXR 8.25 uM three-seed mean, with available-label counts per output and PXR stratum, and a constant-prediction MAE baseline from existing training-only statistics, with source and definition stated. The baseline is not derived from the evaluation labels, and missing training statistics are not invented. A constant baseline has no meaningful Spearman.
+6. **Interpretation limits.** This evaluates existing screen-response predictions on this selected set only. It is not challenge performance, not validation of the full potency-plus-screen report, and not evidence of confirmed PXR-specific activity. No review thresholds are chosen or tuned from these results. No new fit, classifier, hit-definition decision, or repeated loader or location check is part of this record. Missing labels, statistics or mappings are flagged and never reconstructed.
+
+## Not decided
+
+- the review trigger and thresholds;
+- the PXR hit definition;
+- the explicit CYP/PXR join for the potency report;
+- any baseline statistic that is not already recorded.
+
+An explicit decision entry is required for each.
+
+## Relation to existing records
+
+D025 and its Amendments 1-3 are referenced and unchanged. The input-builder restrictions of D025 Amendment 3 item 4 (no label values in the builder) are unchanged; the use of labels in the evaluation defined here is a separate, descriptive step with its own scope.
+
+## Not authorized
+
+- any execution by the assistant;
+- any expansion of the analysis beyond items 1-6;
+- any threshold selection;
+- any use of protected CYP tiers, PXR holdout-role molecules or the 11 excluded molecules in scoring;
+- any change to D025 or its amendments.
+
+## Governing principle
+
+Existing predictions are evaluated descriptively on a fixed, protected-material-free set, with every missing input flagged and none reconstructed, and with no interpretation beyond the stated scope.
+
+## Amendment 1 (2026-11-25) — Constant-prediction MAE baselines; evaluation script and tests in scope
+
+**Status:** Approved as an evaluation-definition and writing authorization only. D026's text above is unchanged. **Execution stays with the project owner; the assistant executes nothing.**
+
+1. **CYP baseline.** The CYP constant-prediction MAE baseline is derived from existing training-only data. For each of the four CYP screen outputs, the constant is the unweighted mean of the observed native log2fc over the screening-training partition (the 6,252 molecules with partition `train` in `preparation/split_assignments.csv`, SHA-256 `d26da9ce522653816dab0876cee082e63f7a49c7fe486e863c1d77c5c7a27544`, an existing CoreHPC artifact to be transferred and not rebuilt), using the existing screening labels. The evaluation molecules are checked to lie outside that partition, and no evaluation label enters the baseline.
+2. **CYP baseline limits.** The screening model trained with inverse-standard-error weights, so an unweighted mean is a plain floor and not the MAE-optimal constant. The baseline has no meaningful Spearman.
+3. **PXR baseline.** The PXR baseline stays the recorded stage-1 training-label mean at 8.25 uM, 0.301972839854651 (8,763 stage-1 training labels, monitor excluded; `pxr_stage1_pins.json` `expected.scaler_mean[0]`, pins SHA-256 `144695415cb940d52f47717d26d7eae07a4297850b7a0f838886398c58d7257d`).
+4. **Plan and writing scope.** The evaluation plan is accepted with this option. Writing the evaluation script and its tests, `cyp/scripts/evaluate_screen_predictions.py` and `cyp/tests/test_evaluate_screen_predictions.py`, is in scope.
+5. **Open items.** The item "any baseline statistic not already recorded" is removed from D026's open list. The review trigger and thresholds, the PXR hit definition and the explicit CYP/PXR join for the potency report remain undecided; an explicit decision entry is required for each.
+6. **Unreconciled.** The relation between the D025 Amendment 3 bullet on label values (the builder) and the label use in this evaluation is not explicitly reconciled. It stays as stated in D026 "Relation to existing records" (a separate descriptive step) and is noted as unreconciled.
+
+### Not authorized
+
+- any execution by the assistant;
+- any expansion of the analysis beyond D026 items 1-6 and this amendment;
+- any baseline derived from evaluation labels or from a rebuilt split;
+- any change to D025, its amendments or the D026 text above.
+
+## Amendment 2 (2026-11-25) — Baseline wording superseded; CYP-tier-split diagnostic in scope
+
+**Status:** Approved as a wording supersession and a scope for a diagnostic script and its test only. D026's text and Amendment 1 above are unchanged except as stated in item 1. **Execution stays with the project owner; the assistant executes nothing.**
+
+1. **Wording.** The phrase "plain floor" in Amendment 1 item 2, and the matching phrase in `notes/Tripwire_CYP_010.md` section 11 and in the docstring of `cyp/scripts/evaluate_screen_predictions.py`, is superseded by "a training-only reference constant, not the MAE-optimal constant, and not a bound on achievable error". The evaluation-script docstring is not edited; the evaluated script's hash stays as recorded.
+2. **CYP-tier-split diagnostic.** A diagnostic from existing saved rows is in scope. For each CYP output and each CYP tier (train, validation; `cyp_tiers` has one value per molecule) it reports n, MAE, Spearman, the existing baseline constant, that constant's MAE within the tier, the model/baseline MAE ratio, and the signed mean residual (prediction minus label), which is an aggregate offset only and does not separate bias from noise. Inputs are `evaluation_rows.csv` (SHA-256 `919f86799938dbe8d58491b355db8e2936e1a57bdcaca40b1431e68811c7945a`) and `evaluation_metrics.csv` (SHA-256 `27b00b3a925212b25a8fb07fb740c535acc909ef9b1b15aeadd510f5d2960156`) only. Writing `cyp/scripts/evaluate_screen_cyp_tier_split.py` and `cyp/tests/test_evaluate_screen_cyp_tier_split.py` is in scope. The approved A/B design is unchanged.
+
+### Not authorized
+
+- any execution by the assistant;
+- any new training or inference, median baseline, bootstrap or threshold;
+- any input beyond the two files named in item 2;
+- any other change to D026 or Amendment 1.
+
