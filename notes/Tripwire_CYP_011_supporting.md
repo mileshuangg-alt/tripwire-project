@@ -104,3 +104,34 @@ Assistant's local check: every screen value, CYP potency value and PXR potency v
 - No inference, transfer or job has run.
 
 Not covered by these tests (as of the first run; the CYP real Chemprop path was later covered by the `RealModelSeam` tests and a one-member CoreHPC gate, see above): the real Chemprop path (`predict_native`, `build_member_model`) was untested locally; the PXR tests use fake model loading.
+
+## D030 CoreHPC run and aggregation (recorded 2026-11-27; source: pasted CoreHPC output unless stated)
+
+Report section 5c. Package `t121_d030_package_20261126.tar.gz`, SHA-256 `1b2cc7e97f803ca757873ce64f46fd0b3285d1e5ae7ddfc02179d80659b7b062`.
+
+| Step | Identifier | Supplied evidence |
+|---|---|---|
+| Package verification (`ALL 124 FILES OK`) | - | Not shown |
+| Load check and input-file check | - | Not shown |
+| Cell 0 | job 3285377, task `3285377_0` | COMPLETED, 00:02:03, limit 12:00:00 |
+| Cells 1-149 | array 3285386 | Job ID from submission output; per-task accounting not supplied; live monitor: 150/150 completed, 0 incomplete |
+| Validation-only inference | job 3285392 | 150 prediction files; 150 "reproduced" statuses in the logs |
+| Aggregation guard | - | Passed (no `STOPPED_ON_MISMATCH.json`) |
+| First aggregation terminal output | - | Not supplied; a rerun refused to overwrite the existing report |
+
+Cell 0 integrity check: 14 of 14 OK, `CELL 0 CHECK PASSED`; 35 epochs; config hash `cc7afefc...`; weights hash equal to the local preview (`bb4aec47...`); no screening input in the penalty; r1 screening checkpoint `96b75ceb...`; no bound stops; ranked counts 1069 / 980 / 1141 / 1799; upper plus lower sums and counts equal the totals. Per observed cell: epoch 0 base 0.8397, penalty 0.9172 (upper 0.2269, lower 0.6902); epoch 34 base 0.237, penalty 0.1519 (upper 0.0725, lower 0.0794). Output supplied after cells 1-149 had completed; whether the check had passed before the array submission is not reported.
+
+Aggregation report `analysis/t121_d030_report_20261127.json`:
+
+| Item | SHA-256 or value |
+|---|---|
+| Report (CoreHPC `sha256sum`, pasted; local copy hashed locally; identical) | 9d8e4e8bfe07c3dabe586e15ea78cbc793799052f3d60996eee79e0eaf160825 |
+| `config_sha256` | 27f9142fd1a09e99918b5ddc385fb019fee0fe22071dd660d77b7b9c6eda9fcf |
+| `cohorts_sha256` | cc336d4ab3de85a5c8da0ccfd2408b43a27e02c7b5ea2ee41b407388c0d73e7e |
+| `coverage_sha256` | 3640127b4fb5b4af135bf27fe9e31c29be6de89138ffa5525ea729fdc2342fb2 |
+| `script_sha256` (aggregator) | e7b712f57bc5734d6b08eb552c6a8d2b0a6f853bb5035dcd9a56eff37d92f44d |
+| `baseline_reproduction_difference` | 0.0 |
+
+The config, cohort, coverage and script hashes match the pinned local values. The unchanged-arm metrics and prediction hashes are identical to those in the D029 report. Per-cell prediction and result hashes are in the report.
+
+CoreHPC locations named in the report: `mirrored` cells `/scratch/user/mhuang8/tripwire_staging/t121_d030_mirrored_cells_run/trials/trial_121/cells`; predictions `/scratch/user/mhuang8/tripwire_staging/t121_d030_valinf_mirrored_20261126`; unchanged cells `/scratch/user/mhuang8/tripwire_staging/t121_production_chain_20261117_cells_run/trials/trial_121/cells`.

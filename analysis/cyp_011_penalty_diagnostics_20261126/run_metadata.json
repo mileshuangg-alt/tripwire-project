@@ -1,0 +1,71 @@
+{
+  "arms": {
+    "huber": "candidate",
+    "rank": "context",
+    "twosided": "candidate"
+  },
+  "checks": {
+    "tail_mae_max_difference": {
+      "huber": 2.220446049250313e-16,
+      "rank": 2.220446049250313e-16,
+      "twosided": 4.440892098500626e-16,
+      "unchanged": 2.220446049250313e-16
+    }
+  },
+  "groups": [
+    "all",
+    "over_tail",
+    "under_tail",
+    "remaining"
+  ],
+  "inputs": {
+    "cohorts_sha256": "cc336d4ab3de85a5c8da0ccfd2408b43a27e02c7b5ea2ee41b407388c0d73e7e",
+    "config_sha256": "8ed9201250e3094bd1eed31fc791dd7cd7108f01e939c0c50609b83e57287553",
+    "context_report_sha256": "7cefd735d92c61f4b18822bde0ca18afcd15aeba9ec23d2ff448b628cdf462b1",
+    "coverage_sha256": "3640127b4fb5b4af135bf27fe9e31c29be6de89138ffa5525ea729fdc2342fb2",
+    "prediction_dirs": {
+      "huber": "analysis/cyp_011_penalty_diagnostics_inputs_20261126/t121_d029_valinf_huber_20261126",
+      "rank": "analysis/cyp_011_penalty_diagnostics_inputs_20261126/t121_d024_valinf_rank_20261124",
+      "twosided": "analysis/cyp_011_penalty_diagnostics_inputs_20261126/t121_d029_valinf_twosided_20261126",
+      "unchanged": "t121_valinf_full_20261118/full_cells_000_149"
+    },
+    "report_sha256": "6e8a39aee515e3263e43c20f69e8b407bbf3714a1a77fe9462f6b9da1afa579d"
+  },
+  "isoforms": [
+    "CYP1A2",
+    "CYP2C9",
+    "CYP2D6",
+    "CYP3A4"
+  ],
+  "notes": [
+    "Descriptive and exploratory only; no new gate, no change to the adoption rule, no next experiment selected.",
+    "Molecule level: seed mean within a repetition, then mean over repetitions; absolute error is the mean of row absolute errors.",
+    "'equal' means exactly equal molecule-level absolute error (no tolerance).",
+    "Tail cohorts were selected from the unchanged arm's own errors: tail comparisons are baseline-conditioned.",
+    "Raw-MAE contributions are not a decomposition of macro ST-RAE; macro values are copied from the reports.",
+    "Screening coverage is a descriptive association; it does not show how the training penalty moved a held-out molecule.",
+    "The mean-shift counterfactual uses evaluation predictions; not deployable, not a candidate, not causal, not eligible for adoption."
+  ],
+  "outputs": {
+    "concentration.csv": "ca40a271a0910c2bc76868560996c032f1170615dc6e8889b50ad9a90433b2ff",
+    "counterfactual.csv": "03c05fd4a0fc3f65923a7b8d84e23760673e25bdf2891f7af22cd21507c4ac55",
+    "coverage_summary.csv": "0b630a413d595af480a2d700bf183021d8f084de790cfacca3166348ce84fd0a",
+    "group_summary.csv": "409e69d9de7911ca887c327163ef5fcc9349fddd21215782ed947536b22f4c8f",
+    "macro_st_rae.csv": "04214c986413cb308b8f0168ae17fb0c28bf510e74d2a8e98181df5b15d8317d",
+    "molecule_level.csv": "429093ed6fe18af679b5be42e8600968c2b6ff005e656b53ea13d30419cf59bb",
+    "seed_breakdown.csv": "2067604f3430bbaf3d6773c28665c80288cb1823844994512c8e4219848a9270"
+  },
+  "penalty_module_sha256": "b6d72307fab389af6cbc9819b2b384998c588373553797380fd2fb9f6f9b0c34",
+  "script_sha256": "2612cc8c01617336b9355722f79081c4e448d4b831c4ea62d3b9c5761e1852a6",
+  "seeds": [
+    20261101,
+    20261102,
+    20261103
+  ],
+  "stopped": {},
+  "versions": {
+    "numpy": "2.5.3",
+    "pandas": "3.0.6",
+    "python": "3.12.14"
+  }
+}

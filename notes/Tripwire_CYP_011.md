@@ -1,7 +1,7 @@
 # Tripwire-CYP-011 Session Log
 
 **Date:** 2026-11-26 (opened)  
-**Status (current):** Open. D027 (descriptive screen-response reporting scope), D028 (CYP potency source: 150-member updated-T121 mean; writing scope) and D029 (A/B penalty design and evaluation definitions; record of the writing approval) are recorded. For the report work, CYP and PXR potency outputs exist for the 208 input rows and the report join has been run locally (208 rows; sections 2c and 8); nothing is committed. Separately, the A/B penalty arms (D029, section 5a) are renamed to `d029`, previewed and packaged locally, and uncommitted; the wall-time sizing is decided (D029 Amendment 1). The package is transferred to CoreHPC staging, the login-host load check passed (pasted output) and the environments for both arms are written. The input-file check passed, and cell 0 of both arms passed the integrity check (pasted output). Under D029 Amendment 2, all 150 cells of both arms, validation-only inference and aggregation are complete (pasted output). Development-only result: both arms lower mean macro ST-RAE (`twosided` 0.669120, `huber` 0.669652, unchanged 0.676954) but fail adoption clauses (c) and (d), so unchanged updated T121 stays selected (section 5a). The penalty code, configs and tests remain uncommitted. The test run of the renamed files and the transfer hash checks are reported as expected, without pasted output.
+**Status (current):** Open. D027 (descriptive screen-response reporting scope), D028 (CYP potency source: 150-member updated-T121 mean; writing scope) and D029 (A/B penalty design and evaluation definitions; record of the writing approval) are recorded. For the report work, CYP and PXR potency outputs exist for the 208 input rows and the report join has been run locally (208 rows; sections 2c and 8); nothing is committed. Separately, the A/B penalty arms (D029, section 5a) are renamed to `d029`, previewed and packaged locally, and uncommitted; the wall-time sizing is decided (D029 Amendment 1). The package is transferred to CoreHPC staging, the login-host load check passed (pasted output) and the environments for both arms are written. The input-file check passed, and cell 0 of both arms passed the integrity check (pasted output). Under D029 Amendment 2, all 150 cells of both arms, validation-only inference and aggregation are complete (pasted output). Development-only result: both arms lower mean macro ST-RAE (`twosided` 0.669120, `huber` 0.669652, unchanged 0.676954) but fail adoption clauses (c) and (d), so unchanged updated T121 stays selected (section 5a). The penalty code, configs and tests remain uncommitted. The test run of the renamed files and the transfer hash checks are reported as expected, without pasted output. D030 (label-rank mirrored band penalty; design, evaluation definitions and implementation approval) is also recorded: its code, configs and tests are applied to the checkout and uncommitted, tests are reported passed (output not pasted), the local 50-fold preview is done and the D030 package is built locally. D030 Amendment 1 (2026-11-27) records a one-off wall-time sizing and approves the D030 execution scope. The D030 run has completed through validation-only inference and aggregation (2026-11-27). Development-only result: `mirrored` raises mean macro ST-RAE (0.679699, unchanged 0.676954) and fails all four adoption clauses, so unchanged updated T121 stays selected. The package-verification, load-check and input-file-check outputs have not been shown, and whether the cell 0 integrity check had passed before cells 1-149 were submitted is not reported (section 5c).
 
 ## 1. Session purpose and starting state
 
@@ -184,6 +184,115 @@ Mean signed error is more positive than unchanged in both groups for both arms.
 
 **Open for D029.** The penalty code, configs and tests are uncommitted.
 
+## 5b. Saved-prediction diagnostics after the D029 result (exploratory, 2026-11-26)
+
+**Purpose.** Investigate the saved CYP validation predictions to inform a next experiment. No training, new inference, penalty sweep or change to the adoption rule. Arms: unchanged updated T121, `twosided` (A) and `huber` (B), with D024 rank as context, on the 150 matched r1 cells.
+
+**Code and run.** Uncommitted, this checkout: `cyp/scripts/t121_penalty_prediction_diagnostics.py` (SHA-256 prefix `2612cc8c0161`), `cyp/scripts/t121_penalty_prediction_plots.py` and `cyp/tests/test_t121_penalty_prediction_diagnostics.py` (16 tests; no test run output supplied). Outputs are in `analysis/cyp_011_penalty_diagnostics_20261126/` (source: pasted console output, outputs read back locally; `run_metadata.json` SHA-256 prefix `d4d74dcb2804`, output hashes match it). No comparison stopped. Report tail MAEs reproduced for all arms (largest difference 4.4e-16), and the rebuilt CYP3A4 coverage matched the frozen grouping.
+
+**Findings** (descriptive; lower is better; change = arm minus unchanged). Molecule-level rule: seed mean within a repetition, then mean over repetitions; absolute error is the mean of row absolute errors.
+
+| Enzyme | MAE change: A / B / rank | Mean prediction change: A / B / rank |
+|---|---|---|
+| CYP1A2 | -0.0094 / -0.0072 / -0.0063 | -0.096 / -0.042 / -0.122 |
+| CYP2C9 | -0.0012 / -0.0034 / +0.0000 | -0.005 / -0.012 / -0.019 |
+| CYP2D6 | -0.0051 / -0.0041 / -0.0065 | -0.065 / -0.033 / -0.077 |
+| CYP3A4 | +0.0091 / +0.0020 / +0.0051 | +0.027 / +0.030 / +0.022 |
+
+- CYP3A4 MAE rose while its per-enzyme ST-RAE fell for A and B (section 5a), so MAE is not a decomposition of ST-RAE.
+- Fixed tails: on CYP1A2 and CYP2D6 (and by small amounts on CYP2C9) over-tail MAE fell and under-tail MAE rose; on CYP3A4 the reverse. A and B lower the absolute error of 47-54% of molecules overall.
+- Direction: on CYP1A2 and CYP2D6 all three groups (the two tails and the remaining molecules) move down on average; on CYP3A4 the upward move is largest at low unchanged predictions (this pattern can partly arise from run-to-run noise, because the unchanged prediction is on both axes).
+- Concentration: in every enzyme and arm, half of each improvement or deterioration total comes from about 10-12% of all molecules, and the largest single molecule is at most 1.6% of a total. Remaining (non-tail) molecules hold about 68-81% of both totals.
+- Seeds: on CYP1A2 and CYP2D6 the over-tail gain and under-tail loss recur in all three seeds for all arms. CYP2C9 under-tail MAE rises in all seeds; CYP2C9 overall is mixed across seeds for all arms, and the CYP2C9 over-tail of A is mixed. CYP3A4 under-tail MAE falls in all seeds; its over-tail is mixed for B and rank and rises in all seeds for A.
+- Coverage (association only): only CYP3A4 has uncovered molecules (421 of 1986). Covered / uncovered mean prediction change: A +0.027 / +0.029, B +0.027 / +0.040, rank +0.022 / +0.023. Covered / uncovered MAE change: A +0.0103 / +0.0046, B +0.0030 / -0.0019, rank +0.0061 / +0.0012.
+- Diagnostic counterfactual (each arm's per-enzyme mean change subtracted; it uses evaluation predictions and is not a correction, a candidate, causal evidence or adoption-eligible): on CYP1A2 and CYP2D6 the under-tail rise nearly vanishes (A +0.092 to -0.004 and +0.068 to +0.002; B +0.038 to -0.004 and +0.032 to -0.001), and about 37-47% of the over-tail gain remains. For B the shifted values are lower than unchanged overall and on both tails for all four enzymes; for A and rank this does not hold.
+
+**Limits.** The development partitions were already inspected. Tails are selected from the unchanged model's own errors, so tail comparisons are baseline-conditioned. The arms are separate training runs, with no repeated unchanged run to size run-to-run variation. No significance claim is made and no next experiment is selected.
+
+## 5c. D030 label-rank mirrored penalty: implementation, run and development result (2026-11-26 to 2026-11-27)
+
+D030 in `notes/Decisions.md` (Approved as design and evaluation definitions and as the record of the implementation approval; its own text authorizes no training, inference, transfer, benchmarking, GPU job, Slurm submission, commit or execution by the assistant) records the `mirrored` arm. It follows the D029 result (section 5a). D030 Amendment 1 (2026-11-27, in `notes/Decisions.md`) records the one-off wall-time sizing and approves the D030 execution scope for the package below, closing the open timing item and lifting the bar on the listed execution items only; its conditions and exclusions, including no r2/r3 stage, no commit and no execution by the assistant, are stated there.
+
+**Files** (uncommitted, this checkout; code, configs and tests applied under the implementation approval):
+
+| File | SHA-256 prefix |
+|---|---|
+| `cyp/scripts/t121_screening_penalty.py` | `593ec1c46241` |
+| `cyp/scripts/t121_d030_layout.py` | `c8bb59028017` |
+| `cyp/scripts/t121_d030_build_package.py` | `6bb16042b6f6` |
+| `cyp/artifacts/d030_penalty/penalty_label_mirrored.json` | `cc7afefcea42` |
+| `cyp/artifacts/d030_penalty/evaluation.json` | `27f9142fd1a0` |
+| `cyp/tests/test_t121_penalty_mirrored.py` | `78b60a3c6d5e` |
+
+The layout and builder have no tests; the builder produced the package below.
+
+**Tests** (source: the project owner's report; output not pasted): all passed, with 113 expected across six files.
+
+**Local 50-fold preview** (source: pasted output, with the saved report read back): `analysis/cyp_011_penalty_preview_20261126_d030/preview.json`, SHA-256 prefix `f8319d8f89b4`.
+- 50 folds; disabled 0; weight identity failures 0; bound stops 0; no screening file read.
+- Ranked counts per fold: CYP1A2 1062-1101, CYP2C9 965-1008, CYP2D6 1123-1157, CYP3A4 1766-1815.
+- Every fold-enzyme ranked set equals its labelled training molecules, and the weights equal an independent rank calculation.
+
+**Local package** (source: pasted builder output, verified locally): `t121_d030_build_20261126/t121_d030_package_20261126.tar.gz`, SHA-256 `1b2cc7e97f803ca757873ce64f46fd0b3285d1e5ae7ddfc02179d80659b7b062`, 124 files in its `SHA256SUMS.txt`.
+- All listed files and archive members match; all 39 overlay files equal the checkout.
+- Compared with the D029 package, only the penalty module and `PACKAGE_SCOPE.txt` changed. Added: the D030 configs, layout, builder, test and `d030_pins.json`. Removed: the D029 layout, builder and pins.
+
+**CoreHPC run** (executed by the project owner; source: pasted output unless stated). The package is the one above (SHA-256 `1b2cc7e9...`). Per-check evidence and identifiers are in `notes/Tripwire_CYP_011_supporting.md`.
+- Cell 0: job 3285377 (task `3285377_0`), COMPLETED, elapsed 00:02:03 against the 12:00:00 limit.
+- Cells 1-149: submitted as array 3285386 (job ID from pasted submission output; per-task accounting not supplied). A live monitor output showed D030 cells completed 150/150, incomplete 0.
+- Validation-only inference: job 3285392; 150 prediction files and 150 "reproduced" statuses in the logs. The aggregation guard (no `STOPPED_ON_MISMATCH.json`) passed.
+- Not shown: the package-verification output (`ALL 124 FILES OK`) and the load-check and input-file-check outputs (planned steps before cell planning) were never supplied. No pass is recorded for them, and no failure is reported.
+
+**Cell 0 integrity check** (the D030 Amendment 1 condition; source: pasted output): all 14 checks OK, `CELL 0 CHECK PASSED`, 35 epochs. Covered checks include the config hash (`cc7afefc...`), a weights hash equal to the local preview (`bb4aec47...`), no screening input in the penalty, the r1 screening checkpoint (`96b75ceb...`), no bound stops, ranked counts 1069 / 980 / 1141 / 1799, and upper plus lower penalty sums and counts equal to the totals. These are integrity records only.
+
+| Epoch | Base loss per observed cell | Penalty per observed cell (upper / lower) |
+|---|---|---|
+| 0 | 0.8397 | 0.9172 (0.2269 / 0.6902) |
+| 34 | 0.237 | 0.1519 (0.0725 / 0.0794) |
+
+Order relative to the condition: the passing output was supplied after cells 1-149 had completed. The array was submitted before any check output was shown, and whether the check had passed before that submission is not reported (UNKNOWN). D030 Amendment 1 item 5 conditions cells 1-149 on cell 0 passing.
+
+**Aggregation report:** `analysis/t121_d030_report_20261127.json`, SHA-256 `9d8e4e8bfe07c3dabe586e15ea78cbc793799052f3d60996eee79e0eaf160825`, identical on CoreHPC (pasted `sha256sum`) and in the local copy (hashed locally). The first aggregation terminal output was not supplied; a rerun refused to overwrite the existing report. The local copy parses completely; its config, cohort, coverage and aggregator-script hashes match the pinned local values; the unchanged-arm metrics and prediction hashes are identical to those in the D029 report; the baseline reproduction difference is 0.0.
+
+**Result** (development-only, exploratory; lower is better; read from the report). `mirrored` does not pass the adoption rule; the selected model is unchanged updated T121.
+
+| Arm | Mean macro ST-RAE | Difference from unchanged | Clauses (a), (b) | Clauses (c), (d) |
+|---|---|---|---|---|
+| unchanged | 0.676954 | - | - | - |
+| `mirrored` | 0.679699 | +0.002745 (worse) | fail, fail | fail, fail |
+
+- (b): 8 of 12 enzyme x seed means are worse (CYP1A2 all three seeds, CYP2C9 all three, CYP2D6 seed 20261101, CYP3A4 seed 20261103).
+- (c): over-tail MAE is higher on CYP2C9 and CYP3A4.
+- (d): under-tail MAE is higher on CYP1A2 and CYP2D6.
+
+Per enzyme, each entry is ST-RAE / over-tail MAE / under-tail MAE:
+
+| Enzyme | unchanged | `mirrored` | `mirrored` minus unchanged |
+|---|---|---|---|
+| CYP1A2 | 0.796420 / 2.034759 / 1.141123 | 0.799665 / 1.915845 / 1.204503 | +0.003245 / -0.118914 / +0.063380 |
+| CYP2C9 | 0.586615 / 1.155224 / 0.853427 | 0.595438 / 1.183927 / 0.847010 | +0.008823 / +0.028703 / -0.006416 |
+| CYP2D6 | 0.874548 / 1.904297 / 1.240689 | 0.873479 / 1.840731 / 1.248900 | -0.001070 / -0.063567 / +0.008211 |
+| CYP3A4 | 0.450233 / 1.405430 / 0.953722 | 0.450216 / 1.452467 / 0.903310 | -0.000017 / +0.047037 / -0.050412 |
+
+Observation computed from the report: within each enzyme, mean signed error changed in the same direction in both fixed tails (over-tail, under-tail): CYP1A2 -0.119, -0.063; CYP2C9 +0.029, +0.006; CYP2D6 -0.064, -0.008; CYP3A4 +0.047, +0.051. Reading this as an enzyme-level shift is an interpretation; the overall mean prediction change was not computed for D030.
+
+**CYP3A4 by screening coverage** (D030 item 9; descriptive, not an adoption clause; `coverage_groups` in the report; covered 1565, not covered 421). Each entry is `mirrored` minus unchanged.
+
+| Measure | Covered | Not covered |
+|---|---|---|
+| MAE | +0.016290 | +0.007067 |
+| Mean signed error | +0.043815 | +0.032453 |
+| Over-tail MAE | +0.048673 | +0.033173 |
+| Under-tail MAE | -0.052893 | -0.037463 |
+| Mean ST-RAE | -0.000581 | +0.001726 |
+| ST-RAE, seed 20261101 | -0.000391 | -0.001767 |
+| ST-RAE, seed 20261102 | -0.002239 | +0.002730 |
+| ST-RAE, seed 20261103 | +0.000887 | +0.004216 |
+
+Group sizes differ, so group means are not directly comparable between groups. The over-tail and under-tail groups have 178 and 167 molecules (covered) and 21 and 32 (not covered).
+
+**Limits.** This is development evidence on already-inspected partitions, with no significance claim, and the design follows inspected validation results. Tail membership comes from the baseline's own errors, so the tail changes are not independent evidence. D030 Amendment 1 authorizes no r2/r3 stage and no commit. No next experiment is decided.
+
 ## 6. Carried from Session 010 (none decided)
 
 - D025 Amendment 3 versus D026 label-use reconciliation remains unanswered.
@@ -196,4 +305,4 @@ Everything on the screen heads is descriptive and development-side; it is not ch
 
 ## 8. Stopping point and next step
 
-Session opened 2026-11-26; D027, D028 and D029 are recorded; the report files named under D028 (section 2a) are written locally and pass their local tests (section 2c). CYP potency (150-member updated-T121 ensemble) and PXR potency (five-seed multitask mean, aux_off secondary) both now exist for the 208 input rows, each run on the CoreHPC login host with all reference gates passed and the outputs fetched and hash-verified locally (section 2c). The report join (`cyp/scripts/build_screen_report.py`) was run locally and produced the 208-row, 22-column `screen_report.csv` with all joins matched and no duplicates or unmatched rows (section 2c). The 011 report files and the report are uncommitted. Remaining for the report work, none decided: committing the 011 files and any use of the report. Penalty arms (section 5a): the D029 comparison has run through aggregation; neither arm passed the adoption rule and unchanged updated T121 stays selected. The r2/r3 confirmation stage is not triggered. The penalty code, configs and tests are uncommitted; D029 Amendment 2 authorizes no commit.
+Session opened 2026-11-26; D027, D028 and D029 are recorded; the report files named under D028 (section 2a) are written locally and pass their local tests (section 2c). CYP potency (150-member updated-T121 ensemble) and PXR potency (five-seed multitask mean, aux_off secondary) both now exist for the 208 input rows, each run on the CoreHPC login host with all reference gates passed and the outputs fetched and hash-verified locally (section 2c). The report join (`cyp/scripts/build_screen_report.py`) was run locally and produced the 208-row, 22-column `screen_report.csv` with all joins matched and no duplicates or unmatched rows (section 2c). The 011 report files and the report are uncommitted. Remaining for the report work, none decided: committing the 011 files and any use of the report. Penalty arms (section 5a): the D029 comparison has run through aggregation; neither arm passed the adoption rule and unchanged updated T121 stays selected. The r2/r3 confirmation stage is not triggered. The penalty code, configs and tests are uncommitted; D029 Amendment 2 authorizes no commit. Exploratory saved-prediction diagnostics on these arms are in section 5b (descriptive only, diagnostic code uncommitted; the diagnostics themselves select no decision, gate or next experiment). D030 (section 5c): recorded; the code, configs and tests are in the checkout and uncommitted, tests are reported passed (output not pasted), the local 50-fold preview showed no disabled folds, weight identity failures or bound stops, and the D030 package is built and verified locally. Under D030 Amendment 1, the run has completed through validation-only inference and aggregation; `mirrored` fails all four adoption clauses and unchanged updated T121 stays selected (section 5c, which also states the check outputs not shown and the unreported order of the cell 0 check and the array submission). No r2/r3 stage or commit is authorized by that amendment, and no next experiment is decided.

@@ -1,0 +1,15 @@
+{
+  "decision": "D030",
+  "arm": "mirrored",
+  "arm_label": "updated_t121_label_rank_mirrored_penalty_from_screen_checkpoint",
+  "rule": "label_rank_mirrored",
+  "form": "two_sided_squared",
+  "lambda": 1.0,
+  "minimum_population": 2,
+  "tasks": {
+    "CYP1A2_pIC50_direct_inhibition": "CYP1A2",
+    "CYP2C9_pIC50_direct_inhibition": "CYP2C9",
+    "CYP2D6_pIC50_direct_inhibition": "CYP2D6",
+    "CYP3A4_pIC50_direct_inhibition": "CYP3A4"
+  }
+}

@@ -6391,3 +6391,73 @@ The timings are from the D024 one-sided squared penalty. The added compute of th
 - any rerun of a failed cell without separate adjudication;
 - any change to arm definitions, lambda, delta, tail cohorts or the adoption rule.
 
+# D030 — Label-Rank Mirrored Band Penalty versus Unchanged Updated T121 (CYP, exploratory)
+
+**Decision date:** 2026-11-26
+
+**Status:** Approved as design and evaluation definitions, and as the record of the approval to implement (code, configs and tests applied to the checkout in Session 011). **This record authorizes no training, inference, transfer, benchmarking, GPU job, SLURM submission or commit, and no execution by the assistant.**
+
+## Decision and scope
+
+Context: under D029 neither the two-sided nor the Huber arm passed the four adoption clauses, so unchanged updated T121 stays selected. The design reasons are the following; they are not independent evidence, because the partitions have already been inspected. D029 had no upward term with meaningful weight on strong screen responders. Measured labels exist wherever the penalty applies. In the D029 development diagnostics, arm A lowered predictions in the highest-measured fifth by 0.067 (CYP1A2) and 0.074 (CYP2D6). Overlap of the fixed tails with label extremes is not used as support, because the tails are selected on signed error, which contains the measured value.
+
+1. **Arm.** One arm, `mirrored`.
+2. **Loss.** For each training batch `B`: `total = L_base + lambda * (1/N_B) * sum over observed (i,k) in B of [ a_ik * max(yhat_ik - U_ik, 0)^2 + b_ik * max(L_ik - yhat_ik, 0)^2 ]`. `L_base` is unchanged; `yhat` is the standardized training prediction; CI-width weights are not applied to the penalty.
+3. **Bounds and scaling.** As in D029: `<task>_conf_low` and `<task>_conf_high` come from the D007-routed training-fold dataframe and are standardized as `(bound - mean_k)/scale_k` with that fold's training target scaler. A missing, non-finite or `lower >= upper` bound on any observed cell stops the arm.
+4. **Mask and denominator.** As in D029: a cell is observed when its training target is finite; `N_B` is the number of observed cells in the batch across all four enzymes (the base loss count).
+5. **Weights.** Weights are set per repetition, fold and enzyme and are shared by seeds. The ranked set is every labelled training-fold molecule, which is exactly the observed cells. `r = (average ascending rank of measured pIC50 - 1)/(n - 1)`, `a = 2(1 - r)` and `b = 2r`. An enzyme-fold with all-equal labels stays active with `r = 0.5` and `a = b = 1`. For `n = 1`, `a = b = 0` and the cell still counts in `N_B`; for `n = 0` there are no cells; both cases are logged. There is no other eligibility mask. `a + b = 2` holds on every observed cell of an active enzyme-fold. Mean `a` = mean `b` = 1 holds over the whole ranked set of a fold and enzyme, not per batch. Chemprop's existing drop of one training sample per epoch, when the training size leaves a remainder of 1 over the batch size, is unchanged.
+6. **Screening.** Screening values are removed from the penalty weights: the penalty reads no screening file, identity table or SMILES comparison. The r1 screening checkpoint (`epoch_016`, selected record SHA-256 `4da7a07d...`, checkpoint `96b75ceb...`), its weight transfer and the screening-stage inputs are retained. The D024 join's protected-tier check is removed with the join; D007 routing still raises on a protected-test molecule, and the penalty adds no molecule beyond the base loss.
+7. **Lambda.** lambda = 1, with no sweep and no per-enzyme values.
+8. **Scope.** 150 matched cells, three downstream seeds and the saved unchanged baseline; there are no baseline fits.
+9. **Evaluation and adoption.** The four D029 adoption clauses apply, with the fixed tail cohorts `analysis/cyp_010_tail_cohorts_20261124.json` (SHA-256 `cc336d4ab3de85a5c8da0ccfd2408b43a27e02c7b5ea2ee41b407388c0d73e7e`). The cohorts are defined per enzyme as the top and bottom `max(1, round(0.10 n))` molecules by the unchanged arm's mean signed error (predicted - measured) over its 15 predictions, with ties broken by name; tail comparisons are baseline-conditioned. CYP3A4 coverage is reported descriptively. A pass is provisional, and r2/r3 requires separate approval; otherwise unchanged updated T121 stays. Evaluation is development-only, and any improvement is exploratory because the design follows inspected validation results.
+10. **Logging.** The base and penalty loss components are logged, with the upper and lower penalty sums and active counts per enzyme and epoch.
+11. **Stopping rule.** One configuration is run once. Nothing is changed after held-out scores are seen. A failed cell 0 integrity check stops the run before cells 1-149. Failed cells require a decision. The experiment ends at aggregation. A failure closes this configuration, not further work.
+12. **Source version.** The implementation is built on D029 as packaged: archive SHA-256 `ef84a8022b8d597cf38d137c2bcd198fb44b2e1774acdc1ea66da319a58051ce`, penalty module `b6d72307fab389af6cbc9819b2b384998c588373553797380fd2fb9f6f9b0c34` and aggregator `e7b712f5...f44d`, uncommitted on top of commit `6a33d7c`. The equivalence tests read the module from the untracked D029 package folder, which must be preserved.
+
+## Not decided
+
+- the timing arrangement. Proposed, not approved: a one-off sizing from past batch timings, cell 0 run first, and 12 h per cell. The existing requirement stands: measured per-unit timing and the extrapolated total against the requested wall time are required, with no SLURM benchmarking;
+- the r2/r3 confirmation stage;
+- any commit.
+
+## Relation to existing records
+
+D024, D029 and their amendments are referenced and unchanged. Nothing is superseded.
+
+## Not authorized
+
+- any training, inference, transfer, benchmarking through SLURM, GPU job, SLURM submission, commit or execution by the assistant;
+- any lambda sweep;
+- any additional arm;
+- any new baseline fit;
+- any use of protected data;
+- any change to existing records or frozen artifacts.
+
+## Governing principle
+
+The arm differs from unchanged updated T121 only in the extra penalty term, computed from training-fold information.
+
+## Amendment 1 (2026-11-27) — Wall-time sizing (one-off deviation) and execution scope
+
+**Status:** Approved as a sizing decision and an execution scope for the D030 run only. **Execution is run by the project owner; the assistant executes nothing. This amendment authorizes no r2/r3 confirmation stage and no commit.** D030's text above is unchanged. This amendment lifts, for the items in item 4 only, D030's bar on transfer, training, inference, GPU jobs and SLURM submission, and closes the D030 "Not decided" item on the timing arrangement.
+
+1. **Runtime sizing (one-off deviation).** The measured-interactive-runtime rule is deviated from once, for the D030 run only: wall time is sized from past batch timings, cell 0 is run first, and the 12 h (43200 s) per-cell request is retained. This is not a standing permission.
+2. **Sizing basis.** D024 cells took 85-170 s each (149-cell totals 17392 s and 17140 s). D029 cell 0 took 128 s and 123 s. D029 validation inference (`twosided`) took 00:04:32.
+3. **Extrapolation.** About 4.8-5.3 GPU-hours for 150 cells at 116-125 s per cell, and 7.1 GPU-hours at 170 s per cell. The 12 h per-cell request is about 254 times the longest observed cell. Inference is about 4.5 minutes against a 30-minute limit.
+4. **Approved execution.** Transfer; package verification and load check; input-file check; cell planning; cell 0; cells 1-149; validation-only inference (cells 0-149); and aggregation under the D030 evaluation config.
+5. **Condition.** Cells 1-149 run only if cell 0 passes its integrity check. Cell 0 scores are not considered.
+6. **Package covered.** `t121_d030_package_20261126.tar.gz`, SHA-256 `1b2cc7e97f803ca757873ce64f46fd0b3285d1e5ae7ddfc02179d80659b7b062`.
+
+### Limitations
+
+D029 per-cell times for cells 1-149 were not supplied, and the added compute of the D030 penalty is not measured.
+
+### Not authorized
+
+- the r2/r3 confirmation stage;
+- any commit;
+- execution by the assistant;
+- any use of protected data;
+- any rerun of a failed cell without separate adjudication;
+- any change to the arm, lambda, weights, tails or adoption rule.
+

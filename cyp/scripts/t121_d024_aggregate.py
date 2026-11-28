@@ -24,6 +24,10 @@ verified-value rule), next to the full-enzyme and fixed-tail results, from the
 same saved predictions. The grouping is built once and hash-pinned like the
 cohorts.
 
+Arm names come from the evaluation config's `arm_labels` ("unchanged" plus the
+penalty arms), so the same clauses judge a later comparison's arms (D029:
+twosided, huber).
+
 Reads result files and saved prediction CSVs only; runs no model code.
 
     cohorts   --baseline-predictions D --sha256sums F --config C --output NEW.json
@@ -48,8 +52,9 @@ if str(Path(__file__).resolve().parent) not in sys.path:
 import t121_d021_aggregate as base  # noqa: E402
 import t121_validation_inference as inference  # noqa: E402
 
-ARMS = ("unchanged", "q3", "rank")
-PENALTY_ARMS = ("q3", "rank")
+BASELINE = "unchanged"
+# The D024 comparison's arm names; a run's own names come from its config.
+ARMS = (BASELINE, "q3", "rank")
 sha256_file = base.sha256_file
 mean = base.mean
 
@@ -63,7 +68,22 @@ def load_config(path):
     missing = required - set(config)
     if missing:
         raise ValueError(f"Evaluation config lacks: {sorted(missing)}")
+    if config["tie_preference"] not in penalty_arms(config):
+        raise ValueError("tie_preference must name one of the config's penalty arms.")
     return config
+
+
+def penalty_arms(config):
+    """The config's penalty arms, in its order; the baseline must be listed too."""
+    labels = config["arm_labels"]
+    arms = tuple(a for a in labels if a != BASELINE)
+    if BASELINE not in labels or not arms or len(set(labels.values())) != len(labels):
+        raise ValueError(f"arm_labels needs {BASELINE!r} and distinct penalty arms.")
+    return arms
+
+
+def arm_names(config):
+    return (BASELINE, *penalty_arms(config))
 
 
 def sums_table(path):
@@ -256,7 +276,7 @@ def _difference(a, b):
     return None if a is None or b is None else a - b
 
 
-def group_report(predictions, coverage, runs, cohorts):
+def group_report(predictions, coverage, runs, cohorts, config):
     """Per-arm group metrics and their differences from the unchanged arm. Descriptive only."""
     isoform = coverage["isoform"]
     seed_of = {c["cell_index"]: c["seed"] for c in runs["unchanged"]["cells"]}
@@ -267,10 +287,10 @@ def group_report(predictions, coverage, runs, cohorts):
     groups = {
         arm: {name: group_metrics(predictions[arm][0], isoform, members[name], seed_of, cohorts)
               for name in members}
-        for arm in ARMS
+        for arm in arm_names(config)
     }
     differences = {}
-    for arm in PENALTY_ARMS:
+    for arm in penalty_arms(config):
         differences[arm] = {}
         for name in members:
             mine, theirs = groups[arm][name], groups["unchanged"][name]
@@ -324,8 +344,9 @@ def arm_clauses(unchanged, arm, config):
 
 
 def decide(metrics, config):
-    judged = {arm: arm_clauses(metrics["unchanged"], metrics[arm], config) for arm in PENALTY_ARMS}
-    passing = [arm for arm in PENALTY_ARMS if judged[arm]["passes"]]
+    arms = penalty_arms(config)
+    judged = {arm: arm_clauses(metrics["unchanged"], metrics[arm], config) for arm in arms}
+    passing = [arm for arm in arms if judged[arm]["passes"]]
     if not passing:
         selected = "unchanged"
     else:
@@ -357,16 +378,17 @@ def evaluate(runs, predictions, cohorts, config, coverage):
                 for c in run["cells"]}
 
     reference = layout(runs["unchanged"])
-    for arm in PENALTY_ARMS:
+    arms, penalties = arm_names(config), penalty_arms(config)
+    for arm in penalties:
         if layout(runs[arm]) != reference:
             raise ValueError(f"{arm}: cell/partition layout differs from the unchanged arm")
-    if len({runs[arm]["screen_checkpoint_sha256"] for arm in ARMS}) != 1:
-        raise ValueError("The three arms were not fed by the same screening checkpoint.")
+    if len({runs[arm]["screen_checkpoint_sha256"] for arm in arms}) != 1:
+        raise ValueError("The arms were not fed by the same screening checkpoint.")
 
     def labels(rows):
         return {key: (v[0], v[2], v[3]) for key, v in rows.items()}
 
-    for arm in ARMS:
+    for arm in arms:
         rows, checkpoints, _ = predictions[arm]
         if checkpoints != runs[arm]["checkpoints"]:
             raise ValueError(f"{arm}: predictions were not made from this run's best checkpoints.")
@@ -380,7 +402,7 @@ def evaluate(runs, predictions, cohorts, config, coverage):
         raise ValueError("Coverage groups do not cover exactly the baseline's molecules.")
     metrics = {
         arm: {**cell_metrics(runs[arm], config), "tails": tail_metrics(predictions[arm][0], cohorts)}
-        for arm in ARMS
+        for arm in arms
     }
     difference = metrics["unchanged"]["O150"] - config["baseline_o150"]
     if abs(difference) > config["baseline_o150_tolerance"]:
@@ -390,13 +412,14 @@ def evaluate(runs, predictions, cohorts, config, coverage):
     return {
         "rule": "D024 Amendments 1 and 2; development evidence on already-inspected partitions; "
                 "no significance claim; tail membership comes from the baseline's own errors.",
+        "decision_record": config.get("decision"),
         "metrics": metrics,
         "differences_from_unchanged": {
-            arm: metrics[arm]["O150"] - metrics["unchanged"]["O150"] for arm in PENALTY_ARMS
+            arm: metrics[arm]["O150"] - metrics["unchanged"]["O150"] for arm in penalties
         },
         "decision": decide(metrics, config),
         "baseline_reproduction_difference": difference,
-        "coverage_groups": group_report(predictions, coverage, runs, cohorts),
+        "coverage_groups": group_report(predictions, coverage, runs, cohorts, config),
     }
 
 
@@ -406,15 +429,15 @@ def write_new(path, payload):
         handle.write("\n")
 
 
-def named_paths(items, label):
+def named_paths(items, label, arms):
     paths = {}
     for item in items:
         name, _, path = item.partition("=")
-        if name in paths or name not in ARMS or not path:
+        if name in paths or name not in arms or not path:
             raise ValueError(f"Bad or duplicate {label}: {item}")
         paths[name] = path
-    if set(paths) != set(ARMS):
-        raise ValueError(f"{label} must name exactly {ARMS}.")
+    if set(paths) != set(arms):
+        raise ValueError(f"{label} must name exactly {arms}.")
     return paths
 
 
@@ -493,10 +516,11 @@ def main(argv=None):
         raise ValueError("Coverage file does not match its pinned SHA-256.")
     frozen = json.loads(Path(args.cohorts).read_text())
     coverage = json.loads(Path(args.coverage).read_text())
-    cell_dirs = named_paths(args.cells, "--cells")
-    prediction_dirs = named_paths(args.predictions, "--predictions")
-    runs = {arm: load_arm(cell_dirs[arm], arm, config) for arm in ARMS}
-    predictions = {arm: load_predictions(prediction_dirs[arm], cells) for arm in ARMS}
+    arms = arm_names(config)
+    cell_dirs = named_paths(args.cells, "--cells", arms)
+    prediction_dirs = named_paths(args.predictions, "--predictions", arms)
+    runs = {arm: load_arm(cell_dirs[arm], arm, config) for arm in arms}
+    predictions = {arm: load_predictions(prediction_dirs[arm], cells) for arm in arms}
     if frozen["prediction_sha256_by_cell"] != {
         str(k): v for k, v in predictions["unchanged"][2].items()
     }:
@@ -516,11 +540,11 @@ def main(argv=None):
             "result_sha256_by_cell": {str(c["cell_index"]): c["result_sha256"] for c in runs[arm]["cells"]},
             "prediction_sha256_by_cell": {str(k): v for k, v in predictions[arm][2].items()},
         }
-        for arm in ARMS
+        for arm in arms
     }
     write_new(args.output, report)
 
-    for arm in ARMS:
+    for arm in arms:
         entry = report["metrics"][arm]
         print(f"{arm:<10} O150 {entry['O150']:.9f}")
         for isoform in config["isoforms"]:
@@ -532,7 +556,7 @@ def main(argv=None):
     print("selected:", report["decision"]["selected"])
     groups = report["coverage_groups"]
     print(f"{groups['isoform']} by screening coverage (descriptive; not an adoption clause): {groups['counts']}")
-    for arm in ARMS:
+    for arm in arms:
         for name, entry in groups["groups"][arm].items():
             score = entry["st_rae_mean"]
             print(f"  {arm:<10} {name:<12} molecules {entry['molecules']:>5}  MAE {entry['mae']:.6f}  "
